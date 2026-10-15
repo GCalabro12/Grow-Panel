@@ -12,9 +12,11 @@
      sin-titulo          sin la cabecera «Grow Panel»
      titulo="Mis apps"   cambiar el texto de la cabecera
      tema="claro|oscuro" forzar tema (por defecto sigue al sistema)
+   Orden: cada tarjeta tiene un asa de seis puntos abajo a la izquierda; arrastrándola (o con las flechas
+   ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.07';
+  const VERSION = 'v1.08';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -53,17 +55,33 @@ a.app:hover{border-color:var(--c)}
 .cifras{grid-column:2;display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .cifras span{font-size:12px;color:var(--gp-mut);background:var(--gp-sub);border-radius:8px;padding:4px 8px}
 .cifras b{color:var(--gp-tx);font-size:13px;font-variant-numeric:tabular-nums}
+.item{position:relative}
+.item .app{height:100%;min-height:96px}
+.asa{position:absolute;left:16px;bottom:8px;width:32px;height:26px;display:grid;place-items:center;padding:0;border:0;
+  border-radius:6px;background:transparent;color:var(--gp-mut);cursor:grab;touch-action:none}
+.asa:hover,.asa:focus-visible{background:var(--gp-sub);color:var(--gp-tx);outline:none}
+.asa svg{width:12px;height:18px;display:block}
+.item.arrastrando{opacity:.6}
+.item.arrastrando .app{border-style:dashed}
+.item.arrastrando .asa{cursor:grabbing}
 .vacio{color:var(--gp-mut);font-size:14px;padding:12px;border:1px dashed var(--gp-ln);border-radius:12px}
 :host([compacto]) .lista{grid-template-columns:1fr;gap:6px}
 :host([compacto]) .app{padding:8px 10px;align-items:center}
 :host([compacto]) .ico{width:30px;height:30px;font-size:16px}
 :host([compacto]) .cifras{display:none}
 :host([compacto]) .msg{font-size:13px;margin-top:0}
+:host([compacto]) .item .app{min-height:0;padding-left:40px}
+:host([compacto]) .asa{left:4px;bottom:auto;top:50%;transform:translateY(-50%)}
 `;
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const urlSegura = u => /^https:\/\//.test(u || '') ? u : '';
   const colorSeguro = c => /^#[0-9a-f]{3,8}$/i.test(c || '') ? c : '';
+
+  const PUNTOS = '<svg viewBox="0 0 10 16" aria-hidden="true"><circle cx="2" cy="2" r="1.6" fill="currentColor"/><circle cx="8" cy="2" r="1.6" fill="currentColor"/><circle cx="2" cy="8" r="1.6" fill="currentColor"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="2" cy="14" r="1.6" fill="currentColor"/><circle cx="8" cy="14" r="1.6" fill="currentColor"/></svg>';
+  function ordenGuardado() {
+    try { const o = JSON.parse(localStorage.getItem('growpanel.orden')); return Array.isArray(o) ? o : []; } catch (e) { return []; }
+  }
 
   // Apps y resúmenes apuntados por grow-panel-boton.js en este navegador
   function local(clave) {
@@ -113,14 +131,14 @@ a.app:hover{border-color:var(--c)}
     const attrs = url ? ` href="${esc(url)}" target="_blank" rel="noopener"` : '';
     const cifras = (v.f && Array.isArray(v.f.cifras) ? v.f.cifras.slice(0, 3) : [])
       .map(c => `<span><b>${esc(c.valor)}</b> ${esc(c.etiqueta)}</span>`).join('');
-    return `<${tag} class="app" style="--c:var(--gp-${v.estado})${color ? `;--a:${color}` : ''}"${attrs} title="${esc(a.nombre)} · ${esc(ESTADOS[v.estado])}">
+    return `<div class="item" data-id="${esc(a.id)}"><${tag} class="app" style="--c:var(--gp-${v.estado})${color ? `;--a:${color}` : ''}"${attrs} title="${esc(a.nombre)} · ${esc(ESTADOS[v.estado])}">
   <span class="ico">${icono ? `<img src="${esc(icono)}" alt="">` : esc(a.emoji || (a.nombre || '•').charAt(0))}</span>
   <span>
     <span class="fila"><b>${esc(a.nombre)}</b>${v.f && v.f.version ? `<span class="ver">${esc(v.f.version)}</span>` : ''}${v.t ? `<span class="cuando">${hace(v.t)}</span>` : ''}</span>
     <span class="msg"><i class="punto"></i>${esc(v.mensaje)}</span>
   </span>
   ${cifras ? `<span class="cifras">${cifras}</span>` : ''}
-</${tag}>`;
+</${tag}><button class="asa" type="button" title="Arrastra para ordenar" aria-label="Mover ${esc(a.nombre)}: arrastra o usa las flechas arriba y abajo">${PUNTOS}</button></div>`;
   }
 
   class GrowPanel extends HTMLElement {
@@ -142,8 +160,14 @@ a.app:hover{border-color:var(--c)}
       const turno = this._turno = (this._turno || 0) + 1; // solo pinta la carga más reciente
       try {
         const reg = await leerJSON(this.getAttribute('registro') || BASE + 'apps.json');
-        const todas = [...(reg.apps || [])];
-        for (const [id, a] of Object.entries(appsLocales())) {
+        // La tarjeta abre la app desde la que el usuario llegó (su dirección real), no la de apps.json:
+        // una app puede estar publicada en varias direcciones y cada una guarda sus datos aparte.
+        const locales = appsLocales();
+        const todas = (reg.apps || []).map(a => {
+          const l = locales[a.id];
+          return l && urlSegura(l.url) && !a.externa ? Object.assign({}, a, { url: l.url }) : a;
+        });
+        for (const [id, a] of Object.entries(locales)) {
           if (!todas.some(x => x.id === id) && urlSegura(a.url)) todas.push({ id, nombre: a.nombre, url: a.url });
         }
         // Grow Panel se activa a partir de la segunda app
@@ -151,8 +175,14 @@ a.app:hover{border-color:var(--c)}
         const ocultar = (this.getAttribute('ocultar') || '').split(',').map(s => s.trim()).filter(Boolean);
         const apps = todas.filter(a => !ocultar.includes(a.id));
         const fichas = await Promise.all(apps.map(a => leerJSON(a.ficha).catch(() => null)));
-        if (turno !== this._turno) return;
+        if (turno !== this._turno || this._arrastrando) return;
         const vistas = apps.map((a, i) => combinar(a, fichas[i])).sort((x, y) => ORDEN[x.estado] - ORDEN[y.estado]);
+        // Orden elegido por el usuario; las apps nuevas van al final, por estado
+        const orden = ordenGuardado();
+        if (orden.length) {
+          const pos = v => { const i = orden.indexOf(v.app.id); return i < 0 ? 1e6 : i; };
+          vistas.sort((x, y) => pos(x) - pos(y));
+        }
         this.pintar(raiz, vistas, todas.length);
       } catch (e) {
         if (turno !== this._turno) return;
@@ -173,7 +203,54 @@ a.app:hover{border-color:var(--c)}
         (malas ? `${malas} ${malas === 1 ? 'pide' : 'piden'} atención` : 'todo en orden');
       raiz.innerHTML = this.cabecera(sub) +
         (n ? `<div class="lista">${vistas.map(v => tarjeta(v, total)).join('')}</div>` : '<div class="vacio">No hay apps en el panel.</div>');
+      this.activarOrden(raiz);
       this.dispatchEvent(new CustomEvent('grow-panel-listo', { detail: { apps: n, atencion: malas } }));
+    }
+    // Asa de seis puntos: arrastrar (ratón o dedo) o flechas ↑ ↓ para cambiar el orden
+    activarOrden(raiz) {
+      const lista = raiz.querySelector('.lista');
+      if (!lista) return;
+      const guardar = () => {
+        try { localStorage.setItem('growpanel.orden', JSON.stringify([...lista.children].map(el => el.dataset.id))); } catch (e) {}
+      };
+      lista.querySelectorAll('.asa').forEach(asa => {
+        const item = asa.closest('.item');
+        asa.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); });
+        asa.addEventListener('keydown', e => {
+          if (e.key === 'ArrowUp' && item.previousElementSibling) lista.insertBefore(item, item.previousElementSibling);
+          else if (e.key === 'ArrowDown' && item.nextElementSibling) lista.insertBefore(item.nextElementSibling, item);
+          else return;
+          e.preventDefault(); asa.focus(); guardar();
+        });
+        asa.addEventListener('pointerdown', e => {
+          e.preventDefault();
+          // Se escucha en la ventana: al mover la tarjeta en la lista, el asa pierde el puntero
+          item.classList.add('arrastrando');
+          this._arrastrando = true;
+          const mover = ev => {
+            if (ev.clientY < 60) scrollBy(0, -12); else if (ev.clientY > innerHeight - 60) scrollBy(0, 12);
+            const otro = [...lista.children].find(el => {
+              if (el === item) return false;
+              const r = el.getBoundingClientRect();
+              return ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom;
+            });
+            if (!otro) return;
+            const items = [...lista.children];
+            lista.insertBefore(item, items.indexOf(otro) < items.indexOf(item) ? otro : otro.nextElementSibling);
+          };
+          const soltar = () => {
+            removeEventListener('pointermove', mover);
+            removeEventListener('pointerup', soltar);
+            removeEventListener('pointercancel', soltar);
+            item.classList.remove('arrastrando');
+            this._arrastrando = false;
+            guardar();
+          };
+          addEventListener('pointermove', mover);
+          addEventListener('pointerup', soltar);
+          addEventListener('pointercancel', soltar);
+        });
+      });
     }
   }
 
