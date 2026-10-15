@@ -20,6 +20,9 @@ main{max-width:1000px;margin:0 auto;padding:16px 16px 40px}
 .logo{height:56px;width:auto;display:block}
 .lema{width:100%;margin-top:-4px}
 .oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.accesos{display:flex;flex-wrap:wrap;gap:8px;margin:-6px 0 18px}
+.acceso{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--tx);background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:8px 12px;text-decoration:none}
+.acceso:hover{border-color:#8b5cf6}
 .mut{color:var(--mut);font-size:14px}
 .ver{margin-left:auto;font-size:13px;font-weight:700;color:var(--mut);background:var(--card);border:1px solid var(--ln);padding:3px 9px;border-radius:20px}
 details{margin-top:28px;background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:12px 14px;font-size:14px}
@@ -36,7 +39,7 @@ code{font-size:13px}
 @media (prefers-color-scheme:dark){.pi-seal::before{background:#4ADE80}.pi-seal:hover{border-color:#4ADE80}}
 /* Modo incrustado (iframe): solo el panel */
 body.embed{background:transparent}body.embed main{padding:8px}
-body.embed .top,body.embed details,body.embed .pie{display:none}
+body.embed .top,body.embed .accesos,body.embed details,body.embed .pie{display:none}
 </style>
 </head>
 <body>
@@ -50,6 +53,10 @@ body.embed .top,body.embed details,body.embed .pie{display:none}
     <span class="ver" id="ver"></span>
     <div class="mut lema">Apps para crecer, conectadas para crecer más</div>
   </div>
+
+  <nav class="accesos" aria-label="Accesos">
+    <a class="acceso" href="https://claude.ai/artifact/R2KhjYxNHijNwDnb3zMFH7" target="_blank" rel="noopener">⏰ Rutinas</a>
+  </nav>
 
   <grow-panel titulo="Tus apps"></grow-panel>
 
