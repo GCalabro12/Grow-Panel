@@ -14,7 +14,7 @@
      tema="claro|oscuro" forzar tema (por defecto sigue al sistema)
 */
 (() => {
-  const VERSION = 'v1.06';
+  const VERSION = 'v1.07';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
