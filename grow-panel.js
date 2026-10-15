@@ -14,7 +14,7 @@
      tema="claro|oscuro" forzar tema (por defecto sigue al sistema)
 */
 (() => {
-  const VERSION = 'v1.04';
+  const VERSION = 'v1.05';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -65,6 +65,11 @@ a.app:hover{border-color:var(--c)}
   const urlSegura = u => /^https:\/\//.test(u || '') ? u : '';
   const colorSeguro = c => /^#[0-9a-f]{3,8}$/i.test(c || '') ? c : '';
 
+  // Apps apuntadas por grow-panel-boton.js en este navegador
+  function appsLocales() {
+    try { return JSON.parse(localStorage.getItem('growpanel.apps')) || {}; } catch (e) { return {}; }
+  }
+
   async function leerJSON(url) {
     const r = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) throw new Error(r.status);
@@ -85,6 +90,7 @@ a.app:hover{border-color:var(--c)}
 
   // Une la entrada del registro con su ficha y decide el estado visible
   function combinar(app, f) {
+    if (!app.ficha) return { app, estado: 'pausa', mensaje: 'Conectada · resumen próximamente' };
     if (!f) return { app, estado: 'mudo', mensaje: 'Todavía no ha publicado su ficha' };
     const t = Date.parse(f.actualizado);
     const limite = (Number(f.frecuencia_horas) || 24) * 1.5 * 3600e3;
@@ -97,14 +103,14 @@ a.app:hover{border-color:var(--c)}
     return v;
   }
 
-  function tarjeta(v) {
-    const a = v.app, url = urlSegura(a.url), icono = urlSegura(a.icono), color = colorSeguro(a.color);
+  function tarjeta(v, n) {
+    const a = v.app, base = urlSegura(a.url), url = base && (a.externa ? base : base + (base.includes('?') ? '&' : '?') + 'growpanel=' + n), icono = urlSegura(a.icono), color = colorSeguro(a.color);
     const tag = url ? 'a' : 'div';
     const attrs = url ? ` href="${esc(url)}" target="_blank" rel="noopener"` : '';
     const cifras = (v.f && Array.isArray(v.f.cifras) ? v.f.cifras.slice(0, 3) : [])
       .map(c => `<span><b>${esc(c.valor)}</b> ${esc(c.etiqueta)}</span>`).join('');
     return `<${tag} class="app" style="--c:var(--gp-${v.estado})${color ? `;--a:${color}` : ''}"${attrs} title="${esc(a.nombre)} · ${esc(ESTADOS[v.estado])}">
-  <span class="ico">${icono ? `<img src="${esc(icono)}" alt="">` : esc(a.emoji || '•')}</span>
+  <span class="ico">${icono ? `<img src="${esc(icono)}" alt="">` : esc(a.emoji || (a.nombre || '•').charAt(0))}</span>
   <span>
     <span class="fila"><b>${esc(a.nombre)}</b>${v.f && v.f.version ? `<span class="ver">${esc(v.f.version)}</span>` : ''}${v.t ? `<span class="cuando">${hace(v.t)}</span>` : ''}</span>
     <span class="msg"><i class="punto"></i>${esc(v.mensaje)}</span>
@@ -132,7 +138,10 @@ a.app:hover{border-color:var(--c)}
       const turno = this._turno = (this._turno || 0) + 1; // solo pinta la carga más reciente
       try {
         const reg = await leerJSON(this.getAttribute('registro') || BASE + 'apps.json');
-        const todas = reg.apps || [];
+        const todas = [...(reg.apps || [])];
+        for (const [id, a] of Object.entries(appsLocales())) {
+          if (!todas.some(x => x.id === id) && urlSegura(a.url)) todas.push({ id, nombre: a.nombre, url: a.url });
+        }
         // Grow Panel se activa a partir de la segunda app
         this.toggleAttribute('oculto', todas.length < 2);
         const ocultar = (this.getAttribute('ocultar') || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -140,7 +149,7 @@ a.app:hover{border-color:var(--c)}
         const fichas = await Promise.all(apps.map(a => leerJSON(a.ficha).catch(() => null)));
         if (turno !== this._turno) return;
         const vistas = apps.map((a, i) => combinar(a, fichas[i])).sort((x, y) => ORDEN[x.estado] - ORDEN[y.estado]);
-        this.pintar(raiz, vistas);
+        this.pintar(raiz, vistas, todas.length);
       } catch (e) {
         if (turno !== this._turno) return;
         raiz.innerHTML = this.cabecera('No se pudo leer el panel. Revisa la conexión.') + '<div class="vacio">Sin conexión con Grow Panel.</div>';
@@ -153,13 +162,13 @@ a.app:hover{border-color:var(--c)}
       return `<div class="cab"><div><h2>${esc(this.getAttribute('titulo') || 'Grow Panel')}</h2><div class="sub">${esc(sub)}</div></div>
         <button class="rec" title="Actualizar" aria-label="Actualizar">↻</button></div>`;
     }
-    pintar(raiz, vistas) {
+    pintar(raiz, vistas, total) {
       const n = vistas.length;
       const malas = vistas.filter(v => v.estado !== 'ok' && v.estado !== 'pausa').length;
       const sub = `${n} ${n === 1 ? 'app' : 'apps'} · ` +
         (malas ? `${malas} ${malas === 1 ? 'pide' : 'piden'} atención` : 'todo en orden');
       raiz.innerHTML = this.cabecera(sub) +
-        (n ? `<div class="lista">${vistas.map(tarjeta).join('')}</div>` : '<div class="vacio">No hay apps en el panel.</div>');
+        (n ? `<div class="lista">${vistas.map(v => tarjeta(v, total)).join('')}</div>` : '<div class="vacio">No hay apps en el panel.</div>');
       this.dispatchEvent(new CustomEvent('grow-panel-listo', { detail: { apps: n, atencion: malas } }));
     }
   }

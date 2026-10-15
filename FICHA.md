@@ -45,5 +45,5 @@ estado de todas las apps en un solo panel.
 ## Añadir una app nueva
 
 1. Crear su script de ficha (ejemplo: `12 App Finan Gus/utilidades/ficha_estado.py`).
-2. Añadir la app a `apps.json` (id, nombre, ficha, url, icono o emoji, color) y publicar Grow Panel.
+2. Añadir la app a `apps.json` (id, nombre, ficha, url, icono o emoji, color; `externa: true` si no es una app propia, p. ej. Gmail) y publicar Grow Panel. Sin `ficha`, la tarjeta sale como «Conectada · resumen próximamente».
 3. Añadir el paso «genera y publica la ficha» a la tarea o rutina que actualiza la app.

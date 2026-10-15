@@ -14,8 +14,22 @@
       "nombre": "Email Manager",
       "ficha": "https://gcalabro12.github.io/Email-Manager/estado.json",
       "url": "https://mail.google.com/",
+      "externa": true,
       "emoji": "📬",
       "color": "#e0f2fe"
+    },
+    {
+      "id": "pc-body-mind",
+      "nombre": "PC & Body-mind",
+      "url": "https://gcalabro12.github.io/PC-Body-mind/",
+      "icono": "https://gcalabro12.github.io/PC-Body-mind/icon-192.png"
+    },
+    {
+      "id": "calistenia",
+      "nombre": "Calistenia",
+      "url": "https://app-unbreakable.web.app/",
+      "emoji": "💪",
+      "color": "#dcfce7"
     }
   ]
 }
