@@ -16,8 +16,10 @@
 body{margin:0;font-family:system-ui,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx)}
 main{max-width:1000px;margin:0 auto;padding:16px 16px 40px}
 .top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-.top img{width:48px;height:48px;border-radius:12px}
-.top h1{margin:0;font-size:26px;letter-spacing:-.3px}
+.top{flex-wrap:wrap}
+.logo{height:56px;width:auto;display:block}
+.lema{width:100%;margin-top:-4px}
+.oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .mut{color:var(--mut);font-size:14px}
 .ver{margin-left:auto;font-size:13px;font-weight:700;color:var(--mut);background:var(--card);border:1px solid var(--ln);padding:3px 9px;border-radius:20px}
 details{margin-top:28px;background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:12px 14px;font-size:14px}
@@ -25,8 +27,11 @@ summary{cursor:pointer;font-weight:600}
 pre{background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:10px;overflow:auto;font-size:12.5px;white-space:pre}
 code{font-size:13px}
 .pie{text-align:center;margin-top:28px}
-.pi-seal{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.3px;color:var(--mut);border:1px solid var(--ln);border-radius:999px;padding:6px 12px;text-decoration:none}
+.sellos{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.pi-seal,.gp-seal{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.3px;color:var(--mut);border:1px solid var(--ln);border-radius:999px;padding:6px 12px;text-decoration:none}
 .pi-seal::before{content:"";width:7px;height:7px;border-radius:50%;background:#22c55e}
+.gp-seal svg{width:14px;height:14px;flex:none}
+.gp-seal:hover{color:var(--tx);border-color:#8b5cf6}
 .pi-seal:hover{color:var(--tx);border-color:#22c55e}
 @media (prefers-color-scheme:dark){.pi-seal::before{background:#4ADE80}.pi-seal:hover{border-color:#4ADE80}}
 /* Modo incrustado (iframe): solo el panel */
@@ -37,9 +42,13 @@ body.embed .top,body.embed details,body.embed .pie{display:none}
 <body>
 <main>
   <div class="top">
-    <img src="icono.svg" alt="">
-    <div><h1>Grow Panel</h1><div class="mut">Apps para crecer, conectadas para crecer más</div></div>
+    <h1 class="oculto">Grow Panel</h1>
+    <picture>
+      <source srcset="logo-oscuro.svg" media="(prefers-color-scheme: dark)">
+      <img class="logo" src="logo.svg" alt="Grow Panel">
+    </picture>
     <span class="ver" id="ver"></span>
+    <div class="mut lema">Apps para crecer, conectadas para crecer más</div>
   </div>
 
   <grow-panel titulo="Tus apps"></grow-panel>
@@ -54,7 +63,10 @@ body.embed .top,body.embed details,body.embed .pie{display:none}
 <pre>&lt;iframe src="https://gcalabro12.github.io/Grow-Panel/?embed=1" style="width:100%;height:420px;border:0"&gt;&lt;/iframe&gt;</pre>
   </details>
 
-  <div class="pie"><a class="pi-seal" href="https://practicaintegral.club" target="_blank" rel="noopener">by Práctica Integral</a></div>
+  <div class="pie sellos">
+    <a class="pi-seal" href="https://practicaintegral.club" target="_blank" rel="noopener">by Práctica Integral</a>
+    <a class="gp-seal" href="https://practicaintegral.club/grow-panel/" target="_blank" rel="noopener"><svg viewBox="0 0 512 512" aria-hidden="true"><circle cx="256" cy="107.5" r="69.1" fill="#f59e0b"/><circle cx="397.2" cy="210.1" r="69.1" fill="#0f766e"/><circle cx="343.3" cy="376.1" r="69.1" fill="#8b5cf6"/><circle cx="168.7" cy="376.1" r="69.1" fill="#3b82f6"/><circle cx="114.8" cy="210.1" r="69.1" fill="#ef4444"/><circle cx="256" cy="256" r="79.4" fill="#6b7280"/></svg>with Grow Panel</a>
+  </div>
 </main>
 <script src="grow-panel.js"></script>
 <script>
