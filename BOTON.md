@@ -24,6 +24,10 @@ cualquier mejora llega a todas las apps a la vez.
 | Finan Gus | `finan-gus` | `Finan Gus` |
 | PC & Body-mind | `pc-body-mind` | `PC & Body-mind` |
 | Calistenia | `calistenia` | `Calistenia` |
+| Metas Amables | `metas-amables` | `Metas Amables` |
+| Flow | `flow` | `Flow` |
+| Mi Reproductor | `mi-reproductor` | `Mi Reproductor` |
+| Delicioso | `delicioso` | `Delicioso` |
 
 ## Cómo funciona
 

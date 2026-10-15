@@ -30,6 +30,32 @@
       "url": "https://app-unbreakable.web.app/",
       "emoji": "💪",
       "color": "#dcfce7"
+    },
+    {
+      "id": "metas-amables",
+      "nombre": "Metas Amables",
+      "url": "https://app.practicaintegral.club/",
+      "icono": "https://app.practicaintegral.club/icon-192.png"
+    },
+    {
+      "id": "flow",
+      "nombre": "Flow",
+      "url": "https://gcalabro12.github.io/Flow/",
+      "emoji": "🧘",
+      "color": "#ede9fe"
+    },
+    {
+      "id": "mi-reproductor",
+      "nombre": "Mi Reproductor",
+      "url": "https://mi-reproductor-web.web.app/",
+      "emoji": "🎵",
+      "color": "#e0e7ff"
+    },
+    {
+      "id": "delicioso",
+      "nombre": "Delicioso",
+      "url": "https://gcalabro12.github.io/Delicioso/",
+      "icono": "https://gcalabro12.github.io/Delicioso/icon-192.png"
     }
   ]
 }
