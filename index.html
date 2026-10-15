@@ -86,9 +86,23 @@ if (q.has('desde')) {
     try { localStorage.setItem('growpanel.apps', JSON.stringify(apps)); } catch (e) {}
     const v = document.getElementById('volver');
     v.href = url; v.textContent = '← Volver a ' + nombre; v.hidden = false;
+    // Resumen que trae la app detrás de «#ficha=» (no sale del navegador)
+    const m = location.hash.match(/^#ficha=(.+)$/);
+    if (m) {
+      try {
+        const f = JSON.parse(decodeURIComponent(m[1]));
+        if (f && typeof f === 'object' && !Array.isArray(f)) {
+          let fichas = {};
+          try { fichas = JSON.parse(localStorage.getItem('growpanel.fichas')) || {}; } catch (e) {}
+          fichas[id] = f;
+          localStorage.setItem('growpanel.fichas', JSON.stringify(fichas));
+          document.querySelector('grow-panel').cargar();
+        }
+      } catch (e) {}
+    }
   }
   ['desde', 'nombre', 'url'].forEach(k => q.delete(k));
-  history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : ''));
+  history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : ''));  // también quita «#ficha=…»
 }
 if (q.has('embed')) {
   document.body.classList.add('embed');

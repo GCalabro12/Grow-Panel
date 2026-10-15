@@ -35,3 +35,29 @@ cualquier mejora llega a todas las apps a la vez.
 - El botón mide 34 × 34 px. Si hay que adaptarlo a los colores de la app, se puede usar el selector `#grow-panel-boton .gp-boton`
   (por ejemplo, el borde). No cambies la mini flor.
 - Si la app tiene service worker, no hace falta tocarlo: el archivo viene de otra ruta y siempre se pide a la red.
+
+## Resumen de la app en Grow Panel (fase 2)
+
+Cada vez que cambian los datos que importan (al abrir la app, al terminar un entreno, al sumar pasos…), la app llama a:
+
+```js
+GrowPanel.resumen({
+  estado: 'ok',            // 'ok' (verde) · 'aviso' (ámbar: algo pendiente hoy) · 'error' (rojo) · 'pausa' (gris)
+  mensaje: 'Entreno de hoy hecho ✓',          // una frase, máx. 90 caracteres
+  cifras: [                                    // hasta 3, valor máx. 12 caracteres y etiqueta máx. 30
+    { valor: 6, etiqueta: 'días de racha' },
+    { valor: '3/5', etiqueta: 'esta semana' },
+    { valor: '32 min', etiqueta: 'último' }
+  ],
+  version: 'v1.39'                             // opcional
+});
+```
+
+- Si tu código se ejecuta antes de que cargue el botón, espera al evento:
+  `addEventListener('growpanel-listo', () => GrowPanel.resumen({...}))`
+  o deja los datos en `window.growPanelResumen = {...}` y el botón los recoge al cargar.
+- El resumen **se queda en el navegador del usuario** (`localStorage` «growpanel.fichas»). No se sube a ningún servidor.
+  - Apps de `gcalabro12.github.io`: Grow Panel lo ve al momento.
+  - Apps de otra dirección (Calistenia…): viaja al tocar el botón, detrás de `#` en el enlace (esa parte nunca se envía a internet).
+- Si pasan más de 36 horas sin resumen nuevo, la tarjeta se pone gris («Sin ficha nueva desde…»).
+- Solo números y frases cortas: nada que no quieras ver en una tarjeta.

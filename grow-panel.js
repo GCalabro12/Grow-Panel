@@ -14,7 +14,7 @@
      tema="claro|oscuro" forzar tema (por defecto sigue al sistema)
 */
 (() => {
-  const VERSION = 'v1.05';
+  const VERSION = 'v1.06';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -65,10 +65,11 @@ a.app:hover{border-color:var(--c)}
   const urlSegura = u => /^https:\/\//.test(u || '') ? u : '';
   const colorSeguro = c => /^#[0-9a-f]{3,8}$/i.test(c || '') ? c : '';
 
-  // Apps apuntadas por grow-panel-boton.js en este navegador
-  function appsLocales() {
-    try { return JSON.parse(localStorage.getItem('growpanel.apps')) || {}; } catch (e) { return {}; }
+  // Apps y resúmenes apuntados por grow-panel-boton.js en este navegador
+  function local(clave) {
+    try { return JSON.parse(localStorage.getItem(clave)) || {}; } catch (e) { return {}; }
   }
+  const appsLocales = () => local('growpanel.apps');
 
   async function leerJSON(url) {
     const r = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' });
@@ -90,12 +91,15 @@ a.app:hover{border-color:var(--c)}
 
   // Une la entrada del registro con su ficha y decide el estado visible
   function combinar(app, f) {
-    if (!app.ficha) return { app, estado: 'pausa', mensaje: 'Conectada · resumen próximamente' };
+    if (!app.ficha) {
+      f = local('growpanel.fichas')[app.id];
+      if (!f) return { app, estado: 'pausa', mensaje: 'Conectada · resumen próximamente' };
+    }
     if (!f) return { app, estado: 'mudo', mensaje: 'Todavía no ha publicado su ficha' };
     const t = Date.parse(f.actualizado);
     const limite = (Number(f.frecuencia_horas) || 24) * 1.5 * 3600e3;
     const estado = ESTADOS[f.estado] && f.estado !== 'mudo' ? f.estado : 'aviso';
-    const v = { app, f, t, estado, mensaje: f.mensaje || ESTADOS[estado] };
+    const v = { app, f, t, estado, mensaje: String(f.mensaje || ESTADOS[estado]).slice(0, 90) };
     if (!t || Date.now() - t > limite) {
       v.estado = 'mudo';
       v.mensaje = t ? `Sin ficha nueva desde el ${new Date(t).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}` : 'Ficha sin fecha';
