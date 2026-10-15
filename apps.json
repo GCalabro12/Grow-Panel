@@ -1,20 +1,21 @@
 {
-  "nombre": "Hub Gus",
-  "familia": "Gus",
+  "nombre": "Grow Panel",
   "apps": [
     {
       "id": "finan-gus",
       "nombre": "Finan Gus",
       "ficha": "https://gcalabro12.github.io/Finan-Gus/estado.json",
       "url": "https://gcalabro12.github.io/Finan-Gus/",
-      "icono": "https://gcalabro12.github.io/Finan-Gus/iconos/icono-192.png"
+      "icono": "https://gcalabro12.github.io/Finan-Gus/iconos/icono-192.png",
+      "color": "#0f766e"
     },
     {
       "id": "email-manager",
       "nombre": "Email Manager",
       "ficha": "https://gcalabro12.github.io/Email-Manager/estado.json",
       "url": "https://mail.google.com/",
-      "emoji": "📬"
+      "emoji": "📬",
+      "color": "#e0f2fe"
     }
   ]
 }

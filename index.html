@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Hub Gus</title>
-<meta name="description" content="Panel central de las apps personales de la familia Gus · by Práctica Integral">
-<meta name="theme-color" content="#1e293b">
+<title>Grow Panel</title>
+<meta name="description" content="Grow Panel: el panel central de tus apps · by Práctica Integral">
+<meta name="theme-color" content="#6b7280">
+<link rel="icon" type="image/png" sizes="32x32" href="icono-32.png">
 <link rel="icon" type="image/svg+xml" href="icono.svg">
+<link rel="apple-touch-icon" href="icono-180.png">
 <style>
 :root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#6b7280;--ln:#e5e7eb}
 @media (prefers-color-scheme:dark){:root{--bg:#12151b;--card:#1b2029;--tx:#e8eaee;--mut:#9aa3b2;--ln:#2a313d}}
@@ -14,8 +16,8 @@
 body{margin:0;font-family:system-ui,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx)}
 main{max-width:1000px;margin:0 auto;padding:16px 16px 40px}
 .top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-.top img{width:44px;height:44px;border-radius:10px}
-.top h1{margin:0;font-size:26px}
+.top img{width:48px;height:48px;border-radius:12px}
+.top h1{margin:0;font-size:26px;letter-spacing:-.3px}
 .mut{color:var(--mut);font-size:14px}
 .ver{margin-left:auto;font-size:13px;font-weight:700;color:var(--mut);background:var(--card);border:1px solid var(--ln);padding:3px 9px;border-radius:20px}
 details{margin-top:28px;background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:12px 14px;font-size:14px}
@@ -36,35 +38,35 @@ body.embed .top,body.embed details,body.embed .pie{display:none}
 <main>
   <div class="top">
     <img src="icono.svg" alt="">
-    <div><h1>Hub Gus</h1><div class="mut">Tus apps personales de un vistazo · familia Gus</div></div>
+    <div><h1>Grow Panel</h1><div class="mut">Apps para crecer, conectadas para crecer más</div></div>
     <span class="ver" id="ver"></span>
   </div>
 
-  <hub-gus titulo="Estado de las apps"></hub-gus>
+  <grow-panel titulo="Tus apps"></grow-panel>
 
   <details>
-    <summary>Poner el Hub dentro de otra app</summary>
+    <summary>Poner Grow Panel dentro de otra app</summary>
     <p>Opción 1 · componente (recomendado). Pegar donde se quiera ver el panel:</p>
-<pre>&lt;script src="https://gcalabro12.github.io/Hub-Gus/hub.js" defer&gt;&lt;/script&gt;
-&lt;hub-gus ocultar="id-de-esta-app"&gt;&lt;/hub-gus&gt;</pre>
+<pre>&lt;script src="https://gcalabro12.github.io/Grow-Panel/grow-panel.js" defer&gt;&lt;/script&gt;
+&lt;grow-panel ocultar="id-de-esta-app"&gt;&lt;/grow-panel&gt;</pre>
     <p>Atributos: <code>compacto</code> (una línea por app), <code>ocultar="finan-gus"</code>, <code>sin-titulo</code>, <code>titulo="Mis apps"</code>, <code>tema="claro"</code> u <code>"oscuro"</code>.</p>
     <p>Opción 2 · iframe:</p>
-<pre>&lt;iframe src="https://gcalabro12.github.io/Hub-Gus/?embed=1" style="width:100%;height:420px;border:0"&gt;&lt;/iframe&gt;</pre>
+<pre>&lt;iframe src="https://gcalabro12.github.io/Grow-Panel/?embed=1" style="width:100%;height:420px;border:0"&gt;&lt;/iframe&gt;</pre>
   </details>
 
   <div class="pie"><a class="pi-seal" href="https://practicaintegral.club" target="_blank" rel="noopener">by Práctica Integral</a></div>
 </main>
-<script src="hub.js"></script>
+<script src="grow-panel.js"></script>
 <script>
 const q = new URLSearchParams(location.search);
 if (q.has('embed')) {
   document.body.classList.add('embed');
-  const h = document.querySelector('hub-gus');
-  h.removeAttribute('titulo');
-  for (const k of ['compacto', 'ocultar', 'tema']) if (q.has(k)) h.setAttribute(k, q.get(k));
-  h.cargar();
+  const p = document.querySelector('grow-panel');
+  p.removeAttribute('titulo');
+  for (const k of ['compacto', 'ocultar', 'tema']) if (q.has(k)) p.setAttribute(k, q.get(k));
+  p.cargar();
 }
-document.getElementById('ver').textContent = window.HubGus.VERSION;
+document.getElementById('ver').textContent = window.GrowPanel.VERSION;
 </script>
 </body>
 </html>

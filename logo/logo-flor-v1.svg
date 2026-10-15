@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <title>Grow Panel · flor de aros v1</title>
+  <!-- Centro gris = Grow Panel; 5 pétalos = apps (cabeza, brazos, piernas) -->
+  <g transform="translate(200 200)" font-family="Segoe UI, Arial, sans-serif" text-anchor="middle" fill="#ffffff">
+    <circle cx="0" cy="-112" r="56" fill="#f59e0b"/>
+    <circle cx="106.5" cy="-34.6" r="56" fill="#0f766e"/>
+    <circle cx="65.8" cy="90.6" r="56" fill="#8b5cf6"/>
+    <circle cx="-65.8" cy="90.6" r="56" fill="#3b82f6"/>
+    <circle cx="-106.5" cy="-34.6" r="56" fill="#ef4444"/>
+    <circle cx="0" cy="0" r="62" fill="#6b7280"/>
+    <text x="0" y="-107" font-size="15" font-weight="600">Metas</text>
+    <text x="0" y="-89" font-size="12">Amables</text>
+    <text x="106.5" y="-30" font-size="15" font-weight="600">Finan Gus</text>
+    <text x="65.8" y="95" font-size="15" font-weight="600">Flow</text>
+    <text x="-65.8" y="87" font-size="14" font-weight="600">PC &amp;</text>
+    <text x="-65.8" y="104" font-size="12">Body-mind</text>
+    <text x="-106.5" y="-30" font-size="15" font-weight="600">Delicioso</text>
+    <text x="0" y="-4" font-size="16" font-weight="600">Grow</text>
+    <text x="0" y="16" font-size="16" font-weight="600">Panel</text>
+  </g>
+</svg>

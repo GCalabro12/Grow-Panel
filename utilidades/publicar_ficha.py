@@ -1,4 +1,4 @@
-"""Publica la ficha de estado de una app del ecosistema Gus en su repo de GitHub (sin git local).
+"""Publica la ficha de estado de una app de Grow Panel en su repo de GitHub (sin git local).
 
 Uso: python publicar_ficha.py GCalabro12/<Repo> <ruta>/estado.json
 Necesita `gh` con sesión iniciada. La web (GitHub Pages) se actualiza en ~1 minuto.
