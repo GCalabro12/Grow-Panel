@@ -1,0 +1,20 @@
+{
+  "nombre": "Hub Gus",
+  "familia": "Gus",
+  "apps": [
+    {
+      "id": "finan-gus",
+      "nombre": "Finan Gus",
+      "ficha": "https://gcalabro12.github.io/Finan-Gus/estado.json",
+      "url": "https://gcalabro12.github.io/Finan-Gus/",
+      "icono": "https://gcalabro12.github.io/Finan-Gus/iconos/icono-192.png"
+    },
+    {
+      "id": "email-manager",
+      "nombre": "Email Manager",
+      "ficha": "https://gcalabro12.github.io/Email-Manager/estado.json",
+      "url": "https://mail.google.com/",
+      "emoji": "📬"
+    }
+  ]
+}
