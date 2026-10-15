@@ -17,7 +17,7 @@ Los dos se abren en una pestaña nueva. Los colores de borde y de texto se adapt
 ```css
 .sellos{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
 .pi-seal,.gp-seal{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.3px;
-  color:#94A3B8;border:1px solid #334155;border-radius:999px;padding:6px 12px;text-decoration:none}
+  line-height:16px;white-space:nowrap;color:#94A3B8;border:1px solid #334155;border-radius:999px;padding:6px 12px;text-decoration:none}
 .pi-seal::before{content:"";width:7px;height:7px;border-radius:50%;background:#4ADE80}
 .gp-seal svg{width:14px;height:14px;flex:none}
 .pi-seal:hover{border-color:#4ADE80}
@@ -26,3 +26,5 @@ Los dos se abren en una pestaña nueva. Los colores de borde y de texto se adapt
 
 Logo oficial de Grow Panel: `logo/grow-panel-logo.svg` (fondo claro) y `logo/grow-panel-logo-oscuro.svg` (fondo oscuro).
 Publicados en https://gcalabro12.github.io/Grow-Panel/logo.svg y https://gcalabro12.github.io/Grow-Panel/logo-oscuro.svg.
+
+Notas de las apps que ya lo llevan: `line-height` fija la altura (16px → 30 px; Calistenia usó 15px y Lety Videz 14px para igualar su sello anterior). `white-space:nowrap` evita que el texto se parta en varias líneas en pantallas estrechas.
