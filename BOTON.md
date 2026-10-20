@@ -25,7 +25,7 @@ cualquier mejora llega a todas las apps a la vez.
 | PC & Body-mind | `pc-body-mind` | `PC & Body-mind` |
 | Calistenia | `calistenia` | `Calistenia` |
 | Metas Amables | `metas-amables` | `Metas Amables` |
-| Flow | `flow` | `Flow` |
+| Amable Flow (ex Flow) | `flow` | `Amable Flow` |
 | Amable Music (ex Mi Reproductor) | `mi-reproductor` | `Amable Music` |
 | Delicioso | `delicioso` | `Delicioso` |
 
