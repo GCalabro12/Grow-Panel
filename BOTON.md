@@ -26,7 +26,7 @@ cualquier mejora llega a todas las apps a la vez.
 | Calistenia | `calistenia` | `Calistenia` |
 | Metas Amables | `metas-amables` | `Metas Amables` |
 | Flow | `flow` | `Flow` |
-| Mi Reproductor | `mi-reproductor` | `Mi Reproductor` |
+| Amable Music (ex Mi Reproductor) | `mi-reproductor` | `Amable Music` |
 | Delicioso | `delicioso` | `Delicioso` |
 
 ## Cómo funciona
