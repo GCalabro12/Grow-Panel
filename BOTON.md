@@ -23,7 +23,7 @@ cualquier mejora llega a todas las apps a la vez.
 |---|---|---|
 | Amable Money (ex Finan Gus) | `finan-gus` | `Amable Money` |
 | PC & Body-mind | `pc-body-mind` | `PC & Body-mind` |
-| Calistenia | `calistenia` | `Calistenia` |
+| Amable Sport: Calistenia (ex Calistenia) | `calistenia` | `Amable Sport: Calistenia` |
 | Metas Amables | `metas-amables` | `Metas Amables` |
 | Amable Flow (ex Flow) | `flow` | `Amable Flow` |
 | Amable Music (ex Mi Reproductor) | `mi-reproductor` | `Amable Music` |
