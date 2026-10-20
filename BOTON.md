@@ -21,7 +21,7 @@ cualquier mejora llega a todas las apps a la vez.
 
 | App | data-app | data-nombre |
 |---|---|---|
-| Finan Gus | `finan-gus` | `Finan Gus` |
+| Amable Money (ex Finan Gus) | `finan-gus` | `Amable Money` |
 | PC & Body-mind | `pc-body-mind` | `PC & Body-mind` |
 | Calistenia | `calistenia` | `Calistenia` |
 | Metas Amables | `metas-amables` | `Metas Amables` |

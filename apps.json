@@ -3,7 +3,7 @@
   "apps": [
     {
       "id": "finan-gus",
-      "nombre": "Finan Gus",
+      "nombre": "Amable Money",
       "ficha": "https://gcalabro12.github.io/Finan-Gus/estado.json",
       "url": "https://gcalabro12.github.io/Finan-Gus/",
       "icono": "https://gcalabro12.github.io/Finan-Gus/iconos/icono-192.png",
