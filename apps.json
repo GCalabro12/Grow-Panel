@@ -56,6 +56,13 @@
       "nombre": "Delicioso",
       "url": "https://gcalabro12.github.io/Delicioso/",
       "icono": "https://gcalabro12.github.io/Delicioso/icon-192.png"
+    },
+    {
+      "id": "equilibra",
+      "nombre": "Equilibra",
+      "url": "https://gcalabro12.github.io/Equilibra/",
+      "icono": "https://gcalabro12.github.io/Equilibra/img/icono-192.png",
+      "color": "#140f26"
     }
   ]
 }
