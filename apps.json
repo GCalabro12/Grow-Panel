@@ -28,6 +28,7 @@
       "icono": "https://gcalabro12.github.io/Amable-PC/icon-192.png",
       "color": "#0b1a2e",
       "registro": "amable-pc",
+      "acento": "#33a4d8",
       "registro_activo": true
     },
     {
@@ -36,6 +37,7 @@
       "url": "https://app-unbreakable.web.app/",
       "color": "#0f172a",
       "registro": "amable-fit",
+      "acento": "#dbaf25",
       "registro_activo": true,
       "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-fit.png"
     },
@@ -45,6 +47,7 @@
       "url": "https://app.practicaintegral.club/",
       "icono": "https://app.practicaintegral.club/icon-192.png",
       "registro": "amable-meta",
+      "acento": "#cb4767",
       "registro_activo": true
     },
     {
@@ -54,6 +57,7 @@
       "color": "#E4E9F6",
       "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-flow.png",
       "registro": "amable-flow",
+      "acento": "#6b7fd7",
       "registro_activo": true
     },
     {
@@ -80,6 +84,7 @@
       "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-life.png",
       "color": "#140f26",
       "registro": "amable-life",
+      "acento": "#ca7d27",
       "registro_activo": true
     }
   ]

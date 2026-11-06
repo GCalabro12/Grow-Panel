@@ -63,17 +63,21 @@ body.visor-abierto{overflow:hidden}
 .franja-res .rec:hover{background:rgba(255,255,255,.7)}
 .franja-res .rec.girando .ic{display:inline-block;animation:gira 1s linear infinite}@keyframes gira{to{transform:rotate(360deg)}}
 @media (max-width:520px){.franja-res{grid-template-columns:1fr auto}.franja-res h2{grid-column:1;text-align:left;font-size:19px}.franja-res .rec{grid-column:2}}
-.reg-app{border:1px solid var(--ln);border-left:5px solid var(--c,var(--ln));border-radius:14px;padding:14px 16px;margin:12px 0}
+.reg-res{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin-top:6px}
+.reg-app{border:2px solid var(--ac,var(--ln));border-radius:18px;padding:14px 16px;margin:0;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--ac,transparent) 10%,var(--card)) 0,var(--card) 70px);
+  box-shadow:0 2px 10px color-mix(in srgb,var(--ac,#000) 18%,transparent)}
+.reg-app .reg-tabla{width:100%;min-width:0}
 .reg-app-cab{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .reg-logo{width:38px;height:38px;border-radius:10px;background:var(--c,#1f2937);display:inline-flex;align-items:center;justify-content:center;flex:none;overflow:hidden}
 .reg-logo img{width:100%;height:100%;object-fit:cover}
 .reg-app-cab b{display:block}
 .reg-tabla{width:auto;min-width:min(100%,380px);border-collapse:separate;border-spacing:0 6px;font-size:14px;margin-top:4px}
-.reg-tabla th{font-size:13px;font-weight:800;color:var(--tx);text-align:center;padding:0 14px 2px}
+.reg-tabla th{font-size:13px;font-weight:800;color:var(--tx);text-align:center;padding:0 10px 2px;white-space:nowrap}
 .reg-tabla td{background:var(--fila);color:var(--tx);font-weight:400;padding:10px 14px}
 .reg-tabla td:first-child{border-radius:10px 0 0 10px;padding-right:24px}
 .reg-tabla td:last-child{border-radius:0 10px 10px 0}
-.reg-tabla td+td{text-align:center;font-size:15px;font-variant-numeric:tabular-nums;min-width:58px}
+.reg-tabla td+td{text-align:center;font-size:15px;font-variant-numeric:tabular-nums;width:1%;white-space:nowrap;padding-left:12px;padding-right:12px}
 .reg-aviso{font-size:13px;margin:8px 0;padding:8px;border-radius:8px;background:var(--bg)}
 .reg-cuenta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--ln)}
 .reg-b.google{background:#f59e0b;border-color:#d97706;color:#1c1300;font-weight:800;padding:8px 14px}
@@ -397,7 +401,7 @@ window.CuentaAmable = (() => {
   async function nombresApps() {
     try {
       const reg = await (await fetch('apps.json?t=' + Date.now(), { cache: 'no-store' })).json();
-      const m = {}; (reg.apps || []).forEach(a => { if (a.registro) m[a.registro] = { nombre: a.nombre, icono: a.icono || '', color: a.color || '' }; }); return m;
+      const m = {}; (reg.apps || []).forEach(a => { if (a.registro) m[a.registro] = { nombre: a.nombre, icono: a.icono || '', color: a.color || '', acento: a.acento || '' }; }); return m;
     } catch (e) { return {}; }
   }
 
@@ -520,9 +524,9 @@ window.CuentaAmable = (() => {
     const color = c => /^#[0-9a-fA-F]{3,8}$/.test(c || '') ? c : '';
     const logo = a => /^https:\/\//.test(a.icono || '') ? `<img src="${esc(a.icono)}" alt="" loading="lazy">` : '';
     return Object.keys(porApp).sort((x, y) => (nombres[x] ? nombres[x].nombre : x).localeCompare(nombres[y] ? nombres[y].nombre : y)).map(app => {
-      const a = nombres[app] || { nombre: app }, t = ultimo[app], c = color(a.color);
+      const a = nombres[app] || { nombre: app }, t = ultimo[app], c = color(a.color), ac = color(a.acento) || c;
       const cuando = t ? `actualizado ${hace(t)}${Date.now() - t > 30 * 60000 ? ' (no hay datos nuevos desde esa hora)' : ''}` : '';
-      return `<div class="reg-app"${c ? ` style="--c:${c}"` : ''}><div class="reg-app-cab"><span class="reg-logo">${logo(a)}</span>
+      return `<div class="reg-app" style="${ac ? `--ac:${ac};` : ''}${c ? `--c:${c}` : ''}"><div class="reg-app-cab"><span class="reg-logo">${logo(a)}</span>
         <span><b>${esc(a.nombre)}</b>${cuando ? `<span class="reg-nota" style="margin:0">${esc(cuando)}</span>` : ''}</span></div>
       <table class="reg-tabla"><tr><th></th><th>Hoy</th><th>7 días</th></tr>${Object.entries(porApp[app]).map(([k, d]) =>
         `<tr><td>${esc(nombreDato(k, app))}</td><td>${d.hoy === null ? '—' : esc(num(d.hoy))}</td><td>${esc(num(d.semana))}</td></tr>`).join('')}</table></div>`;
