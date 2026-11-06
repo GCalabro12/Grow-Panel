@@ -36,6 +36,20 @@ No hace falta mover las cuentas de cada app: basta con que todas reconozcan el m
 4. **«Mismo nivel» dentro de cada app:** es la sincronización en la nube de cada app con su cuenta. Cada chat revisa que,
    entrando con Google, sus datos sean los mismos en el móvil y en el PC.
 
+## Regla actual (Gustavo, 6-11-2026): «Unir con Google», sin cambiar de cuenta
+- Nadie tiene que cambiar de cuenta ni entrar en todas las apps con el mismo Gmail. Cada persona sigue con su cuenta de
+  siempre en cada app (usuario y contraseña, otro correo, lo que tenga), con todos sus datos.
+- Cada app ofrece UNA vez «Unir con Google»: une a la cuenta actual el Gmail que la persona usa en Grow Panel
+  (`GrowPanel.correo()` / «#gpcorreo=», como pista de login). No crea otra cuenta ni mueve datos.
+  - Apps con Firebase (Life, Fit, Flow): `currentUser.linkWithPopup(new GoogleAuthProvider())` → mismo uid y datos; desde
+    entonces su token lleva `firebase.identities["google.com"]` y el registro lo acepta.
+  - Apps con servidor propio (PC, Meta): `POST /unir-google` guarda el `google_sub` en la cuenta actual; `/yo` devuelve
+    `registro` = SHA-256 de «google:»+sub.
+- Texto obligatorio, muy claro: «Une tu cuenta a tu Gmail (<correo>). Sigues en tu misma cuenta, con todos tus datos: no
+  cambias de cuenta ni pierdes nada. Solo sirve para ver tus números en Grow Panel.» Botón: «Unir con Google».
+- Solo se pide si Grow Panel no reconoce la cuenta (registro:"" / 401 «no está unida a Google») y la persona usa Grow Panel.
+- Lo único que tiene que coincidir es el Gmail unido: el mismo que usa en Grow Panel.
+
 ## Cómo aseguramos que es la misma persona
 - En todas las apps, **«Continuar con Google» es la forma principal de entrar** (primer botón).
 - El registro solo acepta identidades verificadas por Google (nunca un correo escrito a mano).
