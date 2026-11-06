@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.38';
+  const VERSION = 'v1.39';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -66,6 +66,8 @@ a.app:hover{border-color:var(--c)}
 .cifras span{font-size:12px;color:var(--gp-mut);background:var(--gp-sub);border-radius:8px;padding:4px 8px}
 .cifras b{color:var(--gp-tx);font-size:13px;font-variant-numeric:tabular-nums}
 .item{position:relative}
+.item.pendiente .app{border:2px dashed #f59e0b}
+.consejo.clica{display:inline-block;margin-top:6px;padding:4px 10px;border-radius:999px;background:#f59e0b;color:#1c1300;font-weight:800}
 .item .app{height:100%;min-height:96px}
 .asa{position:absolute;left:16px;bottom:8px;width:32px;height:26px;display:grid;place-items:center;padding:0;border:0;
   border-radius:6px;background:transparent;color:var(--gp-mut);cursor:grab;touch-action:none}
@@ -164,14 +166,15 @@ a.app:hover{border-color:var(--c)}
     if (c) {
       const google = /^google/.test(c.tipo || '');
       v.cuenta = c.cuenta || (google ? 'cuenta de Google' : 'sin cuenta de Google');
-      if (!google) v.consejo = `Entra en ${app.nombre} con Google${mia ? ' (' + mia + ')' : ''} para verla en todos tus aparatos`;
+      if (!google) { v.pendiente = true; v.consejo = 'Clica aquí para conectarla con Grow Panel'; }
       else if (mia && c.cuenta && /@/.test(c.cuenta) && c.cuenta.toLowerCase() !== mia.toLowerCase()) v.consejo = `Envía con ${c.cuenta}; Grow Panel usa ${mia}`;
     } else if (app.registro_activo && reg[app.registro]) {
       v.cuenta = 'cuenta: se verá en su próximo envío';   // hay números, pero llegaron antes de que se apuntara la cuenta
     } else if (app.registro_activo && mia && !reg[app.registro]) {
       // Ni números ni cuenta: no llega nada de esta app con tu cuenta
-      v.cuenta = 'sin números de tu cuenta';
-      v.consejo = `Entra en ${app.nombre} con tu cuenta de Google (${mia})`;
+      v.cuenta = 'sin conectar';
+      v.pendiente = true;
+      v.consejo = 'Clica aquí para conectarla con Grow Panel';
     }
     return v;
   }
@@ -190,16 +193,16 @@ a.app:hover{border-color:var(--c)}
   }
 
   function tarjeta(v, n) {
-    const a = v.app, base = urlSegura(a.url), url = base && (a.externa ? base : base + (base.includes('?') ? '&' : '?') + 'growpanel=' + n), icono = urlSegura(a.icono), color = colorSeguro(a.color);
+    const a = v.app, base = urlSegura(a.url), url = base && (a.externa ? base : base + (base.includes('?') ? '&' : '?') + 'growpanel=' + n + (v.pendiente ? '&gpguia=1' : '')), icono = urlSegura(a.icono), color = colorSeguro(a.color);
     const tag = url ? 'a' : 'div';
     const attrs = url ? ` href="${esc(url)}" target="_blank" rel="noopener"` : '';
     const cifras = (v.f && Array.isArray(v.f.cifras) ? v.f.cifras.slice(0, 3) : [])
       .map(c => `<span><b>${esc(c.valor)}</b> ${esc(c.etiqueta)}</span>`).join('');
-    return `<div class="item" data-id="${esc(a.id)}"><${tag} class="app" style="--c:var(--gp-${v.estado})${color ? `;--a:${color}` : ''}"${attrs} title="${esc(a.nombre)} · ${esc(ESTADOS[v.estado])}">
+    return `<div class="item${v.pendiente ? ' pendiente' : ''}" data-id="${esc(a.id)}"><${tag} class="app" style="--c:var(--gp-${v.estado})${color ? `;--a:${color}` : ''}"${attrs} title="${esc(a.nombre)} · ${esc(ESTADOS[v.estado])}">
   <span class="ico">${icono ? `<img src="${esc(icono)}" alt="">` : esc(a.emoji || (a.nombre || '•').charAt(0))}</span>
   <span>
     <span class="fila"><b>${esc(a.nombre)}</b>${v.f && v.f.version ? `<span class="ver">${esc(v.f.version)}</span>` : ''}${v.cuenta ? `<span class="cuenta" title="Cuenta con la que envía sus números">(${esc(v.cuenta)})</span>` : ''}${v.t ? `<span class="cuando" title="Último cambio de sus números">actualizado ${hace(v.t)}</span>` : ''}</span>
-    <span class="msg"><i class="punto"></i>${esc(v.mensaje)}</span>${v.consejo ? `<span class="consejo">⚠ ${esc(v.consejo)}</span>` : ''}
+    <span class="msg"><i class="punto"></i>${esc(v.mensaje)}</span>${v.consejo ? (v.pendiente ? `<span class="consejo clica">👉 ${esc(v.consejo)}</span>` : `<span class="consejo">⚠ ${esc(v.consejo)}</span>`) : ''}
   </span>
   ${cifras ? `<span class="cifras">${cifras}</span>` : ''}
 </${tag}><button class="asa" type="button" title="Arrastra para ordenar" aria-label="Mover ${esc(a.nombre)}: arrastra o usa las flechas arriba y abajo">${PUNTOS}</button></div>`;

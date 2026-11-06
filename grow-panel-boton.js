@@ -60,7 +60,14 @@
           const r = await fetch(REGISTRO + '/vincular-app', { method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ codigo, sesion, app: (window.GrowPanelApp || '') }) });
           hecho = true;   // salga bien o mal, no se repite (el motivo queda en el registro)
-          try { window.dispatchEvent(new CustomEvent('growpanel-unida', { detail: await r.json() })); } catch (e) {}
+          let res = {}; try { res = await r.json(); } catch (e) {}
+          if (r.ok && res.ok) {
+            try { sessionStorage.setItem('growpanel.unida', '1'); } catch (e) {}
+            // Abierta dentro de Grow Panel: se lo dice a Grow Panel
+            try { if (window.top !== window) window.parent.postMessage({ growpanel: 'unida', app: id, nombre }, 'https://gcalabro12.github.io'); } catch (e) {}
+          }
+          try { window.dispatchEvent(new CustomEvent('growpanel-unida', { detail: res })); } catch (e) {}
+          try { barraVolver(); } catch (e) {}
         }
       } catch (e) {} finally { ocupado = false; }
     };
@@ -78,6 +85,8 @@
   // Abierta a pantalla completa desde una tarjeta de Grow Panel: se recuerda en esta pestaña para mostrar
   // arriba la barra «← Volver a Grow Panel» (la barra del navegador no lleva a Grow Panel).
   if (q.has('growpanel')) { try { sessionStorage.setItem('growpanel.volver', '1'); } catch (e) {} }
+  // Abierta desde una tarjeta «sin conectar»: barra guiada (punteada, «Clica aquí») hasta que se una
+  if (q.has('gpguia')) { try { sessionStorage.setItem('growpanel.guia', '1'); } catch (e) {} q.delete('gpguia'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); }
   if (q.has('growpanel')) {
     const n = parseInt(q.get('growpanel'), 10);
     if (n > 0) guardar(CLAVE_N, n);
@@ -118,7 +127,8 @@
 
   function destino() {
     const f = leer(CLAVE_F, {})[id];
-    return PANEL + '?desde=' + encodeURIComponent(id) + '&nombre=' + encodeURIComponent(nombre) + '&url=' + encodeURIComponent(url)
+    let unida = false; try { unida = sessionStorage.getItem('growpanel.unida') === '1'; } catch (e) {}
+    return PANEL + '?desde=' + encodeURIComponent(id) + '&nombre=' + encodeURIComponent(nombre) + '&url=' + encodeURIComponent(url) + (unida ? '&unida=1' : '')
       + (f ? '#ficha=' + encodeURIComponent(JSON.stringify(f)) : '');
   }
 
@@ -138,10 +148,18 @@
       // La flor va en un círculo blanco: su pétalo de arriba es naranja y sobre la barra naranja no se vería
       barra.innerHTML = '<span style="display:inline-flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;'
         + 'border-radius:50%;background:#fff;box-shadow:0 0 0 2px #d97706">' + FLOR.replace('width:18px;height:18px', 'width:26px;height:26px') + '</span>'
-        + '<span>← Volver a Grow Panel</span>';
+        + '<span class="gp-texto">← Volver a Grow Panel</span>';
       document.documentElement.insertBefore(barra, document.body);
     }
     barra.href = destino();
+    // Modo guiado: borde punteado y «Clica aquí»; al unirse, «✓ Conectada»
+    let guia = false, unida = false;
+    try { guia = sessionStorage.getItem('growpanel.guia') === '1'; unida = sessionStorage.getItem('growpanel.unida') === '1'; } catch (e) {}
+    const texto = barra.querySelector('.gp-texto');
+    if (guia && texto) {
+      barra.style.outline = '3px dashed #1c1300'; barra.style.outlineOffset = '-7px';
+      texto.textContent = unida ? '✓ Conectada con Grow Panel · 👉 Clica aquí para volver' : '👉 Clica aquí para volver a Grow Panel';
+    }
   }
 
   function pintar() {

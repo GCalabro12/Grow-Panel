@@ -47,6 +47,9 @@ main{max-width:1000px;margin:0 auto;padding:16px 16px calc(96px + env(safe-area-
 .visor-volver svg{width:18px;height:18px}
 .visor-nombre{margin-left:auto;font-size:14px;font-weight:600;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .visor-marco{flex:1;width:100%;border:0;background:#fff}
+.visor-volver.guia{outline:3px dashed #f59e0b;outline-offset:2px}
+.listo{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:70;max-width:calc(100% - 32px);
+  background:#16a34a;color:#fff;font-weight:800;font-size:15px;padding:12px 18px;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
 body.visor-abierto{overflow:hidden}
 .reg-clave{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
 .reg-clave code{flex:1;min-width:0;overflow-wrap:anywhere;background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:8px;font-size:12.5px}
@@ -198,6 +201,7 @@ if (q.has('desde')) {
     try { localStorage.setItem('growpanel.apps', JSON.stringify(apps)); } catch (e) {}
     const v = document.getElementById('volver');
     v.href = url; v.textContent = '← Volver a ' + nombre; v.hidden = false;
+    if (q.get('unida') === '1') setTimeout(() => window.gpListo && window.gpListo(nombre), 300);
     // Resumen que trae la app detrás de «#ficha=» (no sale del navegador)
     const m = location.hash.match(/^#ficha=(.+)$/);
     if (m) {
@@ -213,7 +217,7 @@ if (q.has('desde')) {
       } catch (e) {}
     }
   }
-  ['desde', 'nombre', 'url'].forEach(k => q.delete(k));
+  ['desde', 'nombre', 'url', 'unida'].forEach(k => q.delete(k));
   history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : ''));  // también quita «#ficha=…»
 }
 if (q.has('embed')) {
@@ -224,6 +228,14 @@ if (q.has('embed')) {
   p.cargar();
 }
 document.getElementById('ver').textContent = window.GrowPanel.VERSION;
+
+// «Listo, ya está sincronizado con …» (al volver de conectar una app)
+window.gpListo = nombre => {
+  const d = document.createElement('div'); d.className = 'listo'; d.setAttribute('role', 'status');
+  d.textContent = '✓ Listo, ya está sincronizado con ' + nombre;
+  document.body.appendChild(d); setTimeout(() => d.remove(), 6000);
+  document.querySelector('grow-panel').cargar();
+};
 
 // «Abre tus apps»: las apps de esta misma dirección se abren debajo de una barra de Grow Panel.
 // Las de otra dirección (Amable Meta, Amable Fit…) se abren a pantalla completa: dentro de Grow Panel el
@@ -247,8 +259,18 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
     if (u && u.email) partes.push('gpcorreo=' + encodeURIComponent(u.email));
     return partes.length ? url + (url.includes('#') ? '&' : '#') + partes.join('&') : url;
   };
+  let unidaEnVisor = null;
+  // La app abierta debajo de Grow Panel avisa cuando se ha unido
+  addEventListener('message', ev => {
+    if (ev.origin !== location.origin || !ev.data || ev.data.growpanel !== 'unida') return;
+    unidaEnVisor = ev.data.nombre || 'la app';
+    const b = document.getElementById('visor-volver'); b.classList.add('guia');
+    b.lastChild.textContent = '✓ Conectada · 👉 Clica aquí para volver';
+  });
   function cerrar() {
     if (visor.hidden) return;
+    const b = document.getElementById('visor-volver'); b.classList.remove('guia'); b.lastChild.textContent = '← Volver a Grow Panel';
+    if (unidaEnVisor) { const n = unidaEnVisor; unidaEnVisor = null; setTimeout(() => window.gpListo(n), 200); }
     visor.hidden = true; document.body.classList.remove('visor-abierto');
     try { marco.contentWindow.location.replace('about:blank'); } catch (err) { marco.src = 'about:blank'; }
     if (window.GrowPanelReenviar) window.GrowPanelReenviar().then(() => panel.cargar()); else panel.cargar();   // por si la app ha actualizado su resumen
