@@ -82,6 +82,6 @@ sus números al registro diario (`https://registro-diario.proud-hill-016b.worker
   (esa parte de la dirección nunca se envía a internet). `grow-panel-boton.js` la guarda en esa dirección y la quita de la barra al momento.
   Desde entonces `GrowPanel.clave()` también funciona ahí. Solo se pasa a direcciones que están en `apps.json`.
   Riesgo aceptado: la clave solo da acceso a números de uso.
-- **Apps instaladas (APK / WebView / TWA)** no ven la memoria del navegador: necesitan el campo «Pega tu clave de Grow Panel».
+- **Regla de Gustavo (6-nov-2026): nada de claves a la vista y el envío ACTIVADO DE SERIE** (se puede apagar). Sin campo «Pega tu clave», sin la palabra «clave». Al enviar, leer `localStorage.getItem('growpanel.clave')` o `GrowPanel.clave()` (en el momento de enviar, no al arrancar). Si no hay clave, no se envía y no se avisa. La clave llega sola al abrir la app desde Grow Panel.
 - Nunca pongas la clave en una query (`?`), en `#ficha`, en `apps.json`, en un commit ni en notas.
 - Nombres de app en el registro: campo `registro` de `apps.json` (`amable-pc`, `amable-life`, `amable-meta`, `amable-fit`, `amable-flow`…).

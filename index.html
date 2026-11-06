@@ -235,7 +235,7 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
     const r = await fetch(`${REGISTRO}/registro?desde=${dia(hace6)}&hasta=${dia(hoy)}`, { headers: { Authorization: 'Bearer ' + clave }, cache: 'no-store' });
     if (!r.ok) throw new Error(r.status);
     const filas = (await r.json()).filas || [];
-    if (!filas.length) return '<div class="reg-aviso">Todavía no hay datos de los últimos 7 días. Cuando actives «Compartir mi resumen diario» en una app, sus números aparecerán aquí.</div>';
+    if (!filas.length) return '<div class="reg-aviso">Todavía no hay datos. Abre tus apps desde «Abre tus apps»: a partir de las 20:00 sus números aparecerán aquí.</div>';
     const nombres = await nombresApps(), hoyTxt = dia(hoy), porApp = {};
     filas.forEach(f => {
       const a = porApp[f.app] = porApp[f.app] || {}, d = a[f.dato] = a[f.dato] || { hoy: null, semana: 0 };
@@ -276,7 +276,7 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
     let clave = leerClave();
     if (!clave) { guardarClave(nuevaClave()); clave = leerClave(); }
     caja.innerHTML = `<b>Tu resumen del día y de la semana</b>
-      <div class="reg-nota">Tus apps Amable lo mandan solas, una vez al día, cuando activas «Compartir mi resumen diario» en ellas. Solo números: nadie más los ve.</div>
+      <div class="reg-nota">Tus apps Amable lo mandan solas una vez al día (a las 20:00). Solo números, y solo los ves tú.</div>
       <div id="reg-res"><div class="reg-nota">Cargando…</div></div>` + acciones() + clavePanel(clave);
     let cuerpo;
     try { cuerpo = await resumen(clave); } catch (e) { cuerpo = '<div class="reg-aviso">No se pudo leer tu registro. Revisa la conexión y pulsa ↻ Actualizar.</div>'; }
