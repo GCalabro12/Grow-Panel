@@ -12,12 +12,16 @@
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grow Panel">
+<script>/* tema elegido en Ajustes, antes de pintar (sin parpadeo) */
+try { const t = localStorage.getItem('growpanel.tema'); if (t === 'claro') document.documentElement.dataset.theme = 'light'; else if (t === 'oscuro') document.documentElement.dataset.theme = 'dark'; } catch (e) {}
+</script>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#6b7280;--ln:#e5e7eb}
-@media (prefers-color-scheme:dark){:root{--bg:#12151b;--card:#1b2029;--tx:#e8eaee;--mut:#9aa3b2;--ln:#2a313d}}
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#6b7280;--ln:#e5e7eb;--activo:#b45309;color-scheme:light}
+:root[data-theme=dark]{--bg:#12151b;--card:#1b2029;--tx:#e8eaee;--mut:#9aa3b2;--ln:#2a313d;--activo:#fbbf24;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12151b;--card:#1b2029;--tx:#e8eaee;--mut:#9aa3b2;--ln:#2a313d;--activo:#fbbf24;color-scheme:dark}}
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx)}
-main{max-width:1000px;margin:0 auto;padding:16px 16px 40px}
+main{max-width:1000px;margin:0 auto;padding:16px 16px calc(96px + env(safe-area-inset-bottom))}
 .top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
 .top{flex-wrap:wrap}
 .logo{height:56px;width:auto;display:block}
@@ -81,9 +85,29 @@ code{font-size:13px}
 .gp-seal:hover{color:var(--tx);border-color:#8b5cf6}
 .pi-seal:hover{color:var(--tx);border-color:#22c55e}
 @media (prefers-color-scheme:dark){.pi-seal::before{background:#4ADE80}.pi-seal:hover{border-color:#4ADE80}}
+.vista[hidden]{display:none}
+.vista-tit{font-size:22px;font-weight:800;margin:0 0 12px}
+.tarjeta{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:14px 16px;margin-bottom:12px;font-size:14px;line-height:1.45}
+.tarjeta h3{margin:0 0 8px;font-size:15px}
+.fila{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.hora-in{font:700 18px system-ui,"Segoe UI",sans-serif;padding:6px 10px;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx)}
+a.reg-b{text-decoration:none;display:inline-block}
+.seg{display:inline-flex;border:1px solid var(--ln);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:var(--card);color:var(--tx);font-size:13px;font-weight:600;padding:8px 12px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--ln)}
+.seg button.on{background:#f59e0b;color:#1c1300}
+.avatar{width:44px;height:44px;border-radius:50%;background:#f59e0b;color:#1c1300;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex:none;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.abajo{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;background:var(--card);border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom)}
+.abajo-in{display:flex;width:100%;max-width:600px}
+.abajo button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px 9px;border:0;border-top:3px solid transparent;background:transparent;color:var(--mut);font:600 12px system-ui,"Segoe UI",sans-serif;cursor:pointer}
+.abajo button svg{width:24px;height:24px}
+.abajo button:hover{color:var(--tx)}
+.abajo button[aria-current=page]{color:var(--activo);border-top-color:#f59e0b}
+body.visor-abierto .abajo{display:none}
 /* Modo incrustado (iframe): solo el panel */
 body.embed{background:transparent}body.embed main{padding:8px}
-body.embed .top,body.embed .guia,body.embed details,body.embed .pie{display:none}
+body.embed .top,body.embed .guia,body.embed details,body.embed .pie,body.embed .abajo{display:none}
 </style>
 </head>
 <body>
@@ -101,14 +125,15 @@ body.embed .top,body.embed .guia,body.embed details,body.embed .pie{display:none
 
   <a class="volver" id="volver" hidden></a>
 
-  <div class="guia">
-    <div class="guia-botones">
-      <button class="guia-btn" id="reg-btn" type="button" aria-expanded="false" aria-controls="reg-caja">📊 Mi registro diario</button>
-    </div>
-    <div class="guia-caja" id="reg-caja" hidden></div>
-  </div>
-
-  <grow-panel titulo="Abre tus apps"></grow-panel>
+  <section class="vista" id="v-apps"><grow-panel titulo="Abre tus apps"></grow-panel></section>
+  <section class="vista" id="v-resumen" hidden>
+    <h2 class="vista-tit">Resumen del final del día</h2>
+    <div id="reg-caja"></div>
+  </section>
+  <section class="vista" id="v-ajustes" hidden>
+    <h2 class="vista-tit">Ajustes</h2>
+    <div id="aj-caja"></div>
+  </section>
 
   <div class="visor" id="visor" hidden>
     <div class="visor-barra">
@@ -124,6 +149,11 @@ body.embed .top,body.embed .guia,body.embed details,body.embed .pie{display:none
     <a class="gp-seal" href="https://practicaintegral.club/grow-panel/" target="_blank" rel="noopener"><svg viewBox="0 0 512 512" aria-hidden="true"><circle cx="256" cy="107.5" r="69.1" fill="#f59e0b"/><circle cx="397.2" cy="210.1" r="69.1" fill="#0f766e"/><circle cx="343.3" cy="376.1" r="69.1" fill="#8b5cf6"/><circle cx="168.7" cy="376.1" r="69.1" fill="#3b82f6"/><circle cx="114.8" cy="210.1" r="69.1" fill="#ef4444"/><circle cx="256" cy="256" r="79.4" fill="#6b7280"/></svg>with Grow Panel</a>
   </div>
 </main>
+<nav class="abajo" aria-label="Secciones de Grow Panel"><div class="abajo-in">
+  <button type="button" data-v="apps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Abrir apps</button>
+  <button type="button" data-v="resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><rect x="5" y="11" width="3" height="6" rx="1"/><rect x="10.5" y="6" width="3" height="11" rx="1"/><rect x="16" y="13" width="3" height="4" rx="1"/></svg>Resumen del día</button>
+  <button type="button" data-v="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ajustes</button>
+</div></nav>
 <script src="grow-panel.js"></script>
 <script>
 const q = new URLSearchParams(location.search);
@@ -243,17 +273,20 @@ window.CuentaAmable = (() => {
   };
 })();
 
-// Mi registro diario: clave personal (sin cuentas), resumen de hoy y de los últimos 7 días, borrar mis datos.
+// Resumen del final del día y Ajustes (cuenta, hora del resumen, tema, instalar, ayuda, tus datos).
 // La clave solo vive en este navegador (localStorage «growpanel.clave»); en el servidor solo se guarda su huella.
-// Las apps de esta misma dirección la cogen solas con GrowPanel.clave(); las demás la piden: «Pega tu clave de Grow Panel».
+// Con la Cuenta Amable (Google) todo va a la cuenta: lo mismo en el móvil y en el PC.
 (() => {
   const REGISTRO = 'https://registro-diario.proud-hill-016b.workers.dev';
   const CLAVE_OK = /^[A-Za-z0-9_-]{32,128}$/;
-  const btn = document.getElementById('reg-btn'), caja = document.getElementById('reg-caja');
+  const HORA_OK = /^([01]\d|2[0-3]):[0-5]\d$/;
+  const resCaja = document.getElementById('reg-caja'), ajCaja = document.getElementById('aj-caja');
+  const vRes = document.getElementById('v-resumen'), vAj = document.getElementById('v-ajustes');
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const leerClave = () => { try { const k = localStorage.getItem('growpanel.clave'); return CLAVE_OK.test(k || '') ? k : null; } catch (e) { return null; } };
   const guardarClave = k => { try { localStorage.setItem('growpanel.clave', k); return true; } catch (e) { return false; } };
   const nuevaClave = () => { const b = new Uint8Array(32); crypto.getRandomValues(b); return btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+  const miClave = () => { let k = leerClave(); if (!k) { guardarClave(nuevaClave()); k = leerClave(); } return k; };
   const dia = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   const NOMBRES = { pasos: 'pasos', pausas_vista: 'pausas de la vista', minutos_concentracion: 'minutos de concentración',
     tareas_hechas: 'tareas hechas', tareas_total: 'tareas en total', bloques_con_tareas: 'bloques con tareas', bloques_total: 'bloques en total',
@@ -264,8 +297,12 @@ window.CuentaAmable = (() => {
   const nombreDato = k => NOMBRES[k] || k.replace(/_/g, ' ');
   const num = v => Number(v).toLocaleString('es-ES', { maximumFractionDigits: 1 });
   let estado = { modo: '', mostrar: false };
-  // La clave se crea sola la primera vez (nunca se cambia una que ya existe)
-  if (!leerClave()) guardarClave(nuevaClave());
+  miClave();   // la clave se crea sola la primera vez (nunca se cambia una que ya existe)
+
+  // Hora del resumen del día: en internet (la misma en el móvil y en el PC) y una copia en este navegador
+  const leerHora = () => { try { const h = localStorage.getItem('growpanel.hora_resumen'); return HORA_OK.test(h || '') ? h : '20:00'; } catch (e) { return '20:00'; } };
+  const guardarHoraLocal = h => { try { localStorage.setItem('growpanel.hora_resumen', h); } catch (e) {} };
+  const leerTema = () => { try { return localStorage.getItem('growpanel.tema') || 'auto'; } catch (e) { return 'auto'; } };
 
   async function nombresApps() {
     try {
@@ -279,6 +316,13 @@ window.CuentaAmable = (() => {
     try { const tk = await window.CuentaAmable.token(); if (tk) return 'Bearer ' + tk; } catch (e) {}
     return 'Bearer ' + clave;
   }
+  async function pedir(ruta, opciones = {}) {
+    const clave = miClave();
+    const hacer = auth => fetch(REGISTRO + ruta, Object.assign({ cache: 'no-store' }, opciones, { headers: Object.assign({ Authorization: auth }, opciones.headers || {}) }));
+    let r = await hacer(await autorizacion(clave));
+    if (r.status === 401) r = await hacer('Bearer ' + clave);   // servidor aún sin cuentas
+    return r;
+  }
   // Une la clave de este navegador a la cuenta de Google (una vez por cuenta): lo enviado con la clave pasa a la cuenta
   async function vincular(clave) {
     const u = window.CuentaAmable.usuario(); if (!u) return;
@@ -290,14 +334,30 @@ window.CuentaAmable = (() => {
     } catch (e) {}
   }
 
-  async function resumen(clave) {
+  async function cargarHora() {
+    try { const r = await pedir('/ajustes'); if (r.ok) { const j = await r.json(); if (HORA_OK.test(j.hora_resumen || '')) guardarHoraLocal(j.hora_resumen); } } catch (e) {}
+    return leerHora();
+  }
+  async function guardarHora(h) {
+    guardarHoraLocal(h);
+    try { const r = await pedir('/ajustes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hora_resumen: h }) }); return r.ok; }
+    catch (e) { return false; }
+  }
+  const horaHTML = h => `<div class="tarjeta"><h3>¿A qué hora quieres tu resumen del día?</h3>
+    <div class="fila"><input type="time" class="hora-in" value="${esc(h)}" aria-label="Hora del resumen del día">
+    <button class="reg-b" data-a="hora">Guardar</button><span class="reg-nota hora-msg" style="margin:0"></span></div>
+    <div class="reg-nota" style="margin-bottom:0">A esa hora tus apps Amable mandan sus números del día. Es la misma en el móvil y en el PC. Si alguna app aún no se ha actualizado, manda a las 20:00.</div></div>`;
+  // Si la hora guardada en internet es otra, se pone en el campo (si no lo estás tocando)
+  const refrescarHora = (caja, antes) => cargarHora().then(h => {
+    const inp = caja.querySelector('.hora-in'); if (inp && h !== antes && document.activeElement !== inp) inp.value = h;
+  });
+
+  async function resumen() {
     const hoy = new Date(), hace6 = new Date(); hace6.setDate(hoy.getDate() - 6);
-    const url = `${REGISTRO}/registro?desde=${dia(hace6)}&hasta=${dia(hoy)}`;
-    let r = await fetch(url, { headers: { Authorization: await autorizacion(clave) }, cache: 'no-store' });
-    if (r.status === 401) r = await fetch(url, { headers: { Authorization: 'Bearer ' + clave }, cache: 'no-store' });  // servidor aún sin cuentas
+    const r = await pedir(`/registro?desde=${dia(hace6)}&hasta=${dia(hoy)}`);
     if (!r.ok) throw new Error(r.status);
     const filas = (await r.json()).filas || [];
-    if (!filas.length) return '<div class="reg-aviso">Todavía no hay datos. Abre tus apps desde «Abre tus apps»: a partir de las 20:00 sus números aparecerán aquí.</div>';
+    if (!filas.length) return `<div class="reg-aviso">Todavía no hay datos. Abre tus apps desde «Abrir apps»: a partir de las ${esc(leerHora())} sus números aparecerán aquí.</div>`;
     const nombres = await nombresApps(), hoyTxt = dia(hoy), porApp = {};
     filas.forEach(f => {
       const a = porApp[f.app] = porApp[f.app] || {}, d = a[f.dato] = a[f.dato] || { hoy: null, semana: 0 };
@@ -317,48 +377,96 @@ window.CuentaAmable = (() => {
     const olvidar = estado.modo === 'olvidar'
       ? `<div class="reg-acciones"><span>Este navegador olvidará tu clave. Si no la tienes apuntada en otro sitio, no podrás volver a ver tu historial.</span>
          <button class="reg-b peligro" data-a="olvidar-si">Sí, olvidar la clave aquí</button><button class="reg-b" data-a="cancelar">Cancelar</button></div>` : '';
-    return `<details class="reg-mas"${estado.modo ? ' open' : ''}><summary>Usar en otro móvil u ordenador, o en una app instalada</summary>
-      <p class="reg-nota">Solo hace falta si quieres ver el mismo registro en otro aparato, o en una app instalada desde la Play Store. Copia tu clave de Grow Panel y pégala allí.</p>
+    return `<details class="reg-mas"${['pegar', 'olvidar'].includes(estado.modo) || estado.mostrar ? ' open' : ''}><summary>Sin cuenta de Google: usar en otro aparato o en una app instalada</summary>
+      <p class="reg-nota">Solo hace falta si no entras con Google. Copia tu clave de Grow Panel y pégala en el otro aparato o en la app.</p>
       <div class="reg-clave"><code id="reg-clave">${esc(vista)}</code>
-      <button class="reg-b" data-a="copiar">📋 Copiar</button><button class="reg-b" data-a="mostrar">${estado.mostrar ? 'Ocultar' : 'Mostrar'}</button></div>
-      <div class="reg-nota" id="reg-msg"></div>
+      <button class="reg-b" data-a="copiar">Copiar</button><button class="reg-b" data-a="mostrar">${estado.mostrar ? 'Ocultar' : 'Mostrar'}</button></div>
       ${pegar}${olvidar}
       <div class="guia-botones"><button class="reg-b" data-a="pegar">Usar la clave de otro aparato</button>
       <button class="reg-b" data-a="olvidar">Olvidar la clave en este navegador</button></div></details>`;
   }
 
-  function acciones() {
+  function borrarHTML() {
     if (estado.modo === 'borrar') return `<div class="reg-acciones"><span>¿Borrar <b>todos</b> tus datos del registro? No se puede deshacer.</span>
       <button class="reg-b peligro" data-a="borrar-si">Sí, borrar mis datos</button><button class="reg-b" data-a="cancelar">Cancelar</button></div>`;
-    return `<div class="reg-acciones"><button class="reg-b" data-a="actualizar">↻ Actualizar</button>
-      <button class="reg-b peligro" data-a="borrar">🗑 Borrar mis datos del registro</button></div>`;
+    return `<div class="reg-acciones"><button class="reg-b peligro" data-a="borrar">Borrar mis datos del registro</button></div>`;
   }
 
-  async function pintar() {
-    let clave = leerClave();
-    if (!clave) { guardarClave(nuevaClave()); clave = leerClave(); }
+  async function pintarResumen() {
+    const clave = miClave();
     await window.CuentaAmable.iniciar();
     await vincular(clave);
-    const u = window.CuentaAmable.usuario();
-    const cuenta = u
-      ? `<div class="reg-cuenta">✓ <b>Cuenta Amable:</b> ${esc(u.displayName || '')} <span class="reg-nota">${esc(u.email || '')}</span> <button class="reg-b" data-a="salir">Salir</button></div>`
-      : `<div class="reg-cuenta"><button class="reg-b google" data-a="entrar">Entrar con Google</button>
-         <span class="reg-nota">para ver lo mismo en el móvil y en el PC, y en todas tus apps Amable.</span></div>`;
-    caja.innerHTML = cuenta + `<b>Tu resumen del día y de la semana</b>
-      <div class="reg-nota">Tus apps Amable lo mandan solas una vez al día (a las 20:00). Solo números, y solo los ves tú.</div>
-      <div id="reg-res"><div class="reg-nota">Cargando…</div></div>` + acciones() + clavePanel(clave);
+    const u = window.CuentaAmable.usuario(), hora = leerHora();
+    resCaja.innerHTML = (u ? '' : `<div class="tarjeta fila"><span style="flex:1;min-width:200px">Entra con tu cuenta de Google para ver lo mismo en el móvil y en el PC.</span>
+        <button class="reg-b google" data-a="entrar">Entrar con Google</button></div>`)
+      + horaHTML(hora)
+      + `<div class="tarjeta"><h3>Hoy y los últimos 7 días</h3><div class="reg-nota">Solo números, y solo los ves tú.</div>
+        <div class="reg-res"><div class="reg-nota">Cargando…</div></div>
+        <div class="reg-acciones"><button class="reg-b" data-a="actualizar">↻ Actualizar</button></div></div>`;
+    refrescarHora(resCaja, hora);
     let cuerpo;
-    try { cuerpo = await resumen(clave); } catch (e) { cuerpo = '<div class="reg-aviso">No se pudo leer tu registro. Revisa la conexión y pulsa ↻ Actualizar.</div>'; }
-    const res = document.getElementById('reg-res'); if (res) res.innerHTML = cuerpo;
+    try { cuerpo = await resumen(); } catch (e) { cuerpo = '<div class="reg-aviso">No se pudo leer tu resumen. Revisa la conexión y pulsa ↻ Actualizar.</div>'; }
+    const res = resCaja.querySelector('.reg-res'); if (res) res.innerHTML = cuerpo;
   }
 
-  caja.addEventListener('click', async e => {
+  async function pintarAjustes() {
+    const clave = miClave();
+    await window.CuentaAmable.iniciar();
+    await vincular(clave);
+    const u = window.CuentaAmable.usuario(), hora = leerHora(), tema = leerTema(), V = window.GrowPanel.VERSION;
+    const inicial = ((u && (u.displayName || u.email)) || '?').trim().charAt(0).toUpperCase();
+    const cuenta = u
+      ? `<div class="tarjeta"><h3>Tu cuenta</h3>
+          <div class="fila" style="margin-bottom:8px"><span class="avatar">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer">` : esc(inicial)}</span>
+          <span style="flex:1;min-width:0;overflow-wrap:anywhere"><b>${esc(u.displayName || 'Cuenta de Google')}</b><br><span class="reg-nota">${esc(u.email || '')}</span></span></div>
+          <div class="reg-nota">Has entrado con Google. Es tu Cuenta Amable: la misma en todas tus apps Amable, en el móvil y en el PC.</div>
+          <div class="fila"><button class="reg-b" data-a="cambiar">Cambiar de cuenta</button><button class="reg-b" data-a="salir">Salir de la cuenta</button></div>
+          <div class="reg-nota cuenta-msg" style="margin-bottom:0"></div></div>`
+      : `<div class="tarjeta"><h3>Tu cuenta</h3>
+          <div class="reg-nota">No has entrado. Entra con tu cuenta de Google para ver lo mismo en el móvil y en el PC, y en todas tus apps Amable.</div>
+          <button class="reg-b google" data-a="entrar">Entrar con Google</button><div class="reg-nota cuenta-msg" style="margin-bottom:0"></div></div>`;
+    const temaH = `<div class="tarjeta"><h3>Tema</h3><div class="seg">${[['auto', 'Automático'], ['claro', 'Claro'], ['oscuro', 'Oscuro']]
+      .map(([v, n]) => `<button type="button" data-a="tema" data-tema="${v}" class="${v === tema ? 'on' : ''}">${n}</button>`).join('')}</div></div>`;
+    const instalada = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    const inst = `<div class="tarjeta"><h3>Instalar Grow Panel</h3><div class="reg-nota" style="margin-bottom:${!instalada && window.gpAviso ? '10px' : '0'}">${instalada ? 'Ya la tienes instalada.'
+      : window.gpAviso ? 'Ponla en la pantalla de inicio, como una app.' : 'Desde el menú del navegador: «Instalar app» o «Añadir a pantalla de inicio».'}</div>
+      ${!instalada && window.gpAviso ? '<button class="reg-b" data-a="instalar">Instalar</button>' : ''}</div>`;
+    const sop = `Hola, os escribo por Grow Panel (${V}). Me pasa esto: `;
+    const ayuda = `<div class="tarjeta"><h3>Ayuda y soporte</h3><div class="reg-nota">¿Algo no funciona o tienes una duda? Escríbenos y te ayudamos.</div>
+      <div class="fila"><a class="reg-b" href="mailto:info@practicaintegral.club?subject=${encodeURIComponent('Grow Panel · Ayuda')}&body=${encodeURIComponent(sop)}">Email</a>
+      <a class="reg-b" target="_blank" rel="noopener" href="https://wa.me/34658825799?text=${encodeURIComponent(sop)}">WhatsApp</a></div></div>`;
+    const datos = `<div class="tarjeta"><h3>Tus datos</h3><div class="reg-nota">Tus apps solo mandan números (pasos, minutos, tareas…), nunca textos. Solo los ves tú.</div>
+      <div class="reg-nota" id="reg-msg"></div>${borrarHTML()}${clavePanel(clave)}</div>`;
+    ajCaja.innerHTML = cuenta + horaHTML(hora) + temaH + inst + ayuda + datos
+      + `<div class="reg-nota" style="text-align:center">Grow Panel ${esc(V)}</div>`;
+    refrescarHora(ajCaja, hora);
+  }
+
+  function pintar() {
+    if (!vRes.hidden) pintarResumen();
+    if (!vAj.hidden) pintarAjustes();
+  }
+
+  async function alClic(e) {
     const a = e.target.closest('[data-a]'); if (!a) return;
-    const accion = a.dataset.a, msg = () => document.getElementById('reg-msg');
-    if (accion === 'entrar') {
-      try { await window.CuentaAmable.entrar(); } catch (err) { const m = msg(); if (m) m.textContent = 'No se pudo entrar con Google. Inténtalo otra vez.'; return; }
+    const accion = a.dataset.a, caja = e.currentTarget, msg = () => ajCaja.querySelector('#reg-msg');
+    if (accion === 'entrar' || accion === 'cambiar') {
+      try { await window.CuentaAmable.entrar(); }
+      catch (err) { const m = caja.querySelector('.cuenta-msg'); if (m) m.textContent = 'No se pudo entrar con Google. Inténtalo otra vez.'; return; }
     }
     else if (accion === 'salir') { await window.CuentaAmable.salir(); }
+    else if (accion === 'hora') {
+      const tj = a.closest('.tarjeta'), inp = tj.querySelector('.hora-in'), m = tj.querySelector('.hora-msg');
+      if (!HORA_OK.test(inp.value || '')) { m.textContent = 'Elige una hora.'; return; }
+      m.textContent = 'Guardando…';
+      m.textContent = (await guardarHora(inp.value)) ? '✓ Guardada' : '✓ Guardada en este aparato';
+      return;
+    }
+    else if (accion === 'tema') { try { localStorage.setItem('growpanel.tema', a.dataset.tema); } catch (err) {} window.gpTema(a.dataset.tema); }
+    else if (accion === 'instalar') {
+      const av = window.gpAviso; if (!av) return;
+      av.prompt(); await av.userChoice; window.gpAviso = null; document.getElementById('instalar').hidden = true;
+    }
     else if (accion === 'pegar') estado.modo = 'pegar';
     else if (accion === 'usar') {
       const k = (document.getElementById('reg-in').value || '').trim();
@@ -366,8 +474,8 @@ window.CuentaAmable = (() => {
       guardarClave(k); estado = { modo: '', mostrar: false };
     }
     else if (accion === 'copiar') {
-      try { await navigator.clipboard.writeText(leerClave()); msg().textContent = '✓ Clave copiada. Pégala en la app.'; }
-      catch (err) { estado.mostrar = true; await pintar(); msg().textContent = 'No se pudo copiar sola: mantenla pulsada para seleccionarla y copiarla.'; }
+      try { await navigator.clipboard.writeText(leerClave()); msg().textContent = '✓ Clave copiada. Pégala en el otro aparato o en la app.'; }
+      catch (err) { estado.mostrar = true; await pintarAjustes(); msg().textContent = 'No se pudo copiar sola: mantenla pulsada para seleccionarla y copiarla.'; }
       return;
     }
     else if (accion === 'mostrar') estado.mostrar = !estado.mostrar;
@@ -377,44 +485,64 @@ window.CuentaAmable = (() => {
     else if (accion === 'borrar-si') {
       let texto;
       try {
-        const r = await fetch(`${REGISTRO}/registro`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + leerClave() } });
+        const r = await pedir('/registro', { method: 'DELETE' });
         const j = await r.json();
-        texto = r.ok ? `✓ Borrados ${j.borradas || 0} datos del registro. Tu clave sigue aquí por si quieres seguir usándola.` : 'No se pudo borrar. Inténtalo de nuevo.';
+        texto = r.ok ? `✓ Borrados ${j.borradas || 0} datos del registro.` : 'No se pudo borrar. Inténtalo de nuevo.';
       } catch (err) { texto = 'No se pudo borrar: revisa la conexión.'; }
-      estado.modo = ''; await pintar(); msg().textContent = texto;
+      estado.modo = ''; await pintarAjustes(); msg().textContent = texto;
       return;
     }
     else if (accion === 'olvidar-si') { try { localStorage.removeItem('growpanel.clave'); } catch (err) {} guardarClave(nuevaClave()); estado = { modo: '', mostrar: false }; }
     pintar();
-  });
+  }
+  resCaja.addEventListener('click', alClic);
+  ajCaja.addEventListener('click', alClic);
 
-  window.CuentaAmable.alCambiar(() => { if (!caja.hidden) pintar(); document.querySelector('grow-panel').cargar(); });
+  window.CuentaAmable.alCambiar(() => { pintar(); document.querySelector('grow-panel').cargar(); });
+  window.GrowPanelVistas = { pintar: () => { estado.modo = ''; pintar(); } };
   // Para las tarjetas de «Abre tus apps»: números del registro de ayer y hoy (de internet: iguales en todos tus aparatos)
   window.GrowPanelRegistro = async () => {
-    let clave = leerClave(); if (!clave) { guardarClave(nuevaClave()); clave = leerClave(); }
-    await vincular(clave);
+    await vincular(miClave());
     const hoy = new Date(), ayer = new Date(); ayer.setDate(hoy.getDate() - 1);
-    const url = `${REGISTRO}/registro?desde=${dia(ayer)}&hasta=${dia(hoy)}`;
-    let r = await fetch(url, { headers: { Authorization: await autorizacion(clave) }, cache: 'no-store' });
-    if (r.status === 401) r = await fetch(url, { headers: { Authorization: 'Bearer ' + clave }, cache: 'no-store' });
+    const r = await pedir(`/registro?desde=${dia(ayer)}&hasta=${dia(hoy)}`);
     return r.ok ? ((await r.json()).filas || []) : null;
   };
-  document.querySelector('grow-panel').cargar();
-  btn.addEventListener('click', () => {
-    const abrir = caja.hidden;
-    caja.hidden = !abrir; btn.setAttribute('aria-expanded', String(abrir));
-    if (abrir) { estado.modo = ''; pintar(); }
-  });
 })();
+
+// Tema: «auto» sigue al sistema; «claro» u «oscuro» lo fuerzan (página, logo y tarjetas)
+window.gpTema = t => {
+  const html = document.documentElement, src = document.querySelector('.top picture source'), panel = document.querySelector('grow-panel');
+  if (t === 'claro') html.dataset.theme = 'light'; else if (t === 'oscuro') html.dataset.theme = 'dark'; else delete html.dataset.theme;
+  if (src) src.media = t === 'oscuro' ? 'all' : t === 'claro' ? 'not all' : '(prefers-color-scheme: dark)';
+  if (t === 'claro' || t === 'oscuro') panel.setAttribute('tema', t); else panel.removeAttribute('tema');
+};
+try { const t = localStorage.getItem('growpanel.tema'); if (t === 'claro' || t === 'oscuro') window.gpTema(t); } catch (e) {}
 
 // (La guía «Cómo conectar / Sincronizar tus apps» se quitó en v1.13: las apps se conectan solas al abrirlas desde aquí.)
 // Instalable como app (PWA)
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 let aviso = null;
 const bInst = document.getElementById('instalar');
-addEventListener('beforeinstallprompt', e => { e.preventDefault(); aviso = e; bInst.hidden = false; });
-bInst.addEventListener('click', async () => { if (!aviso) return; aviso.prompt(); await aviso.userChoice; aviso = null; bInst.hidden = true; });
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); aviso = window.gpAviso = e; bInst.hidden = false; });
+bInst.addEventListener('click', async () => { if (!aviso) return; aviso.prompt(); await aviso.userChoice; aviso = window.gpAviso = null; bInst.hidden = true; });
 addEventListener('appinstalled', () => { bInst.hidden = true; });
+
+(() => {
+  const VISTAS = ['apps', 'resumen', 'ajustes'], botones = document.querySelectorAll('.abajo button');
+  function mostrar() {
+    const v = VISTAS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'apps';
+    VISTAS.forEach(n => { document.getElementById('v-' + n).hidden = n !== v; });
+    botones.forEach(b => { if (b.dataset.v === v) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+    if (v === 'apps') document.querySelector('grow-panel').cargar(); else window.GrowPanelVistas.pintar();
+  }
+  botones.forEach(b => b.addEventListener('click', () => {
+    const h = '#' + b.dataset.v;
+    if (location.hash === h || (b.dataset.v === 'apps' && !location.hash)) { mostrar(); window.scrollTo(0, 0); }
+    else { location.hash = h; window.scrollTo(0, 0); }
+  }));
+  addEventListener('hashchange', mostrar);
+  mostrar();
+})();
 </script>
 </body>
 </html>

@@ -94,7 +94,10 @@
       barra.setAttribute('style', 'display:flex;align-items:center;justify-content:center;gap:10px;width:100%;box-sizing:border-box;'
         + 'padding:14px 16px;margin:0;background:#f59e0b;color:#1c1300;font:800 18px/1.2 system-ui,-apple-system,Segoe UI,sans-serif;'
         + 'text-decoration:none;letter-spacing:.2px;position:relative;z-index:2147483000;border-bottom:2px solid #d97706');
-      barra.innerHTML = FLOR.replace('width:18px;height:18px', 'width:24px;height:24px') + '<span>← Volver a Grow Panel</span>';
+      // La flor va en un círculo blanco: su pétalo de arriba es naranja y sobre la barra naranja no se vería
+      barra.innerHTML = '<span style="display:inline-flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;'
+        + 'border-radius:50%;background:#fff;box-shadow:0 0 0 2px #d97706">' + FLOR.replace('width:18px;height:18px', 'width:26px;height:26px') + '</span>'
+        + '<span>← Volver a Grow Panel</span>';
       document.documentElement.insertBefore(barra, document.body);
     }
     barra.href = destino();
@@ -119,6 +122,11 @@
     // Devuelve null en apps instaladas (APK/WebView/TWA): ahí, campo «Pega tu clave de Grow Panel».
     clave() {
       try { const k = localStorage.getItem('growpanel.clave'); return /^[A-Za-z0-9_-]{32,128}$/.test(k || '') ? k : null; } catch (e) { return null; }
+    },
+    // Hora del resumen del día que eligió la persona en Grow Panel («HH:MM», por defecto «20:00»).
+    // Solo la ven las apps de esta misma dirección; las demás: GET /ajustes del registro diario.
+    horaResumen() {
+      try { const h = localStorage.getItem('growpanel.hora_resumen'); return /^([01]\d|2[0-3]):[0-5]\d$/.test(h || '') ? h : '20:00'; } catch (e) { return '20:00'; }
     },
     resumen(r) {
       const fichas = leer(CLAVE_F, {});

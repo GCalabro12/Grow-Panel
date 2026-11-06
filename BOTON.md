@@ -85,3 +85,11 @@ sus números al registro diario (`https://registro-diario.proud-hill-016b.worker
 - **Regla de Gustavo (6-nov-2026): nada de claves a la vista y el envío ACTIVADO DE SERIE** (se puede apagar). Sin campo «Pega tu clave», sin la palabra «clave». Al enviar, leer `localStorage.getItem('growpanel.clave')` o `GrowPanel.clave()` (en el momento de enviar, no al arrancar). Si no hay clave, no se envía y no se avisa. La clave llega sola al abrir la app desde Grow Panel.
 - Nunca pongas la clave en una query (`?`), en `#ficha`, en `apps.json`, en un commit ni en notas.
 - Nombres de app en el registro: campo `registro` de `apps.json` (`amable-pc`, `amable-life`, `amable-meta`, `amable-fit`, `amable-flow`…).
+
+## Hora del resumen del día (desde v1.21, 6-11-2026)
+- La persona elige en Grow Panel (pestaña «Resumen del día» o «Ajustes») a qué hora quiere su resumen del día. Por defecto, 20:00.
+- Se guarda en el registro diario, en su cuenta: es la misma en el móvil y en el PC.
+- Las apps la leen antes de programar el envío:
+  `GET https://registro-diario.proud-hill-016b.workers.dev/ajustes` con la misma autorización que usan para enviar
+  (token de Firebase o clave) → `{"hora_resumen":"21:30","elegida":true}`. Si falla, usar 20:00.
+- Las apps de gcalabro12.github.io también tienen `GrowPanel.horaResumen()` (copia local, sin red).
