@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.48';
+  const VERSION = 'v1.49';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -139,6 +139,9 @@ a.app:hover{border-color:var(--c)}
     // Con qué cuenta envía cada app (lo dice el registro) y con cuál ha entrado Grow Panel
     res.__cuentas = {}; (filas && filas.cuentas || []).forEach(c => { res.__cuentas[c.app] = c; });
     res.__miCuenta = (filas && filas.miCuenta) || '';
+    // Pasos: con Amable PC y Amable Life, cuentan los de Amable PC (regla de Gustavo, 6-11-2026)
+    res.__pasosDePC = !!(ultimo['amable-pc'] && ultimo['amable-pc'].datos.pasos !== undefined);
+    if (res.__pasosDePC && ultimo['amable-life']) delete ultimo['amable-life'].datos.pasos;
     Object.entries(ultimo).forEach(([app, v]) => {
       const fmt = n => Number(n).toLocaleString('es-ES', { maximumFractionDigits: 1 });
       res[app] = { ficha: 1, estado: 'ok', mensaje: v.fecha === dia(hoy) ? 'Números de hoy' : 'Números del ' + v.fecha.slice(8, 10) + '/' + v.fecha.slice(5, 7),
@@ -156,6 +159,8 @@ a.app:hover{border-color:var(--c)}
     if (r && (!f || !(Date.parse(f.actualizado) >= Date.parse(r.actualizado)))) f = Object.assign({}, r, { version: f && f.version });
     const v = f ? combinarFicha(app, f)
       : app.ficha ? { app, estado: 'mudo', mensaje: 'Todavía no ha publicado su ficha' } : { app, estado: 'pausa', mensaje: 'Conectada · resumen próximamente' };
+    if (reg && reg.__pasosDePC && app.registro === 'amable-life' && v.f && Array.isArray(v.f.cifras))
+      v.f = Object.assign({}, v.f, { cifras: v.f.cifras.filter(c => !/pasos/i.test(c.etiqueta || '')) });
     return conCuenta(v, app, reg);
   }
 

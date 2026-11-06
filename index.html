@@ -532,6 +532,11 @@ window.CuentaAmable = (() => {
       if (NO_SUMAR.test(f.dato)) d.semana = Number(f.valor) || 0;   // filas ordenadas por fecha: queda el último
       else d.semana += Number(f.valor) || 0;
     });
+    // Pasos: si hay Amable PC y Amable Life, cuentan los de Amable PC (regla de Gustavo, 6-11-2026)
+    if (porApp['amable-pc'] && porApp['amable-pc'].pasos && porApp['amable-life'] && porApp['amable-life'].pasos) {
+      delete porApp['amable-life'].pasos;
+      if (!Object.keys(porApp['amable-life']).length) delete porApp['amable-life'];
+    }
     // Datos que se entienden mejor juntos o en palabras
     Object.values(porApp).forEach(a => {
       // «Metas sencillas hechas: 0 de 2» (hechas de las que tocaban)

@@ -149,3 +149,7 @@ buzón común (el registro diario) en cuanto cambian:
   devolver en `/yo` una `cuenta` estable («meta:<id>», «pc:<id>»). Opcional: `window.GrowPanelApp = 'amable-meta'`.
 - El registro une esa cuenta a la persona de Grow Panel (o, si es otro Gmail, lo añade como «otro Gmail»).
   Evento de respuesta en la app: `growpanel-unida` (detail = respuesta del registro).
+
+## Pasos: una sola app (Gustavo, 6-11-2026)
+- Si la persona tiene Amable PC y Amable Life, los pasos que cuentan en Grow Panel (tarjetas, resumen y resumen con IA) son
+  los de Amable PC. Si solo tiene Amable Life, los de Amable Life. Las apps pueden seguir enviando sus pasos: Grow Panel elige.
