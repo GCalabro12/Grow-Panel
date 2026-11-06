@@ -20,6 +20,7 @@ try { const t = localStorage.getItem('growpanel.tema'); if (t === 'claro') docum
 :root[data-theme=dark]{--bg:#12151b;--card:#1b2029;--tx:#e8eaee;--mut:#9aa3b2;--ln:#2a313d;--activo:#fbbf24;color-scheme:dark}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12151b;--card:#1b2029;--tx:#e8eaee;--mut:#9aa3b2;--ln:#2a313d;--activo:#fbbf24;color-scheme:dark}}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;font-family:system-ui,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx)}
 main{max-width:1000px;margin:0 auto;padding:16px 16px calc(96px + env(safe-area-inset-bottom))}
 .top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
