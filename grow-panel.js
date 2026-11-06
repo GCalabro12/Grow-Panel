@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.41';
+  const VERSION = 'v1.42';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -142,7 +142,7 @@ a.app:hover{border-color:var(--c)}
     Object.entries(ultimo).forEach(([app, v]) => {
       const fmt = n => Number(n).toLocaleString('es-ES', { maximumFractionDigits: 1 });
       res[app] = { ficha: 1, estado: 'ok', mensaje: v.fecha === dia(hoy) ? 'Números de hoy' : 'Números del ' + v.fecha.slice(8, 10) + '/' + v.fecha.slice(5, 7),
-        cifras: Object.entries(v.datos).slice(0, 3).map(([k, n]) => ({ valor: fmt(n), etiqueta: NOMBRES_DATO[k] || k.replace(/_/g, ' ') })),
+        cifras: Object.entries(v.datos).slice(0, 3).map(([k, n]) => ({ valor: fmt(n), etiqueta: (app === 'amable-fit' && k === 'minutos' ? 'min de ejercicio hoy' : NOMBRES_DATO[k]) || k.replace(/_/g, ' ') })),
         actualizado: (v.enviado || v.fecha).replace(' ', 'T') + (v.enviado ? 'Z' : 'T20:00:00'), frecuencia_horas: 48, delRegistro: true };
     });
     return res;

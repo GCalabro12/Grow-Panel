@@ -63,16 +63,17 @@ body.visor-abierto{overflow:hidden}
 .franja-res .rec:hover{background:rgba(255,255,255,.7)}
 .franja-res .rec.girando .ic{display:inline-block;animation:gira 1s linear infinite}@keyframes gira{to{transform:rotate(360deg)}}
 @media (max-width:520px){.franja-res{grid-template-columns:1fr auto}.franja-res h2{grid-column:1;text-align:left;font-size:19px}.franja-res .rec{grid-column:2}}
-.reg-app{border-top:1px solid var(--ln);padding:10px 0 10px 12px;border-left:4px solid var(--c,var(--ln));margin:0 -4px}
+.reg-app{border:1px solid var(--ln);border-left:5px solid var(--c,var(--ln));border-radius:14px;padding:14px 16px;margin:12px 0}
 .reg-app-cab{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .reg-logo{width:38px;height:38px;border-radius:10px;background:var(--c,#1f2937);display:inline-flex;align-items:center;justify-content:center;flex:none;overflow:hidden}
 .reg-logo img{width:100%;height:100%;object-fit:cover}
 .reg-app-cab b{display:block}
-.reg-tabla{width:auto;border-collapse:collapse;font-size:13.5px}
-.reg-tabla td,.reg-tabla th{padding:4px 8px}.reg-tabla td:first-child,.reg-tabla th:first-child{padding-left:6px;padding-right:20px}
-.reg-tabla td+td{text-align:right;font-variant-numeric:tabular-nums;min-width:44px;font-weight:700}
-.reg-tabla tr:nth-child(even) td{background:var(--bg)}
-.reg-tabla th{font-size:11.5px;color:var(--mut);font-weight:600;text-align:right}.reg-tabla th:first-child{text-align:left}
+.reg-tabla{width:auto;min-width:min(100%,380px);border-collapse:separate;border-spacing:0 6px;font-size:14px;margin-top:4px}
+.reg-tabla th{font-size:13px;font-weight:800;color:var(--tx);text-align:center;padding:0 14px 2px}
+.reg-tabla td{background:var(--bg);padding:10px 14px;border-top:1px solid var(--ln);border-bottom:1px solid var(--ln)}
+.reg-tabla td:first-child{border-left:1px solid var(--ln);border-radius:10px 0 0 10px;font-weight:600;padding-right:24px}
+.reg-tabla td:last-child{border-right:1px solid var(--ln);border-radius:0 10px 10px 0}
+.reg-tabla td+td{text-align:center;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;min-width:58px}
 .reg-aviso{font-size:13px;margin:8px 0;padding:8px;border-radius:8px;background:var(--bg)}
 .reg-cuenta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--ln)}
 .reg-b.google{background:#f59e0b;border-color:#d97706;color:#1c1300;font-weight:800;padding:8px 14px}
@@ -376,7 +377,11 @@ window.CuentaAmable = (() => {
     dias_registrados: 'días registrados con tu meta', registrado_hoy: 'registrado hoy (1 = sí)', compromiso_semana: 'compromiso semanal', metas_sencillas_hoy: 'metas sencillas de hoy', metas_sencillas_hechas: 'metas sencillas hechas' };
   // Datos que ya son un total o un estado (racha, semana…): en «7 días» se muestra el último valor, no la suma
   const NO_SUMAR = /^(racha|racha_dias|semana|practicas_semana|dias_registrados|compromiso_semana|acciones_pendientes|.*_total|areas_.*)$/;
-  const nombreDato = k => NOMBRES[k] || k.replace(/_/g, ' ');
+  // Nombres propios de cada app (más claros) y siempre con mayúscula inicial
+  const NOMBRES_APP = { 'amable-fit:minutos': 'minutos de ejercicio', 'amable-fit:sesiones': 'sesiones de hoy',
+    'amable-fit:semana': 'sesiones esta semana', 'amable-life:pasos': 'pasos', 'amable-pc:pasos': 'pasos',
+    'amable-flow:minutos_presencia': 'minutos de presencia' };
+  const nombreDato = (k, app) => { const n = NOMBRES_APP[app + ':' + k] || NOMBRES[k] || k.replace(/_/g, ' '); return n.charAt(0).toUpperCase() + n.slice(1); };
   const num = v => Number(v).toLocaleString('es-ES', { maximumFractionDigits: 1 });
   let estado = { modo: '', mostrar: false };
   miClave();   // la clave se crea sola la primera vez (nunca se cambia una que ya existe)
@@ -519,8 +524,8 @@ window.CuentaAmable = (() => {
       const cuando = t ? `actualizado ${hace(t)}${Date.now() - t > 30 * 60000 ? ' (no hay datos nuevos desde esa hora)' : ''}` : '';
       return `<div class="reg-app"${c ? ` style="--c:${c}"` : ''}><div class="reg-app-cab"><span class="reg-logo">${logo(a)}</span>
         <span><b>${esc(a.nombre)}</b>${cuando ? `<span class="reg-nota" style="margin:0">${esc(cuando)}</span>` : ''}</span></div>
-      <table class="reg-tabla"><tr><th>Dato</th><th>Hoy</th><th>7 días</th></tr>${Object.entries(porApp[app]).map(([k, d]) =>
-        `<tr><td>${esc(nombreDato(k))}</td><td>${d.hoy === null ? '—' : esc(num(d.hoy))}</td><td>${esc(num(d.semana))}</td></tr>`).join('')}</table></div>`;
+      <table class="reg-tabla"><tr><th></th><th>Hoy</th><th>7 días</th></tr>${Object.entries(porApp[app]).map(([k, d]) =>
+        `<tr><td>${esc(nombreDato(k, app))}</td><td>${d.hoy === null ? '—' : esc(num(d.hoy))}</td><td>${esc(num(d.semana))}</td></tr>`).join('')}</table></div>`;
     }).join('');
   }
 
