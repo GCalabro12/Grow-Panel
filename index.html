@@ -306,7 +306,18 @@ window.CuentaAmable = (() => {
       try { await firebase.auth().signInWithPopup(p); }
       catch (e) { if (/popup|cancelled|blocked/i.test(e.code || '')) await firebase.auth().signInWithRedirect(p); else throw e; }
     },
-    async salir() { await iniciar(); await firebase.auth().signOut(); }
+    async salir() { await iniciar(); await firebase.auth().signOut(); },
+    // Pide entrar con otro Gmail en una ventana de Google, sin tocar tu sesión de Grow Panel. Devuelve { token, email }.
+    async otroGmail() {
+      await iniciar();
+      const app2 = firebase.apps.find(a => a.name === 'otro-gmail') || firebase.initializeApp(CONFIG, 'otro-gmail');
+      const auth2 = app2.auth();
+      const p = new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({ prompt: 'select_account' });
+      const r = await auth2.signInWithPopup(p);
+      const res = { token: await r.user.getIdToken(), email: r.user.email || '' };
+      try { await auth2.signOut(); } catch (e) {}
+      return res;
+    }
   };
 })();
 
@@ -485,6 +496,10 @@ window.CuentaAmable = (() => {
           <span style="flex:1;min-width:0;overflow-wrap:anywhere"><b>${esc(u.displayName || 'Cuenta de Google')}</b><br><span class="reg-nota">${esc(u.email || '')}</span></span></div>
           <div class="reg-nota">Has entrado con Google. Es tu Cuenta Amable: la misma en todas tus apps Amable, en el móvil y en el PC.</div>
           <div class="fila"><button class="reg-b" data-a="cambiar">Cambiar de cuenta</button><button class="reg-b" data-a="salir">Salir de la cuenta</button></div>
+          <div class="otros-gmail" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--ln)"><b>Otros Gmail que usas en tus apps</b>
+            <div class="reg-nota">¿En alguna app entraste con otro Gmail? Añádelo aquí y Grow Panel sabrá que también eres tú. No cambias de cuenta en esa app ni pierdes nada.</div>
+            <div class="alias-lista reg-nota">Cargando…</div>
+            <button class="reg-b" data-a="alias-anadir">+ Añadir otro Gmail</button></div>
           <div class="reg-nota cuenta-msg" style="margin-bottom:0"></div></div>`
       : `<div class="tarjeta"><h3>Tu cuenta</h3>
           <div class="reg-nota">No has entrado. Entra con tu cuenta de Google para ver lo mismo en el móvil y en el PC, y en todas tus apps Amable.</div>
@@ -508,6 +523,19 @@ window.CuentaAmable = (() => {
     ajCaja.innerHTML = cuenta + horaHTML(hora) + temaH + inst + ayuda + datos
       + `<div class="reg-nota" style="text-align:center">Grow Panel ${esc(V)}</div>`;
     refrescarHora(ajCaja, hora);
+    if (u) pintarAlias();
+  }
+
+  // Lista de «otros Gmail» de la persona
+  async function pintarAlias() {
+    const caja = ajCaja.querySelector('.alias-lista'); if (!caja) return;
+    try {
+      const r = await pedir('/alias'); const j = r.ok ? await r.json() : { alias: [] };
+      const lista = j.alias || [];
+      caja.innerHTML = lista.length
+        ? lista.map(a => `<div class="fila" style="gap:6px;margin:4px 0"><span>✓ ${esc(a.correo || 'Gmail')}</span><button class="reg-b" data-a="alias-quitar" data-correo="${esc(a.correo || '')}">Quitar</button></div>`).join('')
+        : 'Ninguno por ahora.';
+    } catch (e) { caja.textContent = 'No se pudo leer la lista. Revisa la conexión.'; }
   }
 
   function pintar() {
@@ -523,6 +551,23 @@ window.CuentaAmable = (() => {
       catch (err) { const m = caja.querySelector('.cuenta-msg'); if (m) m.textContent = 'No se pudo entrar con Google. Inténtalo otra vez.'; return; }
     }
     else if (accion === 'salir') { await window.CuentaAmable.salir(); }
+    else if (accion === 'alias-anadir' || accion === 'alias-quitar') {
+      const m = caja.querySelector('.cuenta-msg');
+      try {
+        if (accion === 'alias-anadir') {
+          const otro = await window.CuentaAmable.otroGmail();
+          if (m) m.textContent = 'Añadiendo ' + otro.email + '…';
+          const r = await pedir('/alias', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: otro.token }) });
+          const j = await r.json().catch(() => ({}));
+          if (m) m.textContent = r.ok ? `✓ ${otro.email} añadido: lo que tus apps manden con ese Gmail ya sale aquí.` : (j.error || 'No se pudo añadir.');
+        } else {
+          const r = await pedir('/alias', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ correo: a.dataset.correo }) });
+          if (m) m.textContent = r.ok ? '✓ Quitado.' : 'No se pudo quitar.';
+        }
+      } catch (err) { if (m) m.textContent = 'No se pudo: ' + (/popup-closed|cancelled/.test(err && err.code || '') ? 'se cerró la ventana de Google.' : 'inténtalo otra vez.'); }
+      await pintarAlias(); document.querySelector('grow-panel').cargar();
+      return;
+    }
     else if (accion === 'hora') {
       const tj = a.closest('.tarjeta'), inp = tj.querySelector('.hora-in'), m = tj.querySelector('.hora-msg');
       if (!HORA_OK.test(inp.value || '')) { m.textContent = 'Elige una hora.'; return; }

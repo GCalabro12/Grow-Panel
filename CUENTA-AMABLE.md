@@ -54,3 +54,9 @@ No hace falta mover las cuentas de cada app: basta con que todas reconozcan el m
 - En todas las apps, **«Continuar con Google» es la forma principal de entrar** (primer botón).
 - El registro solo acepta identidades verificadas por Google (nunca un correo escrito a mano).
 - Si alguien entró con correo y contraseña en una app, esa app le propone «Unir con tu cuenta de Google».
+
+## Varios Gmail de la misma persona (desde Grow Panel v1.37 y Worker 22:00)
+- Grow Panel → Ajustes → Tu cuenta → «Otros Gmail que usas en tus apps» → «+ Añadir otro Gmail»: la persona entra en ese
+  otro Gmail (así demuestra que es suyo) y el registro lo apunta como suyo (tabla alias_google). Lo que llegue con ese Gmail
+  va a la persona principal, y lo ya enviado se pasa. Sirve para cualquier persona y para cualquier app (también Amable Fit,
+  donde solo se entra con Google y no se puede unir un segundo Gmail).
