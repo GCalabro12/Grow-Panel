@@ -34,6 +34,15 @@ main{max-width:1000px;margin:0 auto;padding:16px 16px 40px}
 .guia-caja{margin-top:10px;background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.45}
 .guia-caja[hidden]{display:none}
 .guia-botones{display:flex;flex-wrap:wrap;gap:8px}
+.visor{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:var(--bg)}
+.visor[hidden]{display:none}
+.visor-barra{display:flex;align-items:center;gap:10px;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));background:var(--card);border-bottom:1px solid var(--ln)}
+.visor-volver{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--tx);background:var(--bg);border:1px solid var(--ln);border-radius:10px;padding:7px 12px;cursor:pointer}
+.visor-volver:hover{border-color:#8b5cf6}
+.visor-volver svg{width:18px;height:18px}
+.visor-nombre{margin-left:auto;font-size:14px;font-weight:600;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.visor-marco{flex:1;width:100%;border:0;background:#fff}
+body.visor-abierto{overflow:hidden}
 .reg-clave{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
 .reg-clave code{flex:1;min-width:0;overflow-wrap:anywhere;background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:8px;font-size:12.5px}
 .reg-b{font-size:13px;font-weight:600;color:var(--tx);background:var(--card);border:1px solid var(--ln);border-radius:8px;padding:6px 10px;cursor:pointer}
@@ -97,7 +106,15 @@ body.embed .top,body.embed .guia,body.embed details,body.embed .pie{display:none
     <div class="guia-caja" id="reg-caja" hidden></div>
   </div>
 
-  <grow-panel titulo="Tus apps"></grow-panel>
+  <grow-panel titulo="Abre tus apps"></grow-panel>
+
+  <div class="visor" id="visor" hidden>
+    <div class="visor-barra">
+      <button class="visor-volver" id="visor-volver" type="button"><svg viewBox="0 0 512 512" aria-hidden="true"><circle cx="256" cy="107.5" r="69.1" fill="#f59e0b"/><circle cx="397.2" cy="210.1" r="69.1" fill="#0f766e"/><circle cx="343.3" cy="376.1" r="69.1" fill="#8b5cf6"/><circle cx="168.7" cy="376.1" r="69.1" fill="#3b82f6"/><circle cx="114.8" cy="210.1" r="69.1" fill="#ef4444"/><circle cx="256" cy="256" r="79.4" fill="#6b7280"/></svg>← Volver a Grow Panel</button>
+      <span class="visor-nombre" id="visor-nombre"></span>
+    </div>
+    <iframe class="visor-marco" id="visor-marco" title="App"></iframe>
+  </div>
 
   <details>
     <summary>Poner Grow Panel dentro de otra app</summary>
@@ -153,6 +170,35 @@ if (q.has('embed')) {
   p.cargar();
 }
 document.getElementById('ver').textContent = window.GrowPanel.VERSION;
+
+// «Abre tus apps»: las apps de esta misma dirección se abren debajo de una barra de Grow Panel.
+// Las de otra dirección (Amable Meta, Amable Fit…) se abren a pantalla completa: dentro de Grow Panel el
+// navegador las aislaría y saldrían sin tus datos. Para volver, su botón de la mini flor.
+(() => {
+  const panel = document.querySelector('grow-panel');
+  const visor = document.getElementById('visor'), marco = document.getElementById('visor-marco');
+  function cerrar() {
+    if (visor.hidden) return;
+    visor.hidden = true; document.body.classList.remove('visor-abierto');
+    marco.src = 'about:blank';
+    panel.cargar();   // por si la app ha actualizado su resumen
+  }
+  panel.addEventListener('grow-panel-abrir', e => {
+    const { url, nombre } = e.detail;
+    let destino;
+    try { destino = new URL(url); } catch (err) { return; }
+    e.preventDefault();
+    if (destino.origin !== location.origin) { location.assign(url); return; }
+    document.getElementById('visor-nombre').textContent = nombre;
+    marco.title = nombre; marco.src = url;
+    visor.hidden = false; document.body.classList.add('visor-abierto');
+    history.pushState({ visor: true }, '');
+  });
+  document.getElementById('visor-volver').addEventListener('click', () => {
+    if (history.state && history.state.visor) history.back(); else cerrar();
+  });
+  addEventListener('popstate', cerrar);
+})();
 
 // Mi registro diario: clave personal (sin cuentas), resumen de hoy y de los últimos 7 días, borrar mis datos.
 // La clave solo vive en este navegador (localStorage «growpanel.clave»); en el servidor solo se guarda su huella.

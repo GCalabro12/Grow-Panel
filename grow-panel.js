@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.10';
+  const VERSION = 'v1.11';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -215,6 +215,12 @@ a.app:hover{border-color:var(--c)}
       const guardar = () => {
         try { localStorage.setItem('growpanel.orden', JSON.stringify([...lista.children].map(el => el.dataset.id))); } catch (e) {}
       };
+      // Al tocar una tarjeta: aviso «grow-panel-abrir» (cancelable). Si la página lo cancela, abre la app ella misma.
+      lista.querySelectorAll('a.app').forEach(a => a.addEventListener('click', e => {
+        const item = a.closest('.item');
+        const ev = new CustomEvent('grow-panel-abrir', { cancelable: true, detail: { id: item.dataset.id, nombre: (a.querySelector('.fila b') || {}).textContent || '', url: a.href } });
+        if (!this.dispatchEvent(ev)) e.preventDefault();
+      }));
       lista.querySelectorAll('.asa').forEach(asa => {
         const item = asa.closest('.item');
         asa.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); });

@@ -32,9 +32,9 @@
       "id": "calistenia",
       "nombre": "Amable Fit: Calistenia",
       "url": "https://app-unbreakable.web.app/",
-      "emoji": "💪",
-      "color": "#dcfce7",
-      "registro": "amable-fit"
+      "color": "#0f172a",
+      "registro": "amable-fit",
+      "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-fit.png"
     },
     {
       "id": "metas-amables",

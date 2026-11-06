@@ -72,6 +72,8 @@
   function pintar() {
     const sitio = document.getElementById('grow-panel-boton');
     if (!sitio || total < 2) return;
+    // Abierta dentro de Grow Panel («Abre tus apps»): arriba ya está «Volver a Grow Panel»
+    try { if (window.top !== window && window.top.location.pathname.indexOf('/Grow-Panel/') === 0) return; } catch (e) {}
     const a = sitio.querySelector('a.gp-boton');
     if (a) { a.href = destino(); return; }
     sitio.innerHTML = '<a class="gp-boton" href="' + destino() + '" title="Grow Panel: todas tus apps" aria-label="Abrir Grow Panel"'
