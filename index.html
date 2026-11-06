@@ -467,6 +467,8 @@ window.CuentaAmable = (() => {
     sw.checked = !!(await suscripcion()) && Notification.permission === 'granted';
   }
 
+  setTimeout(() => { suscripcion().then(s => { if (s) apagarAviso(); }).catch(() => {}); }, 4000);
+
   // Código de un solo uso para que una app se una sola a tu cuenta (solo si has entrado con Google)
   window.GrowPanelCodigo = async () => {
     if (!window.CuentaAmable.usuario()) return null;
@@ -554,8 +556,7 @@ window.CuentaAmable = (() => {
       + (u ? '' : `<div class="tarjeta fila"><span style="flex:1;min-width:200px">Entra con tu cuenta de Google para ver lo mismo en el móvil y en el PC.</span>
         <button class="reg-b google" data-a="entrar">Entrar con Google</button></div>`)
       + `<div class="tarjeta"><h3>Hoy y los últimos 7 días</h3><div class="reg-nota">Lo último que han dejado tus apps, estén en el móvil o en el PC. Solo números, y solo los ves tú.</div>
-        <div class="reg-res"><div class="reg-nota">Cargando…</div></div></div>`
-      + horaHTML(hora);
+        <div class="reg-res"><div class="reg-nota">Cargando…</div></div></div>`;
     refrescarHora(resCaja, hora);
     let cuerpo;
     try { cuerpo = await resumen(); } catch (e) { cuerpo = '<div class="reg-aviso">No se pudo leer tu resumen. Revisa la conexión y pulsa ↻ Actualizar.</div>'; }
@@ -599,11 +600,11 @@ window.CuentaAmable = (() => {
       <div class="reg-nota compartir-nota">${textoCompartir(on)}</div>
       <div class="reg-nota">Nunca se mandan textos: solo números (pasos, minutos, tareas…). Vale para todas tus apps Amable, en el móvil y en el PC.</div>
       <div class="reg-nota" id="reg-msg"></div>${borrarHTML()}${clavePanel(clave)}</div>`;
-    ajCaja.innerHTML = cuenta + horaHTML(hora) + avisoHTML(hora) + temaH + inst + ayuda + datos
+    // (6-11-2026, Gustavo: sin hora de cierre ni aviso diario: el resumen está siempre al día con «Actualizar datos»)
+    ajCaja.innerHTML = cuenta + temaH + inst + ayuda + datos
       + `<div class="reg-nota" style="text-align:center">Grow Panel ${esc(V)}</div>`;
     refrescarHora(ajCaja, hora);
     if (u) pintarAlias();
-    pintarAvisoPush();
   }
 
   // Lista de «otros Gmail» de la persona
