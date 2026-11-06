@@ -361,10 +361,11 @@ window.CuentaAmable = (() => {
   async function vincular(clave) {
     const u = window.CuentaAmable.usuario(); if (!u) return;
     let hecho = null; try { hecho = localStorage.getItem('growpanel.vinculada'); } catch (e) {}
-    if (hecho === u.uid) return;
+    const marca = u.uid + ':' + clave.slice(0, 8);   // una vez por cuenta Y por clave (si la clave cambia, se vuelve a unir)
+    if (hecho === marca) return;
     try {
       const r = await fetch(`${REGISTRO}/vincular`, { method: 'POST', headers: { Authorization: 'Bearer ' + await u.getIdToken(), 'Content-Type': 'application/json' }, body: JSON.stringify({ clave }) });
-      if (r.ok) { try { localStorage.setItem('growpanel.vinculada', u.uid); } catch (e) {} }
+      if (r.ok) { try { localStorage.setItem('growpanel.vinculada', marca); } catch (e) {} }
     } catch (e) {}
   }
 
