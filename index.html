@@ -55,6 +55,8 @@ body.visor-abierto{overflow:hidden}
 .reg-tabla td{padding:3px 0}.reg-tabla td+td{text-align:right;font-variant-numeric:tabular-nums;width:90px}
 .reg-tabla th{font-size:11.5px;color:var(--mut);font-weight:600;text-align:right}.reg-tabla th:first-child{text-align:left}
 .reg-aviso{font-size:13px;margin:8px 0;padding:8px;border-radius:8px;background:var(--bg)}
+.reg-cuenta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--ln)}
+.reg-b.google{background:#f59e0b;border-color:#d97706;color:#1c1300;font-weight:800;padding:8px 14px}
 .reg-mas{margin-top:12px;border-top:1px solid var(--ln);padding-top:10px}
 .reg-mas summary{font-size:13px;color:var(--mut);cursor:pointer}
 .reg-acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--ln);align-items:center}
@@ -199,6 +201,48 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
   document.getElementById('visor-volver').addEventListener('click', cerrar);
 })();
 
+// Cuenta Amable = la cuenta de Google de la persona (ver CUENTA-AMABLE.md).
+// Usa el proyecto Firebase de Amable Life: como están en la misma dirección, si ya entraste en Amable Life, aquí también.
+window.CuentaAmable = (() => {
+  const CONFIG = { apiKey: 'AIzaSyBgutkr0jGcono1GZLz6XiC9TSP83ux8lg', authDomain: 'equilibra-6aff8.firebaseapp.com',
+    projectId: 'equilibra-6aff8', appId: '1:682128349771:web:9e27263f55cab679ba8bce' };
+  const BASE = 'https://www.gstatic.com/firebasejs/10.12.2/';
+  const avisos = new Set();
+  let usuario = null, listo = null;
+  const cargar = src => new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+  function iniciar() {
+    if (listo) return listo;
+    listo = (async () => {
+      if (!window.firebase) { await cargar(BASE + 'firebase-app-compat.js'); await cargar(BASE + 'firebase-auth-compat.js'); }
+      if (!firebase.apps.length) firebase.initializeApp(CONFIG);
+      firebase.auth().getRedirectResult().catch(() => {});
+      await new Promise(ok => {
+        let primera = true;
+        firebase.auth().onAuthStateChanged(u => {
+          const conGoogle = u && u.providerData.some(p => p.providerId === 'google.com');
+          usuario = conGoogle ? u : null;
+          if (primera) { primera = false; ok(); }
+          avisos.forEach(f => f(usuario));
+        });
+      });
+    })().catch(() => {});
+    return listo;
+  }
+  return {
+    iniciar,
+    usuario: () => usuario,
+    alCambiar: f => avisos.add(f),
+    async token() { await iniciar(); return usuario ? usuario.getIdToken() : null; },
+    async entrar() {
+      await iniciar();
+      const p = new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({ prompt: 'select_account' });
+      try { await firebase.auth().signInWithPopup(p); }
+      catch (e) { if (/popup|cancelled|blocked/i.test(e.code || '')) await firebase.auth().signInWithRedirect(p); else throw e; }
+    },
+    async salir() { await iniciar(); await firebase.auth().signOut(); }
+  };
+})();
+
 // Mi registro diario: clave personal (sin cuentas), resumen de hoy y de los últimos 7 días, borrar mis datos.
 // La clave solo vive en este navegador (localStorage «growpanel.clave»); en el servidor solo se guarda su huella.
 // Las apps de esta misma dirección la cogen solas con GrowPanel.clave(); las demás la piden: «Pega tu clave de Grow Panel».
@@ -230,9 +274,27 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
     } catch (e) { return {}; }
   }
 
+  // Autorización: la Cuenta Amable (Google) si hay sesión y el servidor la acepta; si no, la clave de este navegador
+  async function autorizacion(clave) {
+    try { const tk = await window.CuentaAmable.token(); if (tk) return 'Bearer ' + tk; } catch (e) {}
+    return 'Bearer ' + clave;
+  }
+  // Une la clave de este navegador a la cuenta de Google (una vez por cuenta): lo enviado con la clave pasa a la cuenta
+  async function vincular(clave) {
+    const u = window.CuentaAmable.usuario(); if (!u) return;
+    let hecho = null; try { hecho = localStorage.getItem('growpanel.vinculada'); } catch (e) {}
+    if (hecho === u.uid) return;
+    try {
+      const r = await fetch(`${REGISTRO}/vincular`, { method: 'POST', headers: { Authorization: 'Bearer ' + await u.getIdToken(), 'Content-Type': 'application/json' }, body: JSON.stringify({ clave }) });
+      if (r.ok) { try { localStorage.setItem('growpanel.vinculada', u.uid); } catch (e) {} }
+    } catch (e) {}
+  }
+
   async function resumen(clave) {
     const hoy = new Date(), hace6 = new Date(); hace6.setDate(hoy.getDate() - 6);
-    const r = await fetch(`${REGISTRO}/registro?desde=${dia(hace6)}&hasta=${dia(hoy)}`, { headers: { Authorization: 'Bearer ' + clave }, cache: 'no-store' });
+    const url = `${REGISTRO}/registro?desde=${dia(hace6)}&hasta=${dia(hoy)}`;
+    let r = await fetch(url, { headers: { Authorization: await autorizacion(clave) }, cache: 'no-store' });
+    if (r.status === 401) r = await fetch(url, { headers: { Authorization: 'Bearer ' + clave }, cache: 'no-store' });  // servidor aún sin cuentas
     if (!r.ok) throw new Error(r.status);
     const filas = (await r.json()).filas || [];
     if (!filas.length) return '<div class="reg-aviso">Todavía no hay datos. Abre tus apps desde «Abre tus apps»: a partir de las 20:00 sus números aparecerán aquí.</div>';
@@ -275,7 +337,14 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
   async function pintar() {
     let clave = leerClave();
     if (!clave) { guardarClave(nuevaClave()); clave = leerClave(); }
-    caja.innerHTML = `<b>Tu resumen del día y de la semana</b>
+    await window.CuentaAmable.iniciar();
+    await vincular(clave);
+    const u = window.CuentaAmable.usuario();
+    const cuenta = u
+      ? `<div class="reg-cuenta">✓ <b>Cuenta Amable:</b> ${esc(u.displayName || '')} <span class="reg-nota">${esc(u.email || '')}</span> <button class="reg-b" data-a="salir">Salir</button></div>`
+      : `<div class="reg-cuenta"><button class="reg-b google" data-a="entrar">Entrar con Google</button>
+         <span class="reg-nota">para ver lo mismo en el móvil y en el PC, y en todas tus apps Amable.</span></div>`;
+    caja.innerHTML = cuenta + `<b>Tu resumen del día y de la semana</b>
       <div class="reg-nota">Tus apps Amable lo mandan solas una vez al día (a las 20:00). Solo números, y solo los ves tú.</div>
       <div id="reg-res"><div class="reg-nota">Cargando…</div></div>` + acciones() + clavePanel(clave);
     let cuerpo;
@@ -286,7 +355,11 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
   caja.addEventListener('click', async e => {
     const a = e.target.closest('[data-a]'); if (!a) return;
     const accion = a.dataset.a, msg = () => document.getElementById('reg-msg');
-    if (accion === 'pegar') estado.modo = 'pegar';
+    if (accion === 'entrar') {
+      try { await window.CuentaAmable.entrar(); } catch (err) { const m = msg(); if (m) m.textContent = 'No se pudo entrar con Google. Inténtalo otra vez.'; return; }
+    }
+    else if (accion === 'salir') { await window.CuentaAmable.salir(); }
+    else if (accion === 'pegar') estado.modo = 'pegar';
     else if (accion === 'usar') {
       const k = (document.getElementById('reg-in').value || '').trim();
       if (!CLAVE_OK.test(k)) { msg().textContent = 'Esa clave no es válida: debe tener entre 32 y 128 letras, números, guiones o guiones bajos.'; return; }
@@ -315,6 +388,7 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
     pintar();
   });
 
+  window.CuentaAmable.alCambiar(() => { if (!caja.hidden) pintar(); });
   btn.addEventListener('click', () => {
     const abrir = caja.hidden;
     caja.hidden = !abrir; btn.setAttribute('aria-expanded', String(abrir));
