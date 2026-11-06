@@ -7,7 +7,8 @@
       "ficha": "https://gcalabro12.github.io/Finan-Gus/estado.json",
       "url": "https://gcalabro12.github.io/Finan-Gus/",
       "icono": "https://gcalabro12.github.io/Finan-Gus/iconos/icono-192.png",
-      "color": "#0f766e"
+      "color": "#0f766e",
+      "oculta": true
     },
     {
       "id": "email-manager",
@@ -16,7 +17,8 @@
       "url": "https://mail.google.com/",
       "externa": true,
       "emoji": "📬",
-      "color": "#e0f2fe"
+      "color": "#e0f2fe",
+      "oculta": true
     },
     {
       "id": "pc-body-mind",
@@ -41,27 +43,29 @@
       "id": "flow",
       "nombre": "Amable Flow",
       "url": "https://gcalabro12.github.io/Flow/",
-      "emoji": "🧘",
-      "color": "#ede9fe"
+      "color": "#E4E9F6",
+      "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-flow.png"
     },
     {
       "id": "mi-reproductor",
       "nombre": "Amable Music",
       "url": "https://mi-reproductor-web.web.app/",
       "emoji": "🎵",
-      "color": "#e0e7ff"
+      "color": "#e0e7ff",
+      "oculta": true
     },
     {
       "id": "delicioso",
       "nombre": "Delicioso",
       "url": "https://gcalabro12.github.io/Delicioso/",
-      "icono": "https://gcalabro12.github.io/Delicioso/icon-192.png"
+      "icono": "https://gcalabro12.github.io/Delicioso/icon-192.png",
+      "oculta": true
     },
     {
       "id": "equilibra",
       "nombre": "Amable Life",
       "url": "https://gcalabro12.github.io/Equilibra/",
-      "icono": "https://gcalabro12.github.io/Equilibra/img/icono-192.png",
+      "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-life.png",
       "color": "#140f26"
     }
   ]

@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.08';
+  const VERSION = 'v1.09';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -170,10 +170,12 @@ a.app:hover{border-color:var(--c)}
         for (const [id, a] of Object.entries(locales)) {
           if (!todas.some(x => x.id === id) && urlSegura(a.url)) todas.push({ id, nombre: a.nombre, url: a.url });
         }
+        // Apps marcadas "oculta" en apps.json: no salen aunque este navegador las tenga apuntadas
+        const visibles = todas.filter(a => !a.oculta);
         // Grow Panel se activa a partir de la segunda app
-        this.toggleAttribute('oculto', todas.length < 2);
+        this.toggleAttribute('oculto', visibles.length < 2);
         const ocultar = (this.getAttribute('ocultar') || '').split(',').map(s => s.trim()).filter(Boolean);
-        const apps = todas.filter(a => !ocultar.includes(a.id));
+        const apps = visibles.filter(a => !ocultar.includes(a.id));
         const fichas = await Promise.all(apps.map(a => leerJSON(a.ficha).catch(() => null)));
         if (turno !== this._turno || this._arrastrando) return;
         const vistas = apps.map((a, i) => combinar(a, fichas[i])).sort((x, y) => ORDEN[x.estado] - ORDEN[y.estado]);
@@ -183,7 +185,7 @@ a.app:hover{border-color:var(--c)}
           const pos = v => { const i = orden.indexOf(v.app.id); return i < 0 ? 1e6 : i; };
           vistas.sort((x, y) => pos(x) - pos(y));
         }
-        this.pintar(raiz, vistas, todas.length);
+        this.pintar(raiz, vistas, visibles.length);
       } catch (e) {
         if (turno !== this._turno) return;
         raiz.innerHTML = this.cabecera('No se pudo leer el panel. Revisa la conexión.') + '<div class="vacio">Sin conexión con Grow Panel.</div>';

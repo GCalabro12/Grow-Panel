@@ -152,9 +152,10 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
     let reg = { apps: [] };
     try { reg = await (await fetch('apps.json?t=' + Date.now(), { cache: 'no-store' })).json(); } catch (e) {}
     const locales = leer('growpanel.apps'), fichas = leer('growpanel.fichas');
-    const apps = (reg.apps || []).filter(a => !a.externa);
-    for (const [id, a] of Object.entries(locales)) if (!apps.some(x => x.id === id) && /^https:/.test(a.url || '')) apps.push({ id, nombre: a.nombre, url: a.url });
-    const n = (reg.apps || []).length || apps.length;
+    const todasReg = reg.apps || [];
+    const apps = todasReg.filter(a => !a.externa && !a.oculta);
+    for (const [id, a] of Object.entries(locales)) if (!todasReg.some(x => x.id === id) && /^https:/.test(a.url || '')) apps.push({ id, nombre: a.nombre, url: a.url });
+    const n = todasReg.filter(a => !a.oculta).length || apps.length;
     const url = a => { const u = (locales[a.id] && /^https:/.test(locales[a.id].url || '') ? locales[a.id].url : a.url) || ''; return u + (u.includes('?') ? '&' : '?') + 'growpanel=' + n; };
     const conectadas = apps.filter(a => locales[a.id] || a.ficha);
     const sincronizar = conectadas.length >= 2;
