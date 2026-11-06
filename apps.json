@@ -26,7 +26,8 @@
       "nombre": "Amable PC",
       "url": "https://gcalabro12.github.io/Amable-PC/",
       "icono": "https://gcalabro12.github.io/Amable-PC/icon-192.png",
-      "registro": "amable-pc"
+      "registro": "amable-pc",
+      "registro_activo": true
     },
     {
       "id": "calistenia",
@@ -34,6 +35,7 @@
       "url": "https://app-unbreakable.web.app/",
       "color": "#0f172a",
       "registro": "amable-fit",
+      "registro_activo": true,
       "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-fit.png"
     },
     {
@@ -74,7 +76,8 @@
       "url": "https://gcalabro12.github.io/Equilibra/",
       "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-life.png",
       "color": "#140f26",
-      "registro": "amable-life"
+      "registro": "amable-life",
+      "registro_activo": true
     }
   ]
 }

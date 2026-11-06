@@ -575,7 +575,12 @@ window.CuentaAmable = (() => {
     await reenviarFichas();
     const hoy = new Date(), ayer = new Date(); ayer.setDate(hoy.getDate() - 1);
     const r = await pedir(`/registro?desde=${dia(ayer)}&hasta=${dia(hoy)}`);
-    return r.ok ? ((await r.json()).filas || []) : null;
+    if (!r.ok) return null;
+    const j = await r.json(), filas = j.filas || [];
+    filas.cuentas = j.cuentas || [];   // con qué cuenta envía cada app
+    const u = window.CuentaAmable && window.CuentaAmable.usuario();
+    filas.miCuenta = u ? (u.email || '') : '';
+    return filas;
   };
 })();
 

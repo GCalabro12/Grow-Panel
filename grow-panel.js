@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.24';
+  const VERSION = 'v1.25';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -57,6 +57,9 @@ a.app:hover{border-color:var(--c)}
 .fila b{font-size:16px}
 .ver{font-size:11px;font-weight:700;color:var(--gp-mut);background:var(--gp-sub);padding:1px 7px;border-radius:20px}
 .cuando{margin-left:auto;font-size:12px;color:var(--gp-mut);white-space:nowrap}
+.cuenta{margin-left:auto;font-size:11px;color:var(--gp-mut);overflow-wrap:anywhere}
+.cuenta+.cuando{margin-left:0}
+.consejo{display:block;margin-top:4px;font-size:12px;color:var(--gp-aviso);font-weight:600}
 .msg{display:flex;align-items:flex-start;gap:7px;font-size:14px;margin-top:3px;line-height:1.35}
 .punto{width:9px;height:9px;border-radius:50%;background:var(--c);flex:none;margin-top:5px}
 .cifras{grid-column:2;display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
@@ -129,6 +132,9 @@ a.app:hover{border-color:var(--c)}
     });
     const hoy = new Date(), dia = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     const res = {};
+    // Con qué cuenta envía cada app (lo dice el registro) y con cuál ha entrado Grow Panel
+    res.__cuentas = {}; (filas && filas.cuentas || []).forEach(c => { res.__cuentas[c.app] = c; });
+    res.__miCuenta = (filas && filas.miCuenta) || '';
     Object.entries(ultimo).forEach(([app, v]) => {
       const fmt = n => Number(n).toLocaleString('es-ES', { maximumFractionDigits: 1 });
       res[app] = { ficha: 1, estado: 'ok', mensaje: v.fecha === dia(hoy) ? 'Números de hoy' : 'Números del ' + v.fecha.slice(8, 10) + '/' + v.fecha.slice(5, 7),
@@ -144,8 +150,25 @@ a.app:hover{border-color:var(--c)}
     // El registro diario manda si es más reciente que lo que la app dejó en este navegador
     const r = reg && app.registro && reg[app.registro];
     if (r && (!f || !(Date.parse(f.actualizado) >= Date.parse(r.actualizado)))) f = Object.assign({}, r, { version: f && f.version });
-    if (!f) return app.ficha ? { app, estado: 'mudo', mensaje: 'Todavía no ha publicado su ficha' } : { app, estado: 'pausa', mensaje: 'Conectada · resumen próximamente' };
-    return combinarFicha(app, f);
+    const v = f ? combinarFicha(app, f)
+      : app.ficha ? { app, estado: 'mudo', mensaje: 'Todavía no ha publicado su ficha' } : { app, estado: 'pausa', mensaje: 'Conectada · resumen próximamente' };
+    return conCuenta(v, app, reg);
+  }
+
+  // Con qué cuenta está conectada la app («(gcalabro12@gmail.com)») y, si algo no cuadra, qué hacer
+  function conCuenta(v, app, reg) {
+    if (!reg || !app.registro) return v;
+    const c = reg.__cuentas && reg.__cuentas[app.registro], mia = reg.__miCuenta;
+    if (c) {
+      const google = /^google/.test(c.tipo || '');
+      v.cuenta = c.cuenta || (google ? 'cuenta de Google' : 'sin cuenta de Google');
+      if (!google) v.consejo = `Entra en ${app.nombre} con Google${mia ? ' (' + mia + ')' : ''} para verla en todos tus aparatos`;
+      else if (mia && c.cuenta && /@/.test(c.cuenta) && c.cuenta.toLowerCase() !== mia.toLowerCase()) v.consejo = `Envía con ${c.cuenta}; Grow Panel usa ${mia}`;
+    } else if (app.registro_activo && mia) {
+      v.cuenta = 'sin números de tu cuenta';
+      v.consejo = `Entra en ${app.nombre} con tu cuenta de Google (${mia})`;
+    }
+    return v;
   }
 
   function combinarFicha(app, f) {
@@ -170,8 +193,8 @@ a.app:hover{border-color:var(--c)}
     return `<div class="item" data-id="${esc(a.id)}"><${tag} class="app" style="--c:var(--gp-${v.estado})${color ? `;--a:${color}` : ''}"${attrs} title="${esc(a.nombre)} · ${esc(ESTADOS[v.estado])}">
   <span class="ico">${icono ? `<img src="${esc(icono)}" alt="">` : esc(a.emoji || (a.nombre || '•').charAt(0))}</span>
   <span>
-    <span class="fila"><b>${esc(a.nombre)}</b>${v.f && v.f.version ? `<span class="ver">${esc(v.f.version)}</span>` : ''}${v.t ? `<span class="cuando" title="Último cambio de sus números">actualizado ${hace(v.t)}</span>` : ''}</span>
-    <span class="msg"><i class="punto"></i>${esc(v.mensaje)}</span>
+    <span class="fila"><b>${esc(a.nombre)}</b>${v.f && v.f.version ? `<span class="ver">${esc(v.f.version)}</span>` : ''}${v.cuenta ? `<span class="cuenta" title="Cuenta con la que envía sus números">(${esc(v.cuenta)})</span>` : ''}${v.t ? `<span class="cuando" title="Último cambio de sus números">actualizado ${hace(v.t)}</span>` : ''}</span>
+    <span class="msg"><i class="punto"></i>${esc(v.mensaje)}</span>${v.consejo ? `<span class="consejo">⚠ ${esc(v.consejo)}</span>` : ''}
   </span>
   ${cifras ? `<span class="cifras">${cifras}</span>` : ''}
 </${tag}><button class="asa" type="button" title="Arrastra para ordenar" aria-label="Mover ${esc(a.nombre)}: arrastra o usa las flechas arriba y abajo">${PUNTOS}</button></div>`;
