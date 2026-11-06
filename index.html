@@ -817,7 +817,13 @@ try { const t = localStorage.getItem('growpanel.tema'); if (t === 'claro' || t =
 
 // (La guía «Cómo conectar / Sincronizar tus apps» se quitó en v1.13: las apps se conectan solas al abrirlas desde aquí.)
 // Instalable como app (PWA)
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator) {
+  // Cuando llega una versión nueva de Grow Panel, se recarga sola una vez
+  const habia = !!navigator.serviceWorker.controller;
+  let recargada = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (habia && !recargada) { recargada = true; location.reload(); } });
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update()).catch(() => {});
+}
 let aviso = null;
 const bInst = document.getElementById('instalar');
 addEventListener('beforeinstallprompt', e => { e.preventDefault(); aviso = window.gpAviso = e; bInst.hidden = false; });
