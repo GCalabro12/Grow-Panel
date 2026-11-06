@@ -74,7 +74,8 @@ body.visor-abierto{overflow:hidden}
 .seg.periodos{flex-wrap:wrap;margin-bottom:12px}
 .seg.periodos button{position:relative}
 .seg.periodos button.toca::after{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#ef4444}
-.ia-caja{background:var(--fila);border-radius:12px;padding:14px 16px;line-height:1.6;font-size:15px;white-space:pre-wrap;min-height:60px;margin-bottom:10px}
+.ia-caja{background:var(--fila);border-radius:12px;padding:16px 18px;line-height:1.65;font-size:15px;white-space:pre-wrap;min-height:60px;margin-bottom:10px}
+.ia-caja b{font-size:16px}
 .ia-caja.vacia{color:var(--mut);font-size:14px}
 .reg-res{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin-top:6px}
 .reg-app{border:2px solid var(--ac,var(--ln));border-radius:18px;padding:14px 16px;margin:0;
@@ -635,7 +636,7 @@ window.CuentaAmable = (() => {
     const caja = resCaja.querySelector('.ia-caja'), btn = resCaja.querySelector('[data-a="ia-generar"]'), leer = resCaja.querySelector('[data-a="ia-leer"]');
     if (!caja) return;
     if (msg) { caja.className = 'ia-caja vacia'; caja.textContent = msg; }
-    else if (iaTexto) { caja.className = 'ia-caja'; caja.textContent = iaTexto; }
+    else if (iaTexto) { caja.className = 'ia-caja'; caja.innerHTML = esc(iaTexto).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }   // títulos **…** en negrita
     else { caja.className = 'ia-caja vacia'; caja.textContent = 'Pulsa «Generar con IA» y te escribo cómo ha ido tu resumen ' + NOMBRE_PERIODO[iaPeriodo] + ', a partir de los números de tus apps.'; }
     if (btn) btn.textContent = iaTexto ? '↻ Volver a escribir' : '✨ Generar con IA';
     if (leer) leer.hidden = !iaTexto;
@@ -668,7 +669,9 @@ window.CuentaAmable = (() => {
     if (!iaTexto || !('speechSynthesis' in window)) return;
     const b = resCaja.querySelector('[data-a="ia-leer"]');
     if (speechSynthesis.speaking) { pararLectura(); return; }
-    const u = new SpeechSynthesisUtterance(iaTexto); u.lang = 'es-ES'; u.rate = 1;
+    // Para leer: sin asteriscos ni emojis (si no, la voz los nombra)
+    const limpio = iaTexto.replace(/\*\*/g, '').replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu, '').replace(/\n{2,}/g, '.\n');
+    const u = new SpeechSynthesisUtterance(limpio); u.lang = 'es-ES'; u.rate = 1;
     const voces = speechSynthesis.getVoices().filter(v => /^es(-|_)ES/i.test(v.lang));
     u.voice = voces.find(v => /Helena|Elvira|Google/i.test(v.name)) || voces[0] || null;
     u.onend = () => { if (b) b.textContent = '🔊 Escuchar'; };
