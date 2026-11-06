@@ -74,6 +74,16 @@ body.visor-abierto{overflow:hidden}
 .seg.periodos{flex-wrap:wrap;margin-bottom:12px}
 .seg.periodos button{position:relative}
 .seg.periodos button.toca::after{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#ef4444}
+.diario .preg{margin:18px 0 6px;font-weight:800;font-size:15px}
+.diario .preg:first-child{margin-top:4px}
+.diario .ayuda{font-size:12.5px;color:var(--mut);margin:-2px 0 6px}
+.diario textarea{width:100%;min-height:56px;resize:vertical;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);padding:10px 12px;font:inherit;font-size:14.5px;line-height:1.5}
+.diario .opciones{display:flex;flex-wrap:wrap;gap:8px}
+.diario .opciones button{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 12px;font-size:14px;cursor:pointer}
+.diario .opciones button.on{background:#f59e0b;border-color:#d97706;color:#1c1300;font-weight:800}
+.diario label.marca{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:14.5px;cursor:pointer}
+.diario label.marca input{width:20px;height:20px;accent-color:#f59e0b}
+.diario .final{margin-top:18px;padding:14px;border-radius:12px;background:#fef3c7;color:#78350f;font-weight:800;text-align:center}
 .ia-caja{background:var(--fila);border-radius:12px;padding:16px 18px;line-height:1.65;font-size:15px;white-space:pre-wrap;min-height:60px;margin-bottom:10px}
 .ia-caja b{font-size:16px}
 .ia-caja.vacia{color:var(--mut);font-size:14px}
@@ -605,18 +615,90 @@ window.CuentaAmable = (() => {
           <button class="reg-b act girando" data-a="actualizar" title="Recoger lo último de tus apps"><span class="ic">↻</span> Actualizar datos</button>
           <div class="reg-nota" style="margin-top:8px">Hoy y los últimos 7 días: lo último que han dejado tus apps, estén en el móvil o en el PC. Solo números, y solo los ves tú.</div>
           <div class="reg-res"><div class="reg-nota">Cargando…</div></div></div></details>`
+      + `<details class="sec" data-sec="diario"${abierta('diario') ? ' open' : ''}><summary>📓 Diario de 5 minutos</summary><div class="sec-cuerpo">
+          <div class="seg periodos">${['ayer', 'hoy'].map(d => `<button type="button" data-a="diario-dia" data-d="${d}" class="${d === diarioDia ? 'on' : ''}">${d === 'hoy' ? 'Hoy' : 'Ayer'}</button>`).join('')}</div>
+          <div class="reg-nota">Un repaso del día en 5 minutos. Se guarda solo mientras escribes, y lo usa la IA para tu resumen. Solo lo ves tú.</div>
+          <div class="diario"><div class="reg-nota">Cargando…</div></div>
+          <div class="reg-nota diario-msg" style="margin:8px 0 0"></div></div></details>`
       + `<details class="sec" data-sec="texto"${abierta('texto') ? ' open' : ''}><summary>✍️ Resumen en texto</summary><div class="sec-cuerpo">
           <div class="seg periodos">${Object.entries(PERIODOS_IA).map(([p, n]) => `<button type="button" data-a="ia-periodo" data-p="${p}" class="${p === iaPeriodo ? 'on' : ''}${toca[p] ? ' toca' : ''}"${toca[p] ? ` title="${esc(toca[p])}"` : ''}>${n}</button>`).join('')}</div>
           ${Object.values(toca).length ? `<div class="reg-nota">🔴 ${esc(Object.values(toca).join(' '))}</div>` : ''}
           <div class="ia-caja vacia">Cargando…</div>
           <div class="fila"><button class="reg-b google" data-a="ia-generar">✨ Generar con IA</button><button class="reg-b" data-a="ia-leer">🔊 Escuchar</button></div>
-          <div class="reg-nota" style="margin-top:8px">La IA de Google lee solo tus números (nunca textos) para escribirte cómo te ha ido.</div></div></details>`;
+          <div class="reg-nota" style="margin-top:8px">La IA de Google lee tus números y tu diario de 5 minutos solo para escribirte cómo te ha ido.</div></div></details>`;
     cargarTextoIA();
+    cargarDiario();
     let cuerpo;
     try { cuerpo = await resumen(); } catch (e) { cuerpo = '<div class="reg-aviso">No se pudo leer tu resumen. Revisa la conexión y pulsa ↻ Actualizar datos.</div>'; }
     const res = resCaja.querySelector('.reg-res'); if (res) res.innerHTML = cuerpo;
     const rec = resCaja.querySelector('.act'); if (rec) rec.classList.remove('girando');
   }
+
+  // --- Diario de 5 minutos (las preguntas del journal de Gustavo en Notion) ---
+  // Por la mañana se suele rellenar el de ayer: antes de las 12 se abre «Ayer»
+  let diarioDia = new Date().getHours() < 12 ? 'ayer' : 'hoy', diarioDatos = {}, diarioT = null;
+  const fechaDiario = () => { const d = new Date(); if (diarioDia === 'ayer') d.setDate(d.getDate() - 1); return dia(d); };
+  const ANIMOS = [[1, '😣 Muy malo'], [2, '🙁 Malo'], [3, '😐 Sin nada especial'], [4, '🙂 Bueno'], [5, '🤩 Espectacular']];
+  const BIEN = [['rutina_manana', 'Hice mi rutina matutina'], ['ejercicio', 'Hice ejercicio'], ['rutina_noche', 'Hice mi rutina nocturna']];
+  const ALINEADO = [['no', 'No'], ['medias', 'A medias'], ['si', 'Sí']];
+  const area = (k, ph) => `<textarea data-d="${k}" placeholder="${esc(ph || '')}">${esc(diarioDatos[k] || '')}</textarea>`;
+  function pintarDiario(anterior) {
+    const caja = resCaja.querySelector('.diario'); if (!caja) return;
+    const r = diarioDatos, bien = r.bien || [];
+    if (!r.quien_soy && anterior) r.quien_soy = anterior;
+    caja.innerHTML = `
+      <div class="preg">1. ❤️ ¿Cómo te sentiste, con el día ya terminado?</div>
+      <div class="ayuda">Tus números del día ya están arriba, en «Resumen del día en datos».</div>
+      <div class="opciones">${ANIMOS.map(([v, n]) => `<button type="button" data-a="diario-animo" data-v="${v}" class="${r.animo === v ? 'on' : ''}">${n}</button>`).join('')}</div>
+      <div class="preg">2. 👍🏽 ¿Qué fue bien?</div>
+      ${BIEN.map(([k, n]) => `<label class="marca"><input type="checkbox" data-b="${k}"${bien.includes(k) ? ' checked' : ''}> ${n}</label>`).join('')}
+      ${area('bien_otro', 'Otra cosa que fue bien…')}
+      <div class="preg">3. 👎🏽 ¿Qué no ha ido tan bien y puede mejorar?</div>
+      ${area('mejorar')}
+      <div class="preg">4. 🔮 ¿Quién soy? Mis valores actuales</div>
+      <div class="ayuda">Una frase del tipo «Soy una persona que prioriza el deporte antes que el trabajo».</div>
+      ${area('quien_soy', 'Soy una persona que…')}
+      <div class="preg">5. 🔮 ¿Viviste alineado con la persona que quieres ser?</div>
+      <div class="opciones">${ALINEADO.map(([v, n]) => `<button type="button" data-a="diario-alineado" data-v="${v}" class="${r.alineado === v ? 'on' : ''}">${n}</button>`).join('')}</div>
+      <div class="preg">6. 🔮 ¿Por qué?</div>
+      ${area('porque')}
+      <div class="preg">7. 🙏🏽 ¿Algo que agradecer? <span class="reg-nota">(opcional)</span></div>
+      ${area('agradecer')}
+      <div class="preg">8. 🧠 ¿Qué has aprendido? <span class="reg-nota">(opcional)</span></div>
+      <div class="ayuda">Refuerza tu memoria a largo plazo; te dará ideas.</div>
+      ${area('aprendido')}
+      <div class="preg">9. 🎯 ¿Cuál es la tarea más importante para mañana?</div>
+      <div class="ayuda">Tu tarea estrella o «sapo», de 60 a 90 minutos: urgente o que te dé satisfacción.</div>
+      ${area('sapo', 'Mi tarea sapo de mañana…')}
+      ${area('otras_tareas', 'Otras 2 tareas importantes…')}
+      ${r.animo && r.sapo ? '<div class="final">🎉 ¡Muy bien! Que descanses. Mañana, a comerte el sapo y el día 🥳</div>' : ''}`;
+  }
+  async function cargarDiario() {
+    const caja = resCaja.querySelector('.diario'); if (!caja) return;
+    diarioDatos = {};
+    try {
+      const r = await pedir('/diario?fecha=' + fechaDiario()); const j = r.ok ? await r.json() : {};
+      diarioDatos = j.respuestas || {};
+      pintarDiario(j.quien_soy_anterior);
+    } catch (e) { caja.innerHTML = '<div class="reg-aviso">No se pudo abrir tu diario. Revisa la conexión.</div>'; }
+  }
+  function leerFormDiario() {
+    const caja = resCaja.querySelector('.diario'); if (!caja) return;
+    caja.querySelectorAll('textarea[data-d]').forEach(t => { diarioDatos[t.dataset.d] = t.value; });
+    diarioDatos.bien = [...caja.querySelectorAll('input[data-b]')].filter(x => x.checked).map(x => x.dataset.b);
+  }
+  function guardarDiarioLuego() {
+    const m = resCaja.querySelector('.diario-msg'); if (m) m.textContent = 'Guardando…';
+    clearTimeout(diarioT);
+    diarioT = setTimeout(async () => {
+      try {
+        const r = await pedir('/diario', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fecha: fechaDiario(), respuestas: diarioDatos }) });
+        if (m) m.textContent = r.ok ? '✓ Guardado' : 'No se pudo guardar. Revisa la conexión.';
+      } catch (e) { if (m) m.textContent = 'No se pudo guardar. Revisa la conexión.'; }
+    }, 1200);
+  }
+  resCaja.addEventListener('input', e => { if (e.target.closest('.diario')) { leerFormDiario(); guardarDiarioLuego(); } });
+  resCaja.addEventListener('change', e => { if (e.target.matches('.diario input[data-b]')) { leerFormDiario(); guardarDiarioLuego(); } });
 
   // --- Resumen en texto con IA (día, semana, mes, trimestre, año) ---
   const PERIODOS_IA = { dia: 'Hoy', semana: 'Semana', mes: 'Mes', trimestre: 'Trimestre', anio: 'Año' };
@@ -718,7 +800,7 @@ window.CuentaAmable = (() => {
     const datos = `<div class="tarjeta"><h3>Tus datos</h3>
       <label class="interruptor"><input type="checkbox" id="compartir" role="switch"${on ? ' checked' : ''}><b>Compartir los registros de mis apps para verlos agrupados en Grow Panel</b></label>
       <div class="reg-nota compartir-nota">${textoCompartir(on)}</div>
-      <div class="reg-nota">Nunca se mandan textos: solo números (pasos, minutos, tareas…). Vale para todas tus apps Amable, en el móvil y en el PC.</div>
+      <div class="reg-nota">Tus apps nunca mandan textos: solo números (pasos, minutos, tareas…). Tu diario de 5 minutos lo escribes tú en Grow Panel. Todo solo lo ves tú, y «Borrar mis datos» lo borra todo. Vale para todas tus apps Amable, en el móvil y en el PC.</div>
       <div class="reg-nota" id="reg-msg"></div>${borrarHTML()}${clavePanel(clave)}</div>`;
     // (6-11-2026, Gustavo: sin hora de cierre ni aviso diario: el resumen está siempre al día con «Actualizar datos»)
     ajCaja.innerHTML = cuenta + temaH + inst + ayuda + datos
@@ -758,6 +840,17 @@ window.CuentaAmable = (() => {
       cargarTextoIA(); return;
     }
     else if (accion === 'ia-generar') { generarTextoIA(); return; }
+    else if (accion === 'diario-dia') {
+      diarioDia = a.dataset.d;
+      caja.querySelectorAll('[data-a="diario-dia"]').forEach(x => x.classList.toggle('on', x === a));
+      cargarDiario(); return;
+    }
+    else if (accion === 'diario-animo' || accion === 'diario-alineado') {
+      leerFormDiario();
+      const k = accion === 'diario-animo' ? 'animo' : 'alineado', v = k === 'animo' ? Number(a.dataset.v) : a.dataset.v;
+      diarioDatos[k] = diarioDatos[k] === v ? undefined : v;
+      pintarDiario(); guardarDiarioLuego(); return;
+    }
     else if (accion === 'ia-leer') { leerTextoIA(); return; }
     else if (accion === 'probar-aviso') {
       const m = caja.querySelector('.aviso-msg');
