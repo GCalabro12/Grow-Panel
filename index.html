@@ -408,7 +408,8 @@ window.CuentaAmable = (() => {
   // Nombres propios de cada app (más claros) y siempre con mayúscula inicial
   const NOMBRES_APP = { 'amable-fit:minutos': 'minutos de ejercicio', 'amable-fit:sesiones': 'sesiones de hoy',
     'amable-fit:semana': 'sesiones esta semana', 'amable-life:pasos': 'pasos', 'amable-pc:pasos': 'pasos',
-    'amable-flow:minutos_presencia': 'minutos de presencia' };
+    'amable-flow:minutos_presencia': 'minutos de presencia', 'amable-life:eventos_hoy': 'eventos de hoy',
+    'amable-life:horas_agenda_hoy': 'horas en agenda', 'amable-life:eventos_hechos': 'eventos hechos' };
   const nombreDato = (k, app) => { const n = NOMBRES_APP[app + ':' + k] || NOMBRES[k] || k.replace(/_/g, ' '); return n.charAt(0).toUpperCase() + n.slice(1); };
   const num = v => Number(v).toLocaleString('es-ES', { maximumFractionDigits: 1 });
   let estado = { modo: '', mostrar: false };
