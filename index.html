@@ -346,26 +346,31 @@ window.CuentaAmable = (() => {
   const horaHTML = h => `<div class="tarjeta"><h3>¿A qué hora quieres tu resumen del día?</h3>
     <div class="fila"><input type="time" class="hora-in" value="${esc(h)}" aria-label="Hora del resumen del día">
     <button class="reg-b" data-a="hora">Guardar</button><span class="reg-nota hora-msg" style="margin:0"></span></div>
-    <div class="reg-nota" style="margin-bottom:0">A esa hora tus apps Amable mandan sus números del día. Es la misma en el móvil y en el PC. Si alguna app aún no se ha actualizado, manda a las 20:00.</div></div>`;
+    <div class="reg-nota" style="margin-bottom:0">A esa hora se cierra tu día. Durante el día tus apps dejan sus números al momento, y aquí ves siempre lo último. Es la misma hora en el móvil y en el PC.</div></div>`;
   // Si la hora guardada en internet es otra, se pone en el campo (si no lo estás tocando)
   const refrescarHora = (caja, antes) => cargarHora().then(h => {
     const inp = caja.querySelector('.hora-in'); if (inp && h !== antes && document.activeElement !== inp) inp.value = h;
   });
 
   async function resumen() {
+    await reenviarFichas();
     const hoy = new Date(), hace6 = new Date(); hace6.setDate(hoy.getDate() - 6);
     const r = await pedir(`/registro?desde=${dia(hace6)}&hasta=${dia(hoy)}`);
     if (!r.ok) throw new Error(r.status);
     const filas = (await r.json()).filas || [];
-    if (!filas.length) return `<div class="reg-aviso">Todavía no hay datos. Abre tus apps desde «Abrir apps»: a partir de las ${esc(leerHora())} sus números aparecerán aquí.</div>`;
-    const nombres = await nombresApps(), hoyTxt = dia(hoy), porApp = {};
+    if (!filas.length) return `<div class="reg-aviso">Todavía no hay datos. Cuando tus apps Amable dejen sus números, aparecerán aquí.</div>`;
+    const nombres = await nombresApps(), hoyTxt = dia(hoy), porApp = {}, ultimo = {};
     filas.forEach(f => {
+      const t = Date.parse((f.enviado || '').replace(' ', 'T') + 'Z');
+      if (t && !(ultimo[f.app] >= t)) ultimo[f.app] = t;
       const a = porApp[f.app] = porApp[f.app] || {}, d = a[f.dato] = a[f.dato] || { hoy: null, semana: 0 };
       if (f.fecha === hoyTxt) d.hoy = f.valor;
       if (NO_SUMAR.test(f.dato)) d.semana = Number(f.valor) || 0;   // filas ordenadas por fecha: queda el último
       else d.semana += Number(f.valor) || 0;
     });
-    return Object.keys(porApp).sort().map(app => `<div class="reg-app"><b>${esc(nombres[app] || app)}</b>
+    const hace = t => { const m = Math.round((Date.now() - t) / 60000); if (m < 2) return 'ahora'; if (m < 60) return `hace ${m} min`;
+      const h = Math.round(m / 60); if (h < 24) return `hace ${h} h`; const d = Math.round(h / 24); return d === 1 ? 'ayer' : `hace ${d} días`; };
+    return Object.keys(porApp).sort().map(app => `<div class="reg-app"><b>${esc(nombres[app] || app)}</b>${ultimo[app] ? `<span class="reg-nota" style="display:block;margin:-2px 0 4px">actualizado ${hace(ultimo[app])}</span>` : ''}
       <table class="reg-tabla"><tr><th>Dato</th><th>Hoy</th><th>7 días</th></tr>${Object.entries(porApp[app]).map(([k, d]) =>
         `<tr><td>${esc(nombreDato(k))}</td><td>${d.hoy === null ? '—' : esc(num(d.hoy))}</td><td>${esc(num(d.semana))}</td></tr>`).join('')}</table></div>`).join('');
   }
@@ -400,7 +405,7 @@ window.CuentaAmable = (() => {
     resCaja.innerHTML = (u ? '' : `<div class="tarjeta fila"><span style="flex:1;min-width:200px">Entra con tu cuenta de Google para ver lo mismo en el móvil y en el PC.</span>
         <button class="reg-b google" data-a="entrar">Entrar con Google</button></div>`)
       + horaHTML(hora)
-      + `<div class="tarjeta"><h3>Hoy y los últimos 7 días</h3><div class="reg-nota">Solo números, y solo los ves tú.</div>
+      + `<div class="tarjeta"><h3>Hoy y los últimos 7 días</h3><div class="reg-nota">Lo último que han dejado tus apps, estén en el móvil o en el PC. Solo números, y solo los ves tú.</div>
         <div class="reg-res"><div class="reg-nota">Cargando…</div></div>
         <div class="reg-acciones"><button class="reg-b" data-a="actualizar">↻ Actualizar</button></div></div>`;
     refrescarHora(resCaja, hora);
@@ -538,6 +543,7 @@ window.CuentaAmable = (() => {
   // Para las tarjetas de «Abre tus apps»: números del registro de ayer y hoy (de internet: iguales en todos tus aparatos)
   window.GrowPanelRegistro = async () => {
     await vincular(miClave());
+    await reenviarFichas();
     const hoy = new Date(), ayer = new Date(); ayer.setDate(hoy.getDate() - 1);
     const r = await pedir(`/registro?desde=${dia(ayer)}&hasta=${dia(hoy)}`);
     return r.ok ? ((await r.json()).filas || []) : null;

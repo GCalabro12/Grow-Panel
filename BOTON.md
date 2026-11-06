@@ -103,3 +103,18 @@ Gustavo: «Grow Panel lo pide a la aplicación y ésta le pasa el dato». La app
   al cerrar una app abierta debajo de él y cuando la app actualiza su ficha en otra pestaña del mismo navegador.
 - Solo manda datos de hoy o de ayer, solo si han cambiado, y nunca si todo vale 0 (sería una copia vacía de la app en ese navegador).
 - Las apps de otra dirección pasan la ficha con «#ficha=» al volver a Grow Panel; también vale `datos`.
+
+## Buzón común: los números llegan durante el día (decidido por Gustavo el 6-11-2026)
+Grow Panel es el centro: al pulsar «Actualizar datos» o abrir «Resumen del día» recoge al momento lo último de todas las apps,
+estén en el móvil o en el PC. Como no puede preguntar a una app cerrada en otro aparato, cada app deja sus números en el
+buzón común (el registro diario) en cuanto cambian:
+- `POST /registro {"fecha":"AAAA-MM-DD","app":"<id>","datos":{...}}` con la cuenta de Google (token) o la clave.
+  El mismo día se sobrescribe, así que se puede mandar muchas veces.
+- Cuándo: cada vez que hay un cambio significativo (p. ej. +100 pasos, +5 min, una tarea o sesión nueva), agrupando: como mucho
+  una vez cada 5 minutos; también al abrir la app, al volver a ella y al irse
+  (`visibilitychange` → oculto, con `fetch(..., {keepalive:true})`). Si la app cuenta en segundo plano (pasos), también cada 15 min.
+- No mandar si todo vale 0 y ya se mandaron números ese día.
+- La hora del resumen (GET /ajustes) es la hora a la que se cierra el día, no la del envío.
+- Las apps de gcalabro12.github.io pueden además poner `datos` en su ficha: Grow Panel los manda él (ver arriba).
+- El Worker solo cambia la hora de «enviado» si el número cambia de verdad. Grow Panel la usa para decir en cada app
+  «actualizado hace 30 min / hace 1 h»: así se sabe desde cuándo están al día sus números.
