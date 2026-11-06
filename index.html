@@ -604,7 +604,8 @@ window.CuentaAmable = (() => {
 
   // «Abre tus apps»: sin cuenta de Google no se ven los números de las apps de otros aparatos → aviso para entrar
   const aviso = document.getElementById('aviso-cuenta');
-  const pintarAviso = () => { aviso.hidden = !!window.CuentaAmable.usuario(); };
+  // Se oculta si Grow Panel ha entrado con Google o si la clave de este navegador ya está unida a tu cuenta
+  const pintarAviso = () => { aviso.hidden = !!window.CuentaAmable.usuario() || !!window.gpConCuenta; };
   window.CuentaAmable.iniciar().then(pintarAviso);
   document.getElementById('aviso-entrar').addEventListener('click', () => window.CuentaAmable.entrar().catch(() => {}));
   window.CuentaAmable.alCambiar(() => { pintarAviso(); pintar(); document.querySelector('grow-panel').cargar(); });
@@ -618,6 +619,8 @@ window.CuentaAmable = (() => {
     if (!r.ok) return null;
     const j = await r.json(), filas = j.filas || [];
     filas.cuentas = j.cuentas || [];   // con qué cuenta envía cada app
+    window.gpConCuenta = /^google/.test(j.cuenta || '');   // Google, o una clave ya unida a Google
+    pintarAviso();
     const u = window.CuentaAmable && window.CuentaAmable.usuario();
     filas.miCuenta = u ? (u.email || '') : '';
     return filas;
