@@ -118,3 +118,12 @@ buzón común (el registro diario) en cuanto cambian:
 - Las apps de gcalabro12.github.io pueden además poner `datos` en su ficha: Grow Panel los manda él (ver arriba).
 - El Worker solo cambia la hora de «enviado» si el número cambia de verdad. Grow Panel la usa para decir en cada app
   «actualizado hace 30 min / hace 1 h»: así se sabe desde cuándo están al día sus números.
+
+## Un solo interruptor, en Grow Panel (decidido por Gustavo el 6-11-2026)
+- Las apps NO tienen sección propia de «Mi resumen diario» (ni interruptor, ni «Enviar ahora», ni «Borrar mis datos»):
+  envían solas. Quitarla del menú de todas.
+- En Grow Panel → Ajustes → «Tus datos»: interruptor «Compartir los números de mis apps» (por defecto activado) y
+  «Borrar mis datos del registro». Es por persona (cuenta de Google o clave): el mismo en todas las apps y aparatos.
+- Si está apagado, el Worker ignora los envíos (`POST /registro` → `{"ok":true,"guardados":0,"compartir":false}`).
+  Las apps no tienen que hacer nada; si quieren, pueden leerlo en `GET /ajustes` → `"compartir": true|false` y no enviar.
+- La política de privacidad de cada app puede decir: «Puedes dejar de compartir o borrar tus números en Grow Panel → Ajustes».
