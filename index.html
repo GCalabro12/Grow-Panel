@@ -321,9 +321,10 @@ window.CuentaAmable = (() => {
   const NOMBRES = { pasos: 'pasos', pausas_vista: 'pausas de la vista', minutos_concentracion: 'minutos de concentración',
     tareas_hechas: 'tareas hechas', tareas_total: 'tareas en total', bloques_con_tareas: 'bloques con tareas', bloques_total: 'bloques en total',
     minutos: 'minutos', sesiones: 'sesiones', metas_hechas: 'metas hechas', horas_sueno: 'horas de sueño', ronquidos: 'ronquidos',
-    racha: 'días de racha', semana: 'sesiones esta semana', acciones_pendientes: 'acciones pendientes' };
+    racha: 'días de racha', semana: 'sesiones esta semana', acciones_pendientes: 'acciones pendientes',
+    minutos_presencia: 'minutos de presencia', practicas_hoy: 'prácticas hoy', racha_dias: 'días de racha', practicas_semana: 'prácticas esta semana' };
   // Datos que ya son un total o un estado (racha, semana…): en «7 días» se muestra el último valor, no la suma
-  const NO_SUMAR = /^(racha|semana|acciones_pendientes|.*_total|areas_.*)$/;
+  const NO_SUMAR = /^(racha|racha_dias|semana|practicas_semana|acciones_pendientes|.*_total|areas_.*)$/;
   const nombreDato = k => NOMBRES[k] || k.replace(/_/g, ' ');
   const num = v => Number(v).toLocaleString('es-ES', { maximumFractionDigits: 1 });
   let estado = { modo: '', mostrar: false };

@@ -52,7 +52,8 @@
       "url": "https://gcalabro12.github.io/Flow/",
       "color": "#E4E9F6",
       "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-flow.png",
-      "registro": "amable-flow"
+      "registro": "amable-flow",
+      "registro_activo": true
     },
     {
       "id": "mi-reproductor",
