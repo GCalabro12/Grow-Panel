@@ -238,8 +238,12 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
   }).catch(() => {});
   const conClave = url => {
     let k = null; try { k = localStorage.getItem('growpanel.clave'); } catch (e) {}
-    if (!/^[A-Za-z0-9_-]{32,128}$/.test(k || '')) return url;
-    return url + (url.includes('#') ? '&' : '#') + 'gpclave=' + k;
+    const partes = [];
+    if (/^[A-Za-z0-9_-]{32,128}$/.test(k || '')) partes.push('gpclave=' + k);
+    // El Gmail con el que has entrado en Grow Panel: la app te dice con qué cuenta de Google entrar (va detrás de «#»: no sale a internet)
+    const u = window.CuentaAmable && window.CuentaAmable.usuario();
+    if (u && u.email) partes.push('gpcorreo=' + encodeURIComponent(u.email));
+    return partes.length ? url + (url.includes('#') ? '&' : '#') + partes.join('&') : url;
   };
   function cerrar() {
     if (visor.hidden) return;
@@ -282,6 +286,8 @@ window.CuentaAmable = (() => {
         firebase.auth().onAuthStateChanged(u => {
           const conGoogle = u && u.providerData.some(p => p.providerId === 'google.com');
           usuario = conGoogle ? u : null;
+          // Para las apps de esta misma dirección: con qué Gmail has entrado en Grow Panel (GrowPanel.correo())
+          try { if (usuario && usuario.email) localStorage.setItem('growpanel.correo', usuario.email); else localStorage.removeItem('growpanel.correo'); } catch (e) {}
           if (primera) { primera = false; ok(); }
           avisos.forEach(f => f(usuario));
         });

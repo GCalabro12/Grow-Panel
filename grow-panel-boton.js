@@ -32,10 +32,16 @@
 
   // Registro diario: Grow Panel abre esta app con «#gpclave=…» (esa parte nunca se envía a internet).
   // Se guarda en esta dirección y se quita de la barra al momento: el usuario no tiene que pegar nada.
+  // Igual con «#gpcorreo=…»: el Gmail con el que la persona entró en Grow Panel (para decirle con qué cuenta entrar aquí)
   const mh = location.hash.match(/(^#|&)gpclave=([A-Za-z0-9_-]{32,128})/);
-  if (mh) {
-    try { localStorage.setItem('growpanel.clave', mh[2]); } catch (e) {}
-    const resto = location.hash.replace(/^#/, '').split('&').filter(p => p.indexOf('gpclave=') !== 0).join('&');
+  const mc = location.hash.match(/(^#|&)gpcorreo=([^&]{3,200})/);
+  if (mh) { try { localStorage.setItem('growpanel.clave', mh[2]); } catch (e) {} }
+  if (mc) {
+    let correo = ''; try { correo = decodeURIComponent(mc[2]); } catch (e) {}
+    if (/^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(correo)) { try { localStorage.setItem('growpanel.correo', correo); } catch (e) {} }
+  }
+  if (mh || mc) {
+    const resto = location.hash.replace(/^#/, '').split('&').filter(p => p.indexOf('gpclave=') !== 0 && p.indexOf('gpcorreo=') !== 0).join('&');
     history.replaceState(null, '', location.pathname + location.search + (resto ? '#' + resto : ''));
   }
 
@@ -133,6 +139,10 @@
     // Devuelve null en apps instaladas (APK/WebView/TWA): ahí, campo «Pega tu clave de Grow Panel».
     clave() {
       try { const k = localStorage.getItem('growpanel.clave'); return /^[A-Za-z0-9_-]{32,128}$/.test(k || '') ? k : null; } catch (e) { return null; }
+    },
+    // Gmail con el que la persona entró en Grow Panel, o null (para decirle con qué cuenta de Google entrar en esta app)
+    correo() {
+      try { const c = localStorage.getItem('growpanel.correo'); return /@/.test(c || '') ? c : null; } catch (e) { return null; }
     },
     // Hora del resumen del día que eligió la persona en Grow Panel («HH:MM», por defecto «20:00»).
     // Solo la ven las apps de esta misma dirección; las demás: GET /ajustes del registro diario.

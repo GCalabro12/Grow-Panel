@@ -127,3 +127,8 @@ buzón común (el registro diario) en cuanto cambian:
 - Si está apagado, el Worker ignora los envíos (`POST /registro` → `{"ok":true,"guardados":0,"compartir":false}`).
   Las apps no tienen que hacer nada; si quieren, pueden leerlo en `GET /ajustes` → `"compartir": true|false` y no enviar.
 - La política de privacidad de cada app puede decir: «Puedes dejar de compartir o borrar tus números en Grow Panel → Ajustes».
+
+## Con qué Gmail entrar (desde v1.36, 6-11-2026)
+- Grow Panel guarda el Gmail con el que entró la persona: `GrowPanel.correo()` (localStorage «growpanel.correo»), o null.
+- Apps de otra dirección: Grow Panel lo pasa al abrirlas desde la tarjeta con «#gpcorreo=<correo>» (junto a «gpclave»);
+  grow-panel-boton.js lo guarda y lo quita de la barra al momento. Sirve para decir «Entra con Google con <correo>».
