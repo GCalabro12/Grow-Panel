@@ -132,3 +132,10 @@ buzón común (el registro diario) en cuanto cambian:
 - Grow Panel guarda el Gmail con el que entró la persona: `GrowPanel.correo()` (localStorage «growpanel.correo»), o null.
 - Apps de otra dirección: Grow Panel lo pasa al abrirlas desde la tarjeta con «#gpcorreo=<correo>» (junto a «gpclave»);
   grow-panel-boton.js lo guarda y lo quita de la barra al momento. Sirve para decir «Entra con Google con <correo>».
+
+## Sin pedir avisos a quien usa Grow Panel (Gustavo, 6-11-2026 20:55)
+- Si la persona usa Grow Panel (hay `growpanel.n`, `growpanel.clave` o `growpanel.correo`, o `GrowPanel.correo()`), la app
+  NO le pide que active su aviso o notificación diaria: nada de «Te falta activar el aviso diario» en Inicio ni en listas
+  de «preparar». La gente no lo entiende; el centro es Grow Panel.
+- El interruptor de avisos puede quedarse en Ajustes de la app, por si alguien lo quiere.
+- La app sigue dando sus números cuando Grow Panel los pide (buzón común).
