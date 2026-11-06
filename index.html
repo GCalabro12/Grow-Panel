@@ -523,7 +523,10 @@ window.CuentaAmable = (() => {
       const h = Math.round(m / 60); if (h < 24) return `hace ${h} h`; const d = Math.round(h / 24); return d === 1 ? 'ayer' : `hace ${d} días`; };
     const color = c => /^#[0-9a-fA-F]{3,8}$/.test(c || '') ? c : '';
     const logo = a => /^https:\/\//.test(a.icono || '') ? `<img src="${esc(a.icono)}" alt="" loading="lazy">` : '';
-    return Object.keys(porApp).sort((x, y) => (nombres[x] ? nombres[x].nombre : x).localeCompare(nombres[y] ? nombres[y].nombre : y)).map(app => {
+    // Orden elegido por Gustavo: Meta, Fit, Life, PC, Flow (y después las demás, por nombre)
+    const ORDEN = ['amable-meta', 'amable-fit', 'amable-life', 'amable-pc', 'amable-flow'];
+    const pos = k => { const n = ORDEN.indexOf(k); return n < 0 ? 99 : n; };
+    return Object.keys(porApp).sort((x, y) => pos(x) - pos(y) || (nombres[x] ? nombres[x].nombre : x).localeCompare(nombres[y] ? nombres[y].nombre : y)).map(app => {
       const a = nombres[app] || { nombre: app }, t = ultimo[app], c = color(a.color), ac = color(a.acento) || c;
       const cuando = t ? `actualizado ${hace(t)}${Date.now() - t > 30 * 60000 ? ' (no hay datos nuevos desde esa hora)' : ''}` : '';
       return `<div class="reg-app" style="${ac ? `--ac:${ac};` : ''}${c ? `--c:${c}` : ''}"><div class="reg-app-cab"><span class="reg-logo">${logo(a)}</span>
