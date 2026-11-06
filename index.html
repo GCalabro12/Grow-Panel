@@ -213,7 +213,10 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
   const dia = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   const NOMBRES = { pasos: 'pasos', pausas_vista: 'pausas de la vista', minutos_concentracion: 'minutos de concentración',
     tareas_hechas: 'tareas hechas', tareas_total: 'tareas en total', bloques_con_tareas: 'bloques con tareas', bloques_total: 'bloques en total',
-    minutos: 'minutos', sesiones: 'sesiones', metas_hechas: 'metas hechas', horas_sueno: 'horas de sueño', ronquidos: 'ronquidos' };
+    minutos: 'minutos', sesiones: 'sesiones', metas_hechas: 'metas hechas', horas_sueno: 'horas de sueño', ronquidos: 'ronquidos',
+    racha: 'días de racha', semana: 'sesiones esta semana', acciones_pendientes: 'acciones pendientes' };
+  // Datos que ya son un total o un estado (racha, semana…): en «7 días» se muestra el último valor, no la suma
+  const NO_SUMAR = /^(racha|semana|acciones_pendientes|.*_total|areas_.*)$/;
   const nombreDato = k => NOMBRES[k] || k.replace(/_/g, ' ');
   const num = v => Number(v).toLocaleString('es-ES', { maximumFractionDigits: 1 });
   let estado = { modo: '', mostrar: false };
@@ -237,7 +240,8 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
     filas.forEach(f => {
       const a = porApp[f.app] = porApp[f.app] || {}, d = a[f.dato] = a[f.dato] || { hoy: null, semana: 0 };
       if (f.fecha === hoyTxt) d.hoy = f.valor;
-      d.semana += Number(f.valor) || 0;
+      if (NO_SUMAR.test(f.dato)) d.semana = Number(f.valor) || 0;   // filas ordenadas por fecha: queda el último
+      else d.semana += Number(f.valor) || 0;
     });
     return Object.keys(porApp).sort().map(app => `<div class="reg-app"><b>${esc(nombres[app] || app)}</b>
       <table class="reg-tabla"><tr><th>Dato</th><th>Hoy</th><th>7 días</th></tr>${Object.entries(porApp[app]).map(([k, d]) =>

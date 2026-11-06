@@ -89,11 +89,13 @@
     if (!barra) {
       barra = document.createElement('a');
       barra.id = 'gp-volver-barra';
-      barra.setAttribute('style', 'display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;'
-        + 'background:#111827;color:#fff;font:700 15px/1.2 system-ui,-apple-system,Segoe UI,sans-serif;'
-        + 'text-decoration:none;letter-spacing:.2px;position:relative;z-index:2147483000;border-bottom:1px solid #374151');
-      barra.innerHTML = FLOR + '<span>← Volver a Grow Panel</span>';
-      document.body.prepend(barra);
+      // Naranja de Grow Panel, a lo ancho y arriba del todo. Va fuera de <body> (antes de él) para no
+      // depender de cómo coloca cada app su contenido (en Amable Fit, dentro de body, salía a un lado).
+      barra.setAttribute('style', 'display:flex;align-items:center;justify-content:center;gap:10px;width:100%;box-sizing:border-box;'
+        + 'padding:14px 16px;margin:0;background:#f59e0b;color:#1c1300;font:800 18px/1.2 system-ui,-apple-system,Segoe UI,sans-serif;'
+        + 'text-decoration:none;letter-spacing:.2px;position:relative;z-index:2147483000;border-bottom:2px solid #d97706');
+      barra.innerHTML = FLOR.replace('width:18px;height:18px', 'width:24px;height:24px') + '<span>← Volver a Grow Panel</span>';
+      document.documentElement.insertBefore(barra, document.body);
     }
     barra.href = destino();
   }
