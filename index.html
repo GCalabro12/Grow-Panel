@@ -152,7 +152,11 @@ body.embed .top,body.embed .guia,body.embed details,body.embed .pie,body.embed .
 
   <a class="volver" id="volver" hidden></a>
 
-  <section class="vista" id="v-apps"><grow-panel titulo="Abre tus apps"></grow-panel></section>
+  <section class="vista" id="v-apps">
+    <div class="tarjeta fila" id="aviso-cuenta" hidden><span style="flex:1;min-width:200px"><b>Entra con tu cuenta de Google</b> para ver aquí los números de todas tus apps, estén en el móvil o en el PC.</span>
+      <button class="reg-b google" id="aviso-entrar" type="button">Entrar con Google</button></div>
+    <grow-panel titulo="Abre tus apps"></grow-panel>
+  </section>
   <section class="vista" id="v-resumen" hidden>
     <div id="reg-caja"></div>
   </section>
@@ -596,7 +600,12 @@ window.CuentaAmable = (() => {
   addEventListener('storage', e => { if (e.key === 'growpanel.fichas') reenviarFichas(); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) reenviarFichas(); });
 
-  window.CuentaAmable.alCambiar(() => { pintar(); document.querySelector('grow-panel').cargar(); });
+  // «Abre tus apps»: sin cuenta de Google no se ven los números de las apps de otros aparatos → aviso para entrar
+  const aviso = document.getElementById('aviso-cuenta');
+  const pintarAviso = () => { aviso.hidden = !!window.CuentaAmable.usuario(); };
+  window.CuentaAmable.iniciar().then(pintarAviso);
+  document.getElementById('aviso-entrar').addEventListener('click', () => window.CuentaAmable.entrar().catch(() => {}));
+  window.CuentaAmable.alCambiar(() => { pintarAviso(); pintar(); document.querySelector('grow-panel').cargar(); });
   window.GrowPanelVistas = { pintar: () => { estado.modo = ''; pintar(); } };
   // Para las tarjetas de «Abre tus apps»: números del registro de ayer y hoy (de internet: iguales en todos tus aparatos)
   window.GrowPanelRegistro = async () => {
