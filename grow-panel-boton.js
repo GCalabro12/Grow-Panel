@@ -59,8 +59,17 @@
 
   // Deja el resumen con el formato de FICHA.md y sin textos largos
   const corta = (t, n) => String(t ?? '').slice(0, n);
+  // Números del día para el registro diario: { pasos: 6420, ... } (nombres en minúsculas, solo números, máx. 20)
+  function limpiarDatos(d) {
+    if (!d || typeof d !== 'object' || Array.isArray(d)) return null;
+    const ok = Object.entries(d).filter(([k, v]) => /^[a-z0-9_]{1,40}$/.test(k) && typeof v === 'number' && isFinite(v)).slice(0, 20);
+    return ok.length ? Object.fromEntries(ok) : null;
+  }
+  const hoyLocal = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+
   function limpiar(r) {
     r = r || {};
+    const datos = limpiarDatos(r.datos);
     return {
       ficha: 1, id, app: nombre,
       version: r.version ? corta(r.version, 12) : null,
@@ -69,7 +78,9 @@
       cifras: (Array.isArray(r.cifras) ? r.cifras : []).slice(0, 3)
         .map(c => ({ valor: corta(c && c.valor, 12), etiqueta: corta(c && c.etiqueta, 30) })),
       actualizado: new Date().toISOString(),
-      frecuencia_horas: Number(r.frecuencia_horas) > 0 ? Number(r.frecuencia_horas) : 24
+      frecuencia_horas: Number(r.frecuencia_horas) > 0 ? Number(r.frecuencia_horas) : 24,
+      // Grow Panel los manda al registro diario por la app (la app no tiene que enviar nada)
+      ...(datos ? { datos, fecha: /^\d{4}-\d{2}-\d{2}$/.test(r.fecha || '') ? r.fecha : hoyLocal() } : {})
     };
   }
 

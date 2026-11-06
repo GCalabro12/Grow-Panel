@@ -214,7 +214,7 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
     if (visor.hidden) return;
     visor.hidden = true; document.body.classList.remove('visor-abierto');
     try { marco.contentWindow.location.replace('about:blank'); } catch (err) { marco.src = 'about:blank'; }
-    panel.cargar();   // por si la app ha actualizado su resumen
+    if (window.GrowPanelReenviar) window.GrowPanelReenviar().then(() => panel.cargar()); else panel.cargar();   // por si la app ha actualizado su resumen
   }
   panel.addEventListener('grow-panel-abrir', e => {
     const { url, nombre } = e.detail;
@@ -497,6 +497,41 @@ window.CuentaAmable = (() => {
   }
   resCaja.addEventListener('click', alClic);
   ajCaja.addEventListener('click', alClic);
+
+  // Grow Panel pide los números a las apps: lo que cada app deja en su ficha («datos») lo manda él al registro diario,
+  // con tu cuenta o tu clave. Solo de hoy o ayer, solo si ha cambiado y nunca todo a cero (sería una copia vacía de la app
+  // en este navegador y borraría los números buenos enviados desde otro aparato).
+  const DATO_OK = /^[a-z0-9_]{1,40}$/, FECHA_OK = /^\d{4}-\d{2}-\d{2}$/;
+  let reenviando = false;
+  async function reenviarFichas() {
+    if (reenviando) return; reenviando = true;
+    try {
+      let fichas = {}, hechas = {};
+      try { fichas = JSON.parse(localStorage.getItem('growpanel.fichas')) || {}; } catch (e) {}
+      try { hechas = JSON.parse(localStorage.getItem('growpanel.reenviadas')) || {}; } catch (e) {}
+      const conDatos = Object.entries(fichas).filter(([, f]) => f && f.datos && typeof f.datos === 'object');
+      if (!conDatos.length) return;
+      const reg = await (await fetch('apps.json?t=' + Date.now(), { cache: 'no-store' })).json();
+      const registroDe = {}; (reg.apps || []).forEach(a => { if (a.registro) registroDe[a.id] = a.registro; });
+      const hoy = new Date(), ayer = new Date(); ayer.setDate(hoy.getDate() - 1);
+      for (const [id, f] of conDatos) {
+        const app = registroDe[id];
+        const fecha = FECHA_OK.test(f.fecha || '') ? f.fecha : (f.actualizado ? dia(new Date(f.actualizado)) : '');
+        if (!app || (fecha !== dia(hoy) && fecha !== dia(ayer))) continue;
+        const datos = Object.fromEntries(Object.entries(f.datos).filter(([k, v]) => DATO_OK.test(k) && typeof v === 'number' && isFinite(v)).slice(0, 20));
+        if (!Object.keys(datos).length || Object.values(datos).every(v => v === 0)) continue;
+        const firma = fecha + JSON.stringify(datos);
+        if (hechas[id] === firma) continue;
+        const r = await pedir('/registro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fecha, app, datos }) });
+        if (r.ok) { hechas[id] = firma; try { localStorage.setItem('growpanel.reenviadas', JSON.stringify(hechas)); } catch (e) {} }
+      }
+    } catch (e) {} finally { reenviando = false; }
+  }
+  window.GrowPanelReenviar = reenviarFichas;
+  reenviarFichas();
+  // Cuando una app de esta dirección actualiza su ficha en otra pestaña, o al volver a Grow Panel
+  addEventListener('storage', e => { if (e.key === 'growpanel.fichas') reenviarFichas(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) reenviarFichas(); });
 
   window.CuentaAmable.alCambiar(() => { pintar(); document.querySelector('grow-panel').cargar(); });
   window.GrowPanelVistas = { pintar: () => { estado.modo = ''; pintar(); } };

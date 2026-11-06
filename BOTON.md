@@ -93,3 +93,13 @@ sus números al registro diario (`https://registro-diario.proud-hill-016b.worker
   `GET https://registro-diario.proud-hill-016b.workers.dev/ajustes` con la misma autorización que usan para enviar
   (token de Firebase o clave) → `{"hora_resumen":"21:30","elegida":true}`. Si falla, usar 20:00.
 - Las apps de gcalabro12.github.io también tienen `GrowPanel.horaResumen()` (copia local, sin red).
+
+## Los números del día los manda Grow Panel (desde v1.22, 6-11-2026)
+Gustavo: «Grow Panel lo pide a la aplicación y ésta le pasa el dato». La app no tiene que enviar nada al registro:
+- En su resumen (`GrowPanel.resumen({...})`) añade `datos`: los números del día con nombre en minúsculas,
+  p. ej. `datos: { pasos: 6420, pausas_vista: 5, minutos_concentracion: 95 }` (máx. 20, solo números) y, si quiere, `fecha: "AAAA-MM-DD"`
+  (por defecto, hoy).
+- Grow Panel los manda al registro diario con el id de `registro` de apps.json (cuenta de Google o clave): al abrirse, al volver a él,
+  al cerrar una app abierta debajo de él y cuando la app actualiza su ficha en otra pestaña del mismo navegador.
+- Solo manda datos de hoy o de ayer, solo si han cambiado, y nunca si todo vale 0 (sería una copia vacía de la app en ese navegador).
+- Las apps de otra dirección pasan la ficha con «#ficha=» al volver a Grow Panel; también vale `datos`.
