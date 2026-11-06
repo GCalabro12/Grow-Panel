@@ -55,6 +55,8 @@ body.visor-abierto{overflow:hidden}
 .reg-tabla td{padding:3px 0}.reg-tabla td+td{text-align:right;font-variant-numeric:tabular-nums;width:90px}
 .reg-tabla th{font-size:11.5px;color:var(--mut);font-weight:600;text-align:right}.reg-tabla th:first-child{text-align:left}
 .reg-aviso{font-size:13px;margin:8px 0;padding:8px;border-radius:8px;background:var(--bg)}
+.reg-mas{margin-top:12px;border-top:1px solid var(--ln);padding-top:10px}
+.reg-mas summary{font-size:13px;color:var(--mut);cursor:pointer}
 .reg-acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--ln);align-items:center}
 input.reg-in{flex:1;min-width:0;padding:8px;border-radius:8px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);font-size:13px}
 .guia-caja ol{margin:6px 0 10px;padding-left:20px}
@@ -99,10 +101,8 @@ body.embed .top,body.embed .guia,body.embed details,body.embed .pie{display:none
 
   <div class="guia">
     <div class="guia-botones">
-      <button class="guia-btn" id="guia-btn" type="button" aria-expanded="false" aria-controls="guia-caja">🔗 Cómo conectar tus apps</button>
       <button class="guia-btn" id="reg-btn" type="button" aria-expanded="false" aria-controls="reg-caja">📊 Mi registro diario</button>
     </div>
-    <div class="guia-caja" id="guia-caja" hidden></div>
     <div class="guia-caja" id="reg-caja" hidden></div>
   </div>
 
@@ -177,6 +177,16 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
 (() => {
   const panel = document.querySelector('grow-panel');
   const visor = document.getElementById('visor'), marco = document.getElementById('visor-marco');
+  // Direcciones de las apps de apps.json: solo a ellas se les pasa la clave del registro diario
+  let conocidas = new Set();
+  fetch('apps.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(reg => {
+    conocidas = new Set((reg.apps || []).filter(a => !a.externa).map(a => { try { return new URL(a.url).origin; } catch (e) { return ''; } }));
+  }).catch(() => {});
+  const conClave = url => {
+    let k = null; try { k = localStorage.getItem('growpanel.clave'); } catch (e) {}
+    if (!/^[A-Za-z0-9_-]{32,128}$/.test(k || '')) return url;
+    return url + (url.includes('#') ? '&' : '#') + 'gpclave=' + k;
+  };
   function cerrar() {
     if (visor.hidden) return;
     visor.hidden = true; document.body.classList.remove('visor-abierto');
@@ -188,7 +198,7 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
     let destino;
     try { destino = new URL(url); } catch (err) { return; }
     e.preventDefault();
-    if (destino.origin !== location.origin) { location.assign(url); return; }
+    if (destino.origin !== location.origin) { location.assign(conocidas.has(destino.origin) ? conClave(url) : url); return; }
     document.getElementById('visor-nombre').textContent = nombre;
     marco.title = nombre;
     // replace: así la app no deja pasos en el historial y «Volver» cierra siempre a la primera
@@ -216,6 +226,8 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
   const nombreDato = k => NOMBRES[k] || k.replace(/_/g, ' ');
   const num = v => Number(v).toLocaleString('es-ES', { maximumFractionDigits: 1 });
   let estado = { modo: '', mostrar: false };
+  // La clave se crea sola la primera vez (nunca se cambia una que ya existe)
+  if (!leerClave()) guardarClave(nuevaClave());
 
   async function nombresApps() {
     try {
@@ -241,38 +253,36 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
         `<tr><td>${esc(nombreDato(k))}</td><td>${d.hoy === null ? '—' : esc(num(d.hoy))}</td><td>${esc(num(d.semana))}</td></tr>`).join('')}</table></div>`).join('');
   }
 
-  function cabecera(clave) {
+  function clavePanel(clave) {
     const vista = estado.mostrar ? clave : clave.slice(0, 6) + '•••••••••••••••' + clave.slice(-4);
-    return `<b>Tu clave de Grow Panel</b>
+    const pegar = estado.modo === 'pegar'
+      ? `<div class="reg-clave"><input class="reg-in" id="reg-in" placeholder="Pega aquí tu clave de Grow Panel" autocomplete="off" spellcheck="false"><button class="reg-b" data-a="usar">Usar esta clave</button></div>` : '';
+    const olvidar = estado.modo === 'olvidar'
+      ? `<div class="reg-acciones"><span>Este navegador olvidará tu clave. Si no la tienes apuntada en otro sitio, no podrás volver a ver tu historial.</span>
+         <button class="reg-b peligro" data-a="olvidar-si">Sí, olvidar la clave aquí</button><button class="reg-b" data-a="cancelar">Cancelar</button></div>` : '';
+    return `<details class="reg-mas"${estado.modo ? ' open' : ''}><summary>Usar en otro móvil u ordenador, o en una app instalada</summary>
+      <p class="reg-nota">Solo hace falta si quieres ver el mismo registro en otro aparato, o en una app instalada desde la Play Store. Copia tu clave de Grow Panel y pégala allí.</p>
       <div class="reg-clave"><code id="reg-clave">${esc(vista)}</code>
       <button class="reg-b" data-a="copiar">📋 Copiar</button><button class="reg-b" data-a="mostrar">${estado.mostrar ? 'Ocultar' : 'Mostrar'}</button></div>
-      <div class="reg-nota" id="reg-msg">Amable PC, Amable Flow y Amable Life la cogen solas si las abres en este mismo navegador. En Amable Meta, Amable Fit y en las apps instaladas, pégala en «Mi resumen diario» → «Pega tu clave de Grow Panel». No la compartas: quien la tenga ve tus números.</div>
-      <b>Tu resumen</b>`;
+      <div class="reg-nota" id="reg-msg"></div>
+      ${pegar}${olvidar}
+      <div class="guia-botones"><button class="reg-b" data-a="pegar">Usar la clave de otro aparato</button>
+      <button class="reg-b" data-a="olvidar">Olvidar la clave en este navegador</button></div></details>`;
   }
 
   function acciones() {
     if (estado.modo === 'borrar') return `<div class="reg-acciones"><span>¿Borrar <b>todos</b> tus datos del registro? No se puede deshacer.</span>
       <button class="reg-b peligro" data-a="borrar-si">Sí, borrar mis datos</button><button class="reg-b" data-a="cancelar">Cancelar</button></div>`;
-    if (estado.modo === 'olvidar') return `<div class="reg-acciones"><span>Este navegador olvidará tu clave. Tus datos siguen en el registro: si no tienes la clave apuntada en otro sitio, no podrás volver a verlos.</span>
-      <button class="reg-b peligro" data-a="olvidar-si">Sí, olvidar la clave aquí</button><button class="reg-b" data-a="cancelar">Cancelar</button></div>`;
     return `<div class="reg-acciones"><button class="reg-b" data-a="actualizar">↻ Actualizar</button>
-      <button class="reg-b peligro" data-a="borrar">🗑 Borrar mis datos del registro</button>
-      <button class="reg-b" data-a="olvidar">Olvidar la clave en este navegador</button></div>`;
+      <button class="reg-b peligro" data-a="borrar">🗑 Borrar mis datos del registro</button></div>`;
   }
 
   async function pintar() {
-    const clave = leerClave();
-    if (!clave) {
-      caja.innerHTML = `<b>Tu registro diario, sin cuentas</b>
-        <p>Tus apps Amable pueden mandar aquí, una vez al día, <b>solo números</b> (pasos, pausas, minutos…) y Grow Panel te enseña el resumen del día y de la semana. Es opcional.</p>
-        <p>Para empezar, crea tu <b>clave de Grow Panel</b>: es la llave de tu registro. Se guarda solo en este móvil o navegador; en el servidor solo queda su huella, así que nadie más ve tus números.</p>
-        ${estado.modo === 'pegar' ? `<div class="reg-clave"><input class="reg-in" id="reg-in" placeholder="Pega aquí tu clave de Grow Panel" autocomplete="off" spellcheck="false"><button class="reg-b" data-a="usar">Usar esta clave</button></div><div class="reg-nota" id="reg-msg"></div>` : ''}
-        <div class="guia-botones"><button class="reg-b" data-a="generar">🔑 Crear mi clave</button>
-        <button class="reg-b" data-a="pegar">Usar una clave que ya tengo</button></div>
-        <p class="reg-nota">Si ya creaste una clave en otro móvil u ordenador, usa «Usar una clave que ya tengo» y pégala: así tu historial no se divide.</p>`;
-      return;
-    }
-    caja.innerHTML = cabecera(clave) + '<div id="reg-res"><div class="reg-nota">Cargando tu resumen…</div></div>' + acciones();
+    let clave = leerClave();
+    if (!clave) { guardarClave(nuevaClave()); clave = leerClave(); }
+    caja.innerHTML = `<b>Tu resumen del día y de la semana</b>
+      <div class="reg-nota">Tus apps Amable lo mandan solas, una vez al día, cuando activas «Compartir mi resumen diario» en ellas. Solo números: nadie más los ve.</div>
+      <div id="reg-res"><div class="reg-nota">Cargando…</div></div>` + acciones() + clavePanel(clave);
     let cuerpo;
     try { cuerpo = await resumen(clave); } catch (e) { cuerpo = '<div class="reg-aviso">No se pudo leer tu registro. Revisa la conexión y pulsa ↻ Actualizar.</div>'; }
     const res = document.getElementById('reg-res'); if (res) res.innerHTML = cuerpo;
@@ -281,8 +291,7 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
   caja.addEventListener('click', async e => {
     const a = e.target.closest('[data-a]'); if (!a) return;
     const accion = a.dataset.a, msg = () => document.getElementById('reg-msg');
-    if (accion === 'generar') { guardarClave(nuevaClave()); estado = { modo: '', mostrar: true }; }
-    else if (accion === 'pegar') estado.modo = 'pegar';
+    if (accion === 'pegar') estado.modo = 'pegar';
     else if (accion === 'usar') {
       const k = (document.getElementById('reg-in').value || '').trim();
       if (!CLAVE_OK.test(k)) { msg().textContent = 'Esa clave no es válida: debe tener entre 32 y 128 letras, números, guiones o guiones bajos.'; return; }
@@ -307,7 +316,7 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
       estado.modo = ''; await pintar(); msg().textContent = texto;
       return;
     }
-    else if (accion === 'olvidar-si') { try { localStorage.removeItem('growpanel.clave'); } catch (err) {} estado = { modo: '', mostrar: false }; }
+    else if (accion === 'olvidar-si') { try { localStorage.removeItem('growpanel.clave'); } catch (err) {} guardarClave(nuevaClave()); estado = { modo: '', mostrar: false }; }
     pintar();
   });
 
@@ -318,59 +327,7 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
   });
 })();
 
-// Guía: «Cómo conectar tus apps» hasta que haya 2 conectadas; después, «Sincronizar tus apps»
-(() => {
-  const btn = document.getElementById('guia-btn'), caja = document.getElementById('guia-caja');
-  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const leer = k => { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch (e) { return {}; } };
-  const hace = iso => {
-    const m = Math.round((Date.now() - Date.parse(iso)) / 60000);
-    if (!(m >= 0)) return '';
-    if (m < 2) return 'ahora';
-    if (m < 60) return 'hace ' + m + ' min';
-    const h = Math.round(m / 60);
-    return h < 24 ? 'hace ' + h + ' h' : (h < 48 ? 'ayer' : 'hace ' + Math.round(h / 24) + ' días');
-  };
-  async function pintar() {
-    let reg = { apps: [] };
-    try { reg = await (await fetch('apps.json?t=' + Date.now(), { cache: 'no-store' })).json(); } catch (e) {}
-    const locales = leer('growpanel.apps'), fichas = leer('growpanel.fichas');
-    const todasReg = reg.apps || [];
-    const apps = todasReg.filter(a => !a.externa && !a.oculta);
-    for (const [id, a] of Object.entries(locales)) if (!todasReg.some(x => x.id === id) && /^https:/.test(a.url || '')) apps.push({ id, nombre: a.nombre, url: a.url });
-    const n = todasReg.filter(a => !a.oculta).length || apps.length;
-    const url = a => { const u = (locales[a.id] && /^https:/.test(locales[a.id].url || '') ? locales[a.id].url : a.url) || ''; return u + (u.includes('?') ? '&' : '?') + 'growpanel=' + n; };
-    const conectadas = apps.filter(a => locales[a.id] || a.ficha);
-    const sincronizar = conectadas.length >= 2;
-    btn.textContent = sincronizar ? '🔄 Sincronizar tus apps' : '🔗 Cómo conectar tus apps';
-    const filas = apps.map(a => {
-      const l = locales[a.id], f = fichas[a.id];
-      const misma = l && (l.url || '').startsWith(location.origin + '/');
-      let estado, boton = '';
-      if (a.ficha) estado = '✓ Automática · se actualiza cada día';
-      else if (!l) { estado = '○ Sin conectar'; boton = `<a href="${esc(url(a))}">Conectar</a>`; }
-      else if (misma) estado = '✓ Automática · al usarla' + (f ? ' · último resumen ' + hace(f.actualizado) : '');
-      else { estado = '✓ Conectada · para actualizar: ábrela y toca la mini flor' + (f ? ' · último ' + hace(f.actualizado) : ''); boton = `<a href="${esc(url(a))}">Abrir</a>`; }
-      return `<div class="guia-fila"><span class="n">${esc(a.nombre)}<span class="e">${esc(estado)}</span></span>${boton}</div>`;
-    }).join('');
-    caja.innerHTML = sincronizar
-      ? `<b>Así se sincronizan tus apps</b>
-         <ol><li>Las de esta misma dirección se actualizan solas cada vez que las usas.</li>
-         <li>En las demás, abre la app (mejor desde su icono, la que usas siempre) y toca la <b>mini flor</b> de arriba: Grow Panel recibe su último resumen.</li>
-         <li>Si una app se abre vacía, es que la usas desde otra dirección o instalada: ábrela desde su icono y toca la mini flor. Desde entonces su tarjeta abrirá esa.</li></ol>${filas}`
-      : `<b>Conecta tus apps en 3 pasos</b>
-         <ol><li>En este mismo móvil y navegador, toca <b>Conectar</b> en cada app de la lista (o ábrela desde su icono).</li>
-         <li>Dentro de la app verás arriba la <b>mini flor</b>: tócala para volver aquí con su resumen.</li>
-         <li>Con 2 apps conectadas, este botón pasa a «Sincronizar tus apps».</li></ol>${filas}`;
-  }
-  btn.addEventListener('click', () => {
-    const abrir = caja.hidden;
-    caja.hidden = !abrir; btn.setAttribute('aria-expanded', String(abrir));
-    if (abrir) pintar();
-  });
-  pintar();
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) pintar(); });
-})();
+// (La guía «Cómo conectar / Sincronizar tus apps» se quitó en v1.13: las apps se conectan solas al abrirlas desde aquí.)
 // Instalable como app (PWA)
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 let aviso = null;

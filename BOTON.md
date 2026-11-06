@@ -76,7 +76,11 @@ sus números al registro diario (`https://registro-diario.proud-hill-016b.worker
 - **Apps en gcalabro12.github.io** (Amable PC, Amable Flow, Amable Life…), abiertas en el mismo navegador que Grow Panel:
   `GrowPanel.clave()` devuelve la clave, sin pedir nada al usuario. En otras direcciones, o si no hay clave, devuelve `null`.
 - **Qué clave gana:** si `GrowPanel.clave()` devuelve una clave, se usa esa. Si devuelve `null`, se usa la que el usuario pegó en la app.
-- **Apps en otra dirección y apps instaladas (APK / WebView / TWA)** no ven la memoria del navegador: necesitan el campo
-  «Pega tu clave de Grow Panel» (en «Mi resumen diario»). Mismo texto en todas las apps.
-- Nunca pongas la clave en una URL, en `#ficha`, en `apps.json`, en un commit ni en notas.
+- **Desde v1.13 la clave se crea sola** al abrir Grow Panel (nunca se cambia una que ya existe) y el usuario no la ve salvo que la busque.
+- **Apps en otra dirección (Amable Meta, Amable Fit…):** al abrirlas desde una tarjeta de Grow Panel, la clave viaja detrás de `#gpclave=`
+  (esa parte de la dirección nunca se envía a internet). `grow-panel-boton.js` la guarda en esa dirección y la quita de la barra al momento.
+  Desde entonces `GrowPanel.clave()` también funciona ahí. Solo se pasa a direcciones que están en `apps.json`.
+  Riesgo aceptado: la clave solo da acceso a números de uso.
+- **Apps instaladas (APK / WebView / TWA)** no ven la memoria del navegador: necesitan el campo «Pega tu clave de Grow Panel».
+- Nunca pongas la clave en una query (`?`), en `#ficha`, en `apps.json`, en un commit ni en notas.
 - Nombres de app en el registro: campo `registro` de `apps.json` (`amable-pc`, `amable-life`, `amable-meta`, `amable-fit`, `amable-flow`…).

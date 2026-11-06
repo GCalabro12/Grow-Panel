@@ -30,6 +30,15 @@
   const leer = (k, def) => { try { return JSON.parse(localStorage.getItem(k)) ?? def; } catch (e) { return def; } };
   const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
+  // Registro diario: Grow Panel abre esta app con «#gpclave=…» (esa parte nunca se envía a internet).
+  // Se guarda en esta dirección y se quita de la barra al momento: el usuario no tiene que pegar nada.
+  const mh = location.hash.match(/(^#|&)gpclave=([A-Za-z0-9_-]{32,128})/);
+  if (mh) {
+    try { localStorage.setItem('growpanel.clave', mh[2]); } catch (e) {}
+    const resto = location.hash.replace(/^#/, '').split('&').filter(p => p.indexOf('gpclave=') !== 0).join('&');
+    history.replaceState(null, '', location.pathname + location.search + (resto ? '#' + resto : ''));
+  }
+
   const apps = leer(CLAVE, {});
   apps[id] = { nombre, url, visto: new Date().toISOString() };
   guardar(CLAVE, apps);
@@ -82,9 +91,9 @@
   }
 
   window.GrowPanel = Object.assign(window.GrowPanel || {}, {
-    // Clave del registro diario creada en Grow Panel. Solo existe si esta app está en la misma
-    // dirección que Grow Panel (gcalabro12.github.io) y en el mismo navegador; si no, devuelve null
-    // y la app debe pedir «Pega tu clave de Grow Panel».
+    // Clave del registro diario creada por Grow Panel. La tienen las apps de su misma dirección
+    // (gcalabro12.github.io) y las de otra dirección después de abrirlas una vez desde Grow Panel.
+    // Devuelve null en apps instaladas (APK/WebView/TWA): ahí, campo «Pega tu clave de Grow Panel».
     clave() {
       try { const k = localStorage.getItem('growpanel.clave'); return /^[A-Za-z0-9_-]{32,128}$/.test(k || '') ? k : null; } catch (e) { return null; }
     },
