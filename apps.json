@@ -44,7 +44,8 @@
       "nombre": "Amable Meta",
       "url": "https://app.practicaintegral.club/",
       "icono": "https://app.practicaintegral.club/icon-192.png",
-      "registro": "amable-meta"
+      "registro": "amable-meta",
+      "registro_activo": true
     },
     {
       "id": "flow",

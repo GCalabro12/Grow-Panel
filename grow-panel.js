@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.34';
+  const VERSION = 'v1.35';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -122,7 +122,8 @@ a.app:hover{border-color:var(--c)}
   const NOMBRES_DATO = { pasos: 'pasos', pausas_vista: 'pausas de la vista', minutos_concentracion: 'min de concentración',
     tareas_hechas: 'tareas hechas', tareas_total: 'tareas en total', bloques_con_tareas: 'bloques con tareas', bloques_total: 'bloques',
     sesiones: 'sesiones hoy', minutos: 'minutos hoy', racha: 'días de racha', semana: 'esta semana', acciones_pendientes: 'acciones pendientes',
-    minutos_presencia: 'min de presencia', practicas_hoy: 'prácticas hoy', racha_dias: 'días de racha', practicas_semana: 'prácticas esta semana' };
+    minutos_presencia: 'min de presencia', practicas_hoy: 'prácticas hoy', racha_dias: 'días de racha', practicas_semana: 'prácticas esta semana',
+    dias_registrados: 'días registrados', registrado_hoy: 'registrado hoy', compromiso_semana: 'compromiso semanal', metas_sencillas_hoy: 'metas sencillas hoy', metas_sencillas_hechas: 'metas sencillas hechas' };
   function fichasDelRegistro(filas) {
     const ultimo = {};
     (filas || []).forEach(f => {
