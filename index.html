@@ -53,10 +53,19 @@ body.visor-abierto{overflow:hidden}
 .reg-b:hover{border-color:#8b5cf6}
 .reg-b.peligro{color:#dc2626;border-color:#fca5a5}
 .reg-nota{font-size:12.5px;color:var(--mut);margin:4px 0 10px}
-.reg-app{border-top:1px solid var(--ln);padding:8px 0}
-.reg-app b{display:block;margin-bottom:4px}
-.reg-tabla{width:100%;border-collapse:collapse;font-size:13px}
-.reg-tabla td{padding:3px 0}.reg-tabla td+td{text-align:right;font-variant-numeric:tabular-nums;width:90px}
+.franja-res{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;min-height:52px;padding:8px 10px;margin-bottom:12px;border-radius:12px;background:#f59e0b;color:#1c1300}
+.franja-res h2{grid-column:2;margin:0;font-size:21px;font-weight:800;letter-spacing:-.2px;text-align:center}
+.franja-res .rec{grid-column:3;justify-self:end;border-radius:999px;padding:7px 12px;font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.45);border:1px solid rgba(28,19,0,.25);color:#1c1300;cursor:pointer}
+.franja-res .rec:hover{background:rgba(255,255,255,.7)}
+.franja-res .rec.girando .ic{display:inline-block;animation:gira 1s linear infinite}@keyframes gira{to{transform:rotate(360deg)}}
+@media (max-width:520px){.franja-res{grid-template-columns:1fr auto}.franja-res h2{grid-column:1;text-align:left;font-size:19px}.franja-res .rec{grid-column:2}}
+.reg-app{border-top:1px solid var(--ln);padding:10px 0 10px 12px;border-left:4px solid var(--c,var(--ln));margin:0 -4px}
+.reg-app-cab{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.reg-logo{width:38px;height:38px;border-radius:10px;background:var(--c,#1f2937);display:inline-flex;align-items:center;justify-content:center;flex:none;overflow:hidden}
+.reg-logo img{width:100%;height:100%;object-fit:cover}
+.reg-app-cab b{display:block}
+.reg-tabla{width:100%;max-width:420px;border-collapse:collapse;font-size:13.5px}
+.reg-tabla td{padding:3px 0}.reg-tabla td+td{text-align:right;font-variant-numeric:tabular-nums;width:64px}
 .reg-tabla th{font-size:11.5px;color:var(--mut);font-weight:600;text-align:right}.reg-tabla th:first-child{text-align:left}
 .reg-aviso{font-size:13px;margin:8px 0;padding:8px;border-radius:8px;background:var(--bg)}
 .reg-cuenta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--ln)}
@@ -133,7 +142,6 @@ body.embed .top,body.embed .guia,body.embed details,body.embed .pie,body.embed .
 
   <section class="vista" id="v-apps"><grow-panel titulo="Abre tus apps"></grow-panel></section>
   <section class="vista" id="v-resumen" hidden>
-    <h2 class="vista-tit">Resumen del final del día</h2>
     <div id="reg-caja"></div>
   </section>
   <section class="vista" id="v-ajustes" hidden>
@@ -316,7 +324,7 @@ window.CuentaAmable = (() => {
   async function nombresApps() {
     try {
       const reg = await (await fetch('apps.json?t=' + Date.now(), { cache: 'no-store' })).json();
-      const m = {}; (reg.apps || []).forEach(a => { if (a.registro) m[a.registro] = a.nombre; }); return m;
+      const m = {}; (reg.apps || []).forEach(a => { if (a.registro) m[a.registro] = { nombre: a.nombre, icono: a.icono || '', color: a.color || '' }; }); return m;
     } catch (e) { return {}; }
   }
 
@@ -386,9 +394,16 @@ window.CuentaAmable = (() => {
     });
     const hace = t => { const m = Math.round((Date.now() - t) / 60000); if (m < 2) return 'ahora'; if (m < 60) return `hace ${m} min`;
       const h = Math.round(m / 60); if (h < 24) return `hace ${h} h`; const d = Math.round(h / 24); return d === 1 ? 'ayer' : `hace ${d} días`; };
-    return Object.keys(porApp).sort().map(app => `<div class="reg-app"><b>${esc(nombres[app] || app)}</b>${ultimo[app] ? `<span class="reg-nota" style="display:block;margin:-2px 0 4px">actualizado ${hace(ultimo[app])}</span>` : ''}
+    const color = c => /^#[0-9a-fA-F]{3,8}$/.test(c || '') ? c : '';
+    const logo = a => /^https:\/\//.test(a.icono || '') ? `<img src="${esc(a.icono)}" alt="" loading="lazy">` : '';
+    return Object.keys(porApp).sort((x, y) => (nombres[x] ? nombres[x].nombre : x).localeCompare(nombres[y] ? nombres[y].nombre : y)).map(app => {
+      const a = nombres[app] || { nombre: app }, t = ultimo[app], c = color(a.color);
+      const cuando = t ? `actualizado ${hace(t)}${Date.now() - t > 30 * 60000 ? ' (no hay datos nuevos desde esa hora)' : ''}` : '';
+      return `<div class="reg-app"${c ? ` style="--c:${c}"` : ''}><div class="reg-app-cab"><span class="reg-logo">${logo(a)}</span>
+        <span><b>${esc(a.nombre)}</b>${cuando ? `<span class="reg-nota" style="margin:0">${esc(cuando)}</span>` : ''}</span></div>
       <table class="reg-tabla"><tr><th>Dato</th><th>Hoy</th><th>7 días</th></tr>${Object.entries(porApp[app]).map(([k, d]) =>
-        `<tr><td>${esc(nombreDato(k))}</td><td>${d.hoy === null ? '—' : esc(num(d.hoy))}</td><td>${esc(num(d.semana))}</td></tr>`).join('')}</table></div>`).join('');
+        `<tr><td>${esc(nombreDato(k))}</td><td>${d.hoy === null ? '—' : esc(num(d.hoy))}</td><td>${esc(num(d.semana))}</td></tr>`).join('')}</table></div>`;
+    }).join('');
   }
 
   function clavePanel(clave) {
@@ -418,16 +433,18 @@ window.CuentaAmable = (() => {
     await window.CuentaAmable.iniciar();
     await vincular(clave);
     const u = window.CuentaAmable.usuario(), hora = leerHora();
-    resCaja.innerHTML = (u ? '' : `<div class="tarjeta fila"><span style="flex:1;min-width:200px">Entra con tu cuenta de Google para ver lo mismo en el móvil y en el PC.</span>
+    resCaja.innerHTML = `<div class="franja-res"><h2>Resumen del día</h2>
+        <button class="rec girando" data-a="actualizar" title="Recoger lo último de tus apps"><span class="ic">↻</span> Actualizar datos</button></div>`
+      + (u ? '' : `<div class="tarjeta fila"><span style="flex:1;min-width:200px">Entra con tu cuenta de Google para ver lo mismo en el móvil y en el PC.</span>
         <button class="reg-b google" data-a="entrar">Entrar con Google</button></div>`)
-      + horaHTML(hora)
       + `<div class="tarjeta"><h3>Hoy y los últimos 7 días</h3><div class="reg-nota">Lo último que han dejado tus apps, estén en el móvil o en el PC. Solo números, y solo los ves tú.</div>
-        <div class="reg-res"><div class="reg-nota">Cargando…</div></div>
-        <div class="reg-acciones"><button class="reg-b" data-a="actualizar">↻ Actualizar</button></div></div>`;
+        <div class="reg-res"><div class="reg-nota">Cargando…</div></div></div>`
+      + horaHTML(hora);
     refrescarHora(resCaja, hora);
     let cuerpo;
     try { cuerpo = await resumen(); } catch (e) { cuerpo = '<div class="reg-aviso">No se pudo leer tu resumen. Revisa la conexión y pulsa ↻ Actualizar.</div>'; }
     const res = resCaja.querySelector('.reg-res'); if (res) res.innerHTML = cuerpo;
+    const rec = resCaja.querySelector('.franja-res .rec'); if (rec) rec.classList.remove('girando');
   }
 
   async function pintarAjustes() {
@@ -448,8 +465,8 @@ window.CuentaAmable = (() => {
           <button class="reg-b google" data-a="entrar">Entrar con Google</button><div class="reg-nota cuenta-msg" style="margin-bottom:0"></div></div>`;
     const temaH = `<div class="tarjeta"><h3>Tema</h3><div class="seg">${[['auto', 'Automático'], ['claro', 'Claro'], ['oscuro', 'Oscuro']]
       .map(([v, n]) => `<button type="button" data-a="tema" data-tema="${v}" class="${v === tema ? 'on' : ''}">${n}</button>`).join('')}</div></div>`;
-    const instalada = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-    const inst = `<div class="tarjeta"><h3>Instalar Grow Panel</h3><div class="reg-nota" style="margin-bottom:${!instalada && window.gpAviso ? '10px' : '0'}">${instalada ? 'Ya la tienes instalada.'
+    const instalada = ['standalone', 'minimal-ui', 'window-controls-overlay', 'fullscreen'].some(m => matchMedia(`(display-mode: ${m})`).matches) || navigator.standalone === true;
+    const inst = `<div class="tarjeta"><h3>Instalar Grow Panel</h3><div class="reg-nota" style="margin-bottom:${!instalada && window.gpAviso ? '10px' : '0'}">${instalada ? 'Ya la tienes instalada: estás usando Grow Panel como app, en su propia ventana.'
       : window.gpAviso ? 'Ponla en la pantalla de inicio, como una app.' : 'Desde el menú del navegador: «Instalar app» o «Añadir a pantalla de inicio».'}</div>
       ${!instalada && window.gpAviso ? '<button class="reg-b" data-a="instalar">Instalar</button>' : ''}</div>`;
     const sop = `Hola, os escribo por Grow Panel (${V}). Me pasa esto: `;
@@ -458,7 +475,7 @@ window.CuentaAmable = (() => {
       <a class="reg-b" target="_blank" rel="noopener" href="https://wa.me/34658825799?text=${encodeURIComponent(sop)}">WhatsApp</a></div></div>`;
     const on = leerCompartir();
     const datos = `<div class="tarjeta"><h3>Tus datos</h3>
-      <label class="interruptor"><input type="checkbox" id="compartir" role="switch"${on ? ' checked' : ''}><b>Compartir los números de mis apps</b></label>
+      <label class="interruptor"><input type="checkbox" id="compartir" role="switch"${on ? ' checked' : ''}><b>Compartir los registros de mis apps para verlos agrupados en Grow Panel</b></label>
       <div class="reg-nota compartir-nota">${textoCompartir(on)}</div>
       <div class="reg-nota">Nunca se mandan textos: solo números (pasos, minutos, tareas…). Vale para todas tus apps Amable, en el móvil y en el PC.</div>
       <div class="reg-nota" id="reg-msg"></div>${borrarHTML()}${clavePanel(clave)}</div>`;
