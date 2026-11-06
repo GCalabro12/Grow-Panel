@@ -12,6 +12,7 @@
       Así funcionan también las apps de otra dirección (Calistenia, Mi Reproductor…).
    3. Con 2 apps o más, muestra el botón redondo con la mini flor. Al tocarlo abre Grow Panel,
       que muestra el botón «Volver a <esta app>».
+   5. Registro diario: GrowPanel.clave() da la clave personal que creó Grow Panel (o null).
    4. Resumen (fase 2): la app llama a GrowPanel.resumen({estado, mensaje, cifras}) cuando cambian sus datos.
       Se guarda en «growpanel.fichas» y viaja a Grow Panel detrás de «#» en el enlace del botón
       (esa parte de la dirección nunca se envía a internet). Todo se queda en el navegador del usuario.
@@ -79,6 +80,12 @@
   }
 
   window.GrowPanel = Object.assign(window.GrowPanel || {}, {
+    // Clave del registro diario creada en Grow Panel. Solo existe si esta app está en la misma
+    // dirección que Grow Panel (gcalabro12.github.io) y en el mismo navegador; si no, devuelve null
+    // y la app debe pedir «Pega tu clave de Grow Panel».
+    clave() {
+      try { const k = localStorage.getItem('growpanel.clave'); return /^[A-Za-z0-9_-]{32,128}$/.test(k || '') ? k : null; } catch (e) { return null; }
+    },
     resumen(r) {
       const fichas = leer(CLAVE_F, {});
       fichas[id] = limpiar(r);

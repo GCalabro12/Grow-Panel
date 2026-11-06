@@ -8,7 +8,8 @@
       "url": "https://gcalabro12.github.io/Finan-Gus/",
       "icono": "https://gcalabro12.github.io/Finan-Gus/iconos/icono-192.png",
       "color": "#0f766e",
-      "oculta": true
+      "oculta": true,
+      "registro": "amable-money"
     },
     {
       "id": "email-manager",
@@ -24,27 +25,31 @@
       "id": "pc-body-mind",
       "nombre": "Amable PC",
       "url": "https://gcalabro12.github.io/PC-Body-mind/",
-      "icono": "https://gcalabro12.github.io/PC-Body-mind/icon-192.png"
+      "icono": "https://gcalabro12.github.io/PC-Body-mind/icon-192.png",
+      "registro": "amable-pc"
     },
     {
       "id": "calistenia",
       "nombre": "Amable Fit: Calistenia",
       "url": "https://app-unbreakable.web.app/",
       "emoji": "💪",
-      "color": "#dcfce7"
+      "color": "#dcfce7",
+      "registro": "amable-fit"
     },
     {
       "id": "metas-amables",
       "nombre": "Amable Meta",
       "url": "https://app.practicaintegral.club/",
-      "icono": "https://app.practicaintegral.club/icon-192.png"
+      "icono": "https://app.practicaintegral.club/icon-192.png",
+      "registro": "amable-meta"
     },
     {
       "id": "flow",
       "nombre": "Amable Flow",
       "url": "https://gcalabro12.github.io/Flow/",
       "color": "#E4E9F6",
-      "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-flow.png"
+      "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-flow.png",
+      "registro": "amable-flow"
     },
     {
       "id": "mi-reproductor",
@@ -52,21 +57,24 @@
       "url": "https://mi-reproductor-web.web.app/",
       "emoji": "🎵",
       "color": "#e0e7ff",
-      "oculta": true
+      "oculta": true,
+      "registro": "amable-music"
     },
     {
       "id": "delicioso",
       "nombre": "Delicioso",
       "url": "https://gcalabro12.github.io/Delicioso/",
       "icono": "https://gcalabro12.github.io/Delicioso/icon-192.png",
-      "oculta": true
+      "oculta": true,
+      "registro": "delicioso"
     },
     {
       "id": "equilibra",
       "nombre": "Amable Life",
       "url": "https://gcalabro12.github.io/Equilibra/",
       "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-life.png",
-      "color": "#140f26"
+      "color": "#140f26",
+      "registro": "amable-life"
     }
   ]
 }
