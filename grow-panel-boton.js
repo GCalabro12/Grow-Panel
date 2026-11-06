@@ -40,9 +40,33 @@
     let correo = ''; try { correo = decodeURIComponent(mc[2]); } catch (e) {}
     if (/^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(correo)) { try { localStorage.setItem('growpanel.correo', correo); } catch (e) {} }
   }
-  if (mh || mc) {
-    const resto = location.hash.replace(/^#/, '').split('&').filter(p => p.indexOf('gpclave=') !== 0 && p.indexOf('gpcorreo=') !== 0).join('&');
+  // Y «#gpcodigo=…»: código de un solo uso (15 min) para unir sola esta app a la cuenta de Grow Panel. Solo en memoria.
+  const mk = location.hash.match(/(^#|&)gpcodigo=([A-Za-z0-9_-]{24,64})/);
+  if (mh || mc || mk) {
+    const resto = location.hash.replace(/^#/, '').split('&').filter(p => !/^gp(clave|correo|codigo)=/.test(p)).join('&');
     history.replaceState(null, '', location.pathname + location.search + (resto ? '#' + resto : ''));
+  }
+  if (mk) {
+    // La app expone window.growPanelSesion() → su «Bearer» ('meta.<…>', 'pc.<…>' o el token de Firebase), o null si aún no hay
+    // sesión; y lanza el evento 'growpanel-sesion' al entrar. Se reintenta cada 5 s durante 60 s.
+    const codigo = mk[2], REGISTRO = 'https://registro-diario.proud-hill-016b.workers.dev';
+    let hecho = false, intentos = 0, ocupado = false;
+    const intentar = async () => {
+      if (hecho || ocupado || typeof window.growPanelSesion !== 'function') return;
+      ocupado = true;
+      try {
+        const sesion = await window.growPanelSesion();
+        if (sesion) {
+          const r = await fetch(REGISTRO + '/vincular-app', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ codigo, sesion, app: (window.GrowPanelApp || '') }) });
+          hecho = true;   // salga bien o mal, no se repite (el motivo queda en el registro)
+          try { window.dispatchEvent(new CustomEvent('growpanel-unida', { detail: await r.json() })); } catch (e) {}
+        }
+      } catch (e) {} finally { ocupado = false; }
+    };
+    window.addEventListener('growpanel-sesion', intentar);
+    const t = setInterval(() => { if (hecho || ++intentos > 12) clearInterval(t); else intentar(); }, 5000);
+    setTimeout(intentar, 300);
   }
 
   const apps = leer(CLAVE, {});

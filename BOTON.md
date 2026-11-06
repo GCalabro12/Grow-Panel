@@ -139,3 +139,13 @@ buzón común (el registro diario) en cuanto cambian:
   de «preparar». La gente no lo entiende; el centro es Grow Panel.
 - El interruptor de avisos puede quedarse en Ajustes de la app, por si alguien lo quiere.
 - La app sigue dando sus números cuando Grow Panel los pide (buzón común).
+
+## Unión automática desde Grow Panel (Gustavo, 6-11-2026; Grow Panel v1.38 + Worker 23:00)
+- Sin botones ni recuadros. Al abrir una app desde Grow Panel (con sesión de Google), Grow Panel añade «#gpcodigo=<código de
+  un solo uso, 15 min>». grow-panel-boton.js lo quita de la barra, lo guarda solo en memoria y llama a
+  `POST registro /vincular-app {"codigo","sesion","app"}`.
+- La app solo tiene que exponer `window.growPanelSesion = async () => '<Bearer>' | null` («meta.<sesión>», «pc.<sesión>» o
+  el ID token de Firebase), lanzar `window.dispatchEvent(new Event('growpanel-sesion'))` al entrar, y (servidores propios)
+  devolver en `/yo` una `cuenta` estable («meta:<id>», «pc:<id>»). Opcional: `window.GrowPanelApp = 'amable-meta'`.
+- El registro une esa cuenta a la persona de Grow Panel (o, si es otro Gmail, lo añade como «otro Gmail»).
+  Evento de respuesta en la app: `growpanel-unida` (detail = respuesta del registro).

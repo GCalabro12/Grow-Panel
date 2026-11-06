@@ -236,9 +236,11 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
   fetch('apps.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(reg => {
     conocidas = new Set((reg.apps || []).filter(a => !a.externa).map(a => { try { return new URL(a.url).origin; } catch (e) { return ''; } }));
   }).catch(() => {});
-  const conClave = url => {
+  const conClave = (url, codigo) => {
     let k = null; try { k = localStorage.getItem('growpanel.clave'); } catch (e) {}
     const partes = [];
+    // Código de un solo uso (15 min): la app se une sola a tu cuenta (grow-panel-boton.js → POST /vincular-app)
+    if (codigo) partes.push('gpcodigo=' + codigo);
     if (/^[A-Za-z0-9_-]{32,128}$/.test(k || '')) partes.push('gpclave=' + k);
     // El Gmail con el que has entrado en Grow Panel: la app te dice con qué cuenta de Google entrar (va detrás de «#»: no sale a internet)
     const u = window.CuentaAmable && window.CuentaAmable.usuario();
@@ -251,16 +253,22 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
     try { marco.contentWindow.location.replace('about:blank'); } catch (err) { marco.src = 'about:blank'; }
     if (window.GrowPanelReenviar) window.GrowPanelReenviar().then(() => panel.cargar()); else panel.cargar();   // por si la app ha actualizado su resumen
   }
-  panel.addEventListener('grow-panel-abrir', e => {
+  // Pide el código de unión (como mucho 2,5 s; si no llega, la app se abre igual)
+  const codigoUnion = () => window.GrowPanelCodigo
+    ? Promise.race([window.GrowPanelCodigo().catch(() => null), new Promise(ok => setTimeout(() => ok(null), 2500))]) : Promise.resolve(null);
+  panel.addEventListener('grow-panel-abrir', async e => {
     const { url, nombre } = e.detail;
     let destino;
     try { destino = new URL(url); } catch (err) { return; }
     e.preventDefault();
-    if (destino.origin !== location.origin) { location.assign(conocidas.has(destino.origin) ? conClave(url) : url); return; }
+    const nuestra = destino.origin === location.origin || conocidas.has(destino.origin);
+    const codigo = nuestra ? await codigoUnion() : null;
+    if (destino.origin !== location.origin) { location.assign(nuestra ? conClave(url, codigo) : url); return; }
     document.getElementById('visor-nombre').textContent = nombre;
     marco.title = nombre;
+    const dentro = codigo ? url + (url.includes('#') ? '&' : '#') + 'gpcodigo=' + codigo : url;
     // replace: así la app no deja pasos en el historial y «Volver» cierra siempre a la primera
-    try { marco.contentWindow.location.replace(url); } catch (err) { marco.src = url; }
+    try { marco.contentWindow.location.replace(dentro); } catch (err) { marco.src = dentro; }
     visor.hidden = false; document.body.classList.add('visor-abierto');
   });
   document.getElementById('visor-volver').addEventListener('click', cerrar);
@@ -395,9 +403,56 @@ window.CuentaAmable = (() => {
     } catch (e) {}
     return leerHora();
   }
+  const zonaHoraria = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid'; } catch (e) { return 'Europe/Madrid'; } };
+
+  // --- Aviso del resumen del día en este aparato (Web Push) ---
+  const VAPID_PUBLICA = 'BFoTFyAgZUsoq5axe9tteEKQQLS7o-9L37QoZRlxafSuM_-jlQLq2OmZTFGdE5IeKiX25_ttV3S3JEgSLFPfG2M';
+  const pushPosible = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  async function suscripcion() {
+    if (!pushPosible()) return null;
+    try { const reg = await navigator.serviceWorker.ready; return await reg.pushManager.getSubscription(); } catch (e) { return null; }
+  }
+  const aBytes = s => { const b = atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)); return Uint8Array.from(b, c => c.charCodeAt(0)); };
+  async function activarAviso() {
+    if (!pushPosible()) throw new Error('Este navegador no permite avisos.');
+    const permiso = await Notification.requestPermission();
+    if (permiso !== 'granted') throw new Error('Has bloqueado los avisos de Grow Panel en este navegador. Puedes permitirlos en el candado de la barra de direcciones.');
+    const reg = await navigator.serviceWorker.ready;
+    let sub;
+    try { sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: aBytes(VAPID_PUBLICA) }); }
+    catch (e) {
+      if (navigator.brave) throw new Error('Brave tiene los avisos apagados. Abre brave://settings/privacy y activa «Usar los servicios de Google para la mensajería push», y vuelve a intentarlo.');
+      throw new Error('No se pudo activar el aviso en este navegador (' + (e && e.name || 'error') + ').');
+    }
+    const r = await pedir('/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint: sub.endpoint }) });
+    await pedir('/ajustes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ zona: zonaHoraria() }) }).catch(() => {});
+    if (!r.ok) throw new Error('No se pudo guardar el aviso. Revisa la conexión.');
+  }
+  async function apagarAviso() {
+    const sub = await suscripcion(); if (!sub) return;
+    await pedir('/push', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint: sub.endpoint }) }).catch(() => {});
+    await sub.unsubscribe().catch(() => {});
+  }
+  const avisoHTML = h => `<div class="tarjeta" id="tarjeta-aviso"><h3>Aviso del resumen del día</h3>
+    <label class="interruptor"><input type="checkbox" id="aviso-push" role="switch"><b>Avisarme en este aparato a las ${esc(h)}</b></label>
+    <div class="reg-nota">Grow Panel te avisa a la hora de cierre de tu día para que mires tu resumen. Se activa en cada aparato (móvil, PC).</div>
+    <div class="fila"><button class="reg-b" data-a="probar-aviso">Probar aviso</button><span class="reg-nota aviso-msg" style="margin:0"></span></div></div>`;
+  async function pintarAvisoPush() {
+    const sw = ajCaja.querySelector('#aviso-push'), m = ajCaja.querySelector('.aviso-msg'); if (!sw) return;
+    if (!pushPosible()) { sw.disabled = true; if (m) m.textContent = 'Este navegador no permite avisos.'; return; }
+    sw.checked = !!(await suscripcion()) && Notification.permission === 'granted';
+  }
+
+  // Código de un solo uso para que una app se una sola a tu cuenta (solo si has entrado con Google)
+  window.GrowPanelCodigo = async () => {
+    if (!window.CuentaAmable.usuario()) return null;
+    const r = await pedir('/codigo', { method: 'POST' });
+    return r.ok ? (await r.json()).codigo || null : null;
+  };
+
   async function guardarHora(h) {
     guardarHoraLocal(h);
-    try { const r = await pedir('/ajustes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hora_resumen: h }) }); return r.ok; }
+    try { const r = await pedir('/ajustes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hora_resumen: h, zona: zonaHoraria() }) }); return r.ok; }
     catch (e) { return false; }
   }
   const horaHTML = h => `<div class="tarjeta"><h3>¿A qué hora quieres tu resumen del día?</h3>
@@ -520,10 +575,11 @@ window.CuentaAmable = (() => {
       <div class="reg-nota compartir-nota">${textoCompartir(on)}</div>
       <div class="reg-nota">Nunca se mandan textos: solo números (pasos, minutos, tareas…). Vale para todas tus apps Amable, en el móvil y en el PC.</div>
       <div class="reg-nota" id="reg-msg"></div>${borrarHTML()}${clavePanel(clave)}</div>`;
-    ajCaja.innerHTML = cuenta + horaHTML(hora) + temaH + inst + ayuda + datos
+    ajCaja.innerHTML = cuenta + horaHTML(hora) + avisoHTML(hora) + temaH + inst + ayuda + datos
       + `<div class="reg-nota" style="text-align:center">Grow Panel ${esc(V)}</div>`;
     refrescarHora(ajCaja, hora);
     if (u) pintarAlias();
+    pintarAvisoPush();
   }
 
   // Lista de «otros Gmail» de la persona
@@ -551,6 +607,17 @@ window.CuentaAmable = (() => {
       catch (err) { const m = caja.querySelector('.cuenta-msg'); if (m) m.textContent = 'No se pudo entrar con Google. Inténtalo otra vez.'; return; }
     }
     else if (accion === 'salir') { await window.CuentaAmable.salir(); }
+    else if (accion === 'probar-aviso') {
+      const m = caja.querySelector('.aviso-msg');
+      if (!(await suscripcion())) { if (m) m.textContent = 'Primero activa el aviso en este aparato.'; return; }
+      if (m) m.textContent = 'Enviando…';
+      try {
+        const r = await pedir('/push/probar', { method: 'POST' }); const j = await r.json();
+        const est = (j.resultados || []).map(x => x.estado || x.error);
+        if (m) m.textContent = est.some(x => x === 201 || x === 200) ? '✓ Enviado: te llegará en unos segundos.' : 'No se pudo enviar (' + est.join(', ') + ').';
+      } catch (err) { if (m) m.textContent = 'No se pudo enviar: revisa la conexión.'; }
+      return;
+    }
     else if (accion === 'alias-anadir' || accion === 'alias-quitar') {
       const m = caja.querySelector('.cuenta-msg');
       try {
@@ -611,6 +678,14 @@ window.CuentaAmable = (() => {
   resCaja.addEventListener('click', alClic);
   ajCaja.addEventListener('click', alClic);
   ajCaja.addEventListener('change', async e => {
+    if (e.target.id === 'aviso-push') {
+      const m = ajCaja.querySelector('.aviso-msg'), on = e.target.checked;
+      try {
+        if (on) { await activarAviso(); if (m) m.textContent = '✓ Activado en este aparato. Pulsa «Probar aviso» para verlo.'; }
+        else { await apagarAviso(); if (m) m.textContent = 'Apagado en este aparato.'; }
+      } catch (err) { e.target.checked = !on; if (m) m.textContent = err.message || 'No se pudo.'; }
+      return;
+    }
     if (e.target.id !== 'compartir') return;
     const on = e.target.checked, nota = ajCaja.querySelector('.compartir-nota'), msg = ajCaja.querySelector('#reg-msg');
     guardarCompartirLocal(on); if (nota) nota.textContent = textoCompartir(on);
