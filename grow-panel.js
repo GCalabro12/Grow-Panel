@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.16';
+  const VERSION = 'v1.17';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -34,11 +34,14 @@
   --gp-ln:#2a313d;--gp-sub:#232a35;--gp-ok:#4ade80;--gp-aviso:#fbbf24;--gp-error:#f87171;--gp-pausa:#94a3b8;--gp-mudo:#64748b}}
 *{box-sizing:border-box}
 .cab{margin-bottom:14px}
-.franja{position:relative;display:flex;align-items:center;justify-content:center;min-height:52px;padding:10px 56px;
+.franja{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;min-height:52px;padding:8px 10px;
   border-radius:12px;background:#f59e0b;color:#1c1300}
-.franja h2{margin:0;font-size:21px;font-weight:800;letter-spacing:-.2px;text-align:center}
-.franja .rec{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.35);border-color:rgba(28,19,0,.25);color:#1c1300}
-.franja .rec.girando{animation:g2 1s linear infinite}@keyframes g2{to{transform:translateY(-50%) rotate(360deg)}}
+.franja h2{grid-column:2;margin:0;font-size:21px;font-weight:800;letter-spacing:-.2px;text-align:center}
+.franja .rec{grid-column:3;justify-self:end;width:auto;height:auto;border-radius:999px;padding:7px 12px;font-size:14px;font-weight:700;
+  display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.45);border:1px solid rgba(28,19,0,.25);color:#1c1300}
+.franja .rec:hover{background:rgba(255,255,255,.7)}
+.franja .rec .ic{display:inline-block}
+.franja .rec.girando{animation:none}.franja .rec.girando .ic{animation:g 1s linear infinite}
 .cab .sub{color:var(--gp-mut);font-size:13px;margin-top:6px;text-align:center}
 .rec{border:1px solid var(--gp-ln);background:var(--gp-bg);color:var(--gp-mut);width:36px;height:36px;
   border-radius:50%;font-size:17px;cursor:pointer;flex:none}
@@ -200,7 +203,7 @@ a.app:hover{border-color:var(--c)}
     cabecera(sub) {
       if (this.hasAttribute('sin-titulo')) return '';
       return `<div class="cab"><div class="franja"><h2>${esc(this.getAttribute('titulo') || 'Grow Panel')}</h2>
-        <button class="rec" title="Actualizar" aria-label="Actualizar">↻</button></div><div class="sub">${esc(sub)}</div></div>`;
+        <button class="rec" title="Volver a leer los resúmenes que han dejado tus apps" aria-label="Actualizar datos"><span class="ic">↻</span> Actualizar datos</button></div><div class="sub">${esc(sub)}</div></div>`;
     }
     pintar(raiz, vistas, total) {
       const n = vistas.length;
