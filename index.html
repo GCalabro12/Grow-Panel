@@ -63,6 +63,19 @@ body.visor-abierto{overflow:hidden}
 .franja-res .rec:hover{background:rgba(255,255,255,.7)}
 .franja-res .rec.girando .ic{display:inline-block;animation:gira 1s linear infinite}@keyframes gira{to{transform:rotate(360deg)}}
 @media (max-width:520px){.franja-res{grid-template-columns:1fr auto}.franja-res h2{grid-column:1;text-align:left;font-size:19px}.franja-res .rec{grid-column:2}}
+.sec{margin:0 0 12px;background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:0;font-size:14px}
+.sec>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:14px 16px;font-size:16px;font-weight:800}
+.sec>summary::-webkit-details-marker{display:none}
+.sec>summary::after{content:"";margin-left:auto;width:10px;height:10px;border-right:3px solid currentColor;border-bottom:3px solid currentColor;transform:rotate(45deg);transition:transform .15s;margin-top:-4px}
+.sec[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
+.sec-cuerpo{padding:0 16px 16px}
+.reg-b.act{font-size:14px;padding:8px 14px;border-color:#d97706;background:#fde68a;color:#1c1300;font-weight:800}
+.reg-b.act.girando .ic{display:inline-block;animation:gira 1s linear infinite}
+.seg.periodos{flex-wrap:wrap;margin-bottom:12px}
+.seg.periodos button{position:relative}
+.seg.periodos button.toca::after{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#ef4444}
+.ia-caja{background:var(--fila);border-radius:12px;padding:14px 16px;line-height:1.6;font-size:15px;white-space:pre-wrap;min-height:60px;margin-bottom:10px}
+.ia-caja.vacia{color:var(--mut);font-size:14px}
 .reg-res{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin-top:6px}
 .reg-app{border:2px solid var(--ac,var(--ln));border-radius:18px;padding:14px 16px;margin:0;
   background:linear-gradient(180deg,color-mix(in srgb,var(--ac,transparent) 10%,var(--card)) 0,var(--card) 70px);
@@ -192,7 +205,7 @@ body.embed .top,body.embed .guia,body.embed details,body.embed .pie,body.embed .
 </main>
 <nav class="abajo" aria-label="Secciones de Grow Panel"><div class="abajo-in">
   <button type="button" data-v="apps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Abrir apps</button>
-  <button type="button" data-v="resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><rect x="5" y="11" width="3" height="6" rx="1"/><rect x="10.5" y="6" width="3" height="11" rx="1"/><rect x="16" y="13" width="3" height="4" rx="1"/></svg>Resumen del día</button>
+  <button type="button" data-v="resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><rect x="5" y="11" width="3" height="6" rx="1"/><rect x="10.5" y="6" width="3" height="11" rx="1"/><rect x="16" y="13" width="3" height="4" rx="1"/></svg>Resúmenes</button>
   <button type="button" data-v="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ajustes</button>
 </div></nav>
 <script src="grow-panel.js"></script>
@@ -577,18 +590,91 @@ window.CuentaAmable = (() => {
     await window.CuentaAmable.iniciar();
     await vincular(clave);
     const u = window.CuentaAmable.usuario(), hora = leerHora();
-    resCaja.innerHTML = `<div class="franja-res"><h2>Resumen del día</h2>
-        <button class="rec girando" data-a="actualizar" title="Recoger lo último de tus apps"><span class="ic">↻</span> Actualizar datos</button></div>`
+    const abierta = s => { try { return localStorage.getItem('growpanel.sec.' + s) !== '0'; } catch (e) { return true; } };
+    const toca = periodosQueTocan();
+    resCaja.innerHTML = `<div class="franja-res"><h2>Resúmenes</h2></div>`
       + (u ? '' : `<div class="tarjeta fila"><span style="flex:1;min-width:200px">Entra con tu cuenta de Google para ver lo mismo en el móvil y en el PC.</span>
         <button class="reg-b google" data-a="entrar">Entrar con Google</button></div>`)
-      + `<div class="tarjeta"><h3>Hoy y los últimos 7 días</h3><div class="reg-nota">Lo último que han dejado tus apps, estén en el móvil o en el PC. Solo números, y solo los ves tú.</div>
-        <div class="reg-res"><div class="reg-nota">Cargando…</div></div></div>`;
-    refrescarHora(resCaja, hora);
+      + `<details class="sec" data-sec="datos"${abierta('datos') ? ' open' : ''}><summary>📊 Resumen del día en datos</summary><div class="sec-cuerpo">
+          <button class="reg-b act girando" data-a="actualizar" title="Recoger lo último de tus apps"><span class="ic">↻</span> Actualizar datos</button>
+          <div class="reg-nota" style="margin-top:8px">Hoy y los últimos 7 días: lo último que han dejado tus apps, estén en el móvil o en el PC. Solo números, y solo los ves tú.</div>
+          <div class="reg-res"><div class="reg-nota">Cargando…</div></div></div></details>`
+      + `<details class="sec" data-sec="texto"${abierta('texto') ? ' open' : ''}><summary>✍️ Resumen en texto</summary><div class="sec-cuerpo">
+          <div class="seg periodos">${Object.entries(PERIODOS_IA).map(([p, n]) => `<button type="button" data-a="ia-periodo" data-p="${p}" class="${p === iaPeriodo ? 'on' : ''}${toca[p] ? ' toca' : ''}"${toca[p] ? ` title="${esc(toca[p])}"` : ''}>${n}</button>`).join('')}</div>
+          ${Object.values(toca).length ? `<div class="reg-nota">🔴 ${esc(Object.values(toca).join(' '))}</div>` : ''}
+          <div class="ia-caja vacia">Cargando…</div>
+          <div class="fila"><button class="reg-b google" data-a="ia-generar">✨ Generar con IA</button><button class="reg-b" data-a="ia-leer">🔊 Escuchar</button></div>
+          <div class="reg-nota" style="margin-top:8px">La IA de Google lee solo tus números (nunca textos) para escribirte cómo te ha ido.</div></div></details>`;
+    cargarTextoIA();
     let cuerpo;
-    try { cuerpo = await resumen(); } catch (e) { cuerpo = '<div class="reg-aviso">No se pudo leer tu resumen. Revisa la conexión y pulsa ↻ Actualizar.</div>'; }
+    try { cuerpo = await resumen(); } catch (e) { cuerpo = '<div class="reg-aviso">No se pudo leer tu resumen. Revisa la conexión y pulsa ↻ Actualizar datos.</div>'; }
     const res = resCaja.querySelector('.reg-res'); if (res) res.innerHTML = cuerpo;
-    const rec = resCaja.querySelector('.franja-res .rec'); if (rec) rec.classList.remove('girando');
+    const rec = resCaja.querySelector('.act'); if (rec) rec.classList.remove('girando');
   }
+
+  // --- Resumen en texto con IA (día, semana, mes, trimestre, año) ---
+  const PERIODOS_IA = { dia: 'Hoy', semana: 'Semana', mes: 'Mes', trimestre: 'Trimestre', anio: 'Año' };
+  const NOMBRE_PERIODO = { dia: 'de hoy', semana: 'de la semana', mes: 'del mes', trimestre: 'del trimestre', anio: 'del año' };
+  let iaPeriodo = 'dia', iaTexto = null, iaPidiendo = false;
+  // Días en que «toca» un resumen: domingo (semana), último día del mes, del trimestre y del año
+  function periodosQueTocan() {
+    const h = new Date(), man = new Date(h); man.setDate(h.getDate() + 1);
+    const t = {};
+    if (h.getDay() === 0) t.semana = 'Hoy es domingo: ya puedes pedir el resumen de tu semana.';
+    if (man.getDate() === 1) t.mes = 'Hoy acaba el mes: ya puedes pedir el resumen del mes.';
+    if (man.getDate() === 1 && man.getMonth() % 3 === 0) t.trimestre = 'Hoy acaba el trimestre: ya puedes pedir su resumen.';
+    if (man.getDate() === 1 && man.getMonth() === 0) t.anio = 'Hoy acaba el año: ya puedes pedir el resumen del año.';
+    return t;
+  }
+  function pintarTextoIA(msg) {
+    const caja = resCaja.querySelector('.ia-caja'), btn = resCaja.querySelector('[data-a="ia-generar"]'), leer = resCaja.querySelector('[data-a="ia-leer"]');
+    if (!caja) return;
+    if (msg) { caja.className = 'ia-caja vacia'; caja.textContent = msg; }
+    else if (iaTexto) { caja.className = 'ia-caja'; caja.textContent = iaTexto; }
+    else { caja.className = 'ia-caja vacia'; caja.textContent = 'Pulsa «Generar con IA» y te escribo cómo ha ido tu resumen ' + NOMBRE_PERIODO[iaPeriodo] + ', a partir de los números de tus apps.'; }
+    if (btn) btn.textContent = iaTexto ? '↻ Volver a escribir' : '✨ Generar con IA';
+    if (leer) leer.hidden = !iaTexto;
+  }
+  async function cargarTextoIA() {
+    iaTexto = null; pintarTextoIA('Cargando…');
+    try {
+      const r = await pedir(`/resumen-ia?periodo=${iaPeriodo}&hoy=${dia(new Date())}`);
+      const j = r.ok ? await r.json() : {};
+      iaTexto = j.texto || null;
+    } catch (e) {}
+    pintarTextoIA();
+  }
+  async function generarTextoIA() {
+    if (iaPidiendo) return; iaPidiendo = true;
+    pararLectura();
+    pintarTextoIA('✨ Escribiendo tu resumen ' + NOMBRE_PERIODO[iaPeriodo] + '…');
+    try {
+      const r = await pedir('/resumen-ia', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ periodo: iaPeriodo, hoy: dia(new Date()), rehacer: !!iaTexto }) });
+      const j = await r.json().catch(() => ({}));
+      if (j.texto) { iaTexto = j.texto; pintarTextoIA(); }
+      else pintarTextoIA(j.error || 'No se pudo escribir el resumen. Inténtalo otra vez.');
+    } catch (e) { pintarTextoIA('No se pudo escribir el resumen: revisa la conexión.'); }
+    iaPidiendo = false;
+  }
+  // Leer en voz alta (voz del aparato, en español)
+  function pararLectura() { try { speechSynthesis.cancel(); } catch (e) {} const b = resCaja.querySelector('[data-a="ia-leer"]'); if (b) b.textContent = '🔊 Escuchar'; }
+  function leerTextoIA() {
+    if (!iaTexto || !('speechSynthesis' in window)) return;
+    const b = resCaja.querySelector('[data-a="ia-leer"]');
+    if (speechSynthesis.speaking) { pararLectura(); return; }
+    const u = new SpeechSynthesisUtterance(iaTexto); u.lang = 'es-ES'; u.rate = 1;
+    const voces = speechSynthesis.getVoices().filter(v => /^es(-|_)ES/i.test(v.lang));
+    u.voice = voces.find(v => /Helena|Elvira|Google/i.test(v.name)) || voces[0] || null;
+    u.onend = () => { if (b) b.textContent = '🔊 Escuchar'; };
+    speechSynthesis.speak(u);
+    if (b) b.textContent = '⏹ Parar';
+  }
+  // Recordar qué secciones tienes abiertas
+  resCaja.addEventListener('toggle', e => {
+    const d = e.target; if (!d.matches || !d.matches('details.sec')) return;
+    try { localStorage.setItem('growpanel.sec.' + d.dataset.sec, d.open ? '1' : '0'); } catch (err) {}
+  }, true);
 
   async function pintarAjustes() {
     const clave = miClave();
@@ -658,6 +744,13 @@ window.CuentaAmable = (() => {
       catch (err) { const m = caja.querySelector('.cuenta-msg'); if (m) m.textContent = 'No se pudo entrar con Google. Inténtalo otra vez.'; return; }
     }
     else if (accion === 'salir') { await window.CuentaAmable.salir(); }
+    else if (accion === 'ia-periodo') {
+      iaPeriodo = a.dataset.p; pararLectura();
+      caja.querySelectorAll('[data-a="ia-periodo"]').forEach(x => x.classList.toggle('on', x === a));
+      cargarTextoIA(); return;
+    }
+    else if (accion === 'ia-generar') { generarTextoIA(); return; }
+    else if (accion === 'ia-leer') { leerTextoIA(); return; }
     else if (accion === 'probar-aviso') {
       const m = caja.querySelector('.aviso-msg');
       if (!(await suscripcion())) { if (m) m.textContent = 'Primero activa el aviso en este aparato.'; return; }
