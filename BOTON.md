@@ -36,6 +36,7 @@ cualquier mejora llega a todas las apps a la vez.
 - Las apps de otra dirección (Calistenia, Mi Reproductor) se enteran cuando se abren **desde Grow Panel**:
   el enlace trae `?growpanel=N` y la app lo recuerda (`growpanel.n`). La dirección se limpia sola.
 - Al tocar el botón se abre Grow Panel con un botón **«← Volver a la app»**.
+- Si la app se abre a pantalla completa desde una tarjeta de Grow Panel (apps de otra dirección), el archivo pone arriba una barra oscura **«← Volver a Grow Panel»** durante esa pestaña. Dentro del visor de Grow Panel no sale.
 - El botón mide 34 × 34 px. Si hay que adaptarlo a los colores de la app, se puede usar el selector `#grow-panel-boton .gp-boton`
   (por ejemplo, el borde). No cambies la mini flor.
 - Si la app tiene service worker, no hace falta tocarlo: el archivo viene de otra ruta y siempre se pide a la red.

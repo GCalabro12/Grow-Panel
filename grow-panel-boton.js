@@ -45,6 +45,9 @@
 
   // Grow Panel abrió esta app: recordar cuántas apps tiene el usuario y limpiar la dirección
   const q = new URLSearchParams(location.search);
+  // Abierta a pantalla completa desde una tarjeta de Grow Panel: se recuerda en esta pestaña para mostrar
+  // arriba la barra «← Volver a Grow Panel» (la barra del navegador no lleva a Grow Panel).
+  if (q.has('growpanel')) { try { sessionStorage.setItem('growpanel.volver', '1'); } catch (e) {} }
   if (q.has('growpanel')) {
     const n = parseInt(q.get('growpanel'), 10);
     if (n > 0) guardar(CLAVE_N, n);
@@ -78,7 +81,25 @@
       + (f ? '#ficha=' + encodeURIComponent(JSON.stringify(f)) : '');
   }
 
+  function barraVolver() {
+    let enMarco = false; try { enMarco = window.top !== window; } catch (e) { enMarco = true; }
+    let viene = false; try { viene = sessionStorage.getItem('growpanel.volver') === '1'; } catch (e) {}
+    if (enMarco || !viene || !document.body) return;
+    let barra = document.getElementById('gp-volver-barra');
+    if (!barra) {
+      barra = document.createElement('a');
+      barra.id = 'gp-volver-barra';
+      barra.setAttribute('style', 'display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;'
+        + 'background:#111827;color:#fff;font:700 15px/1.2 system-ui,-apple-system,Segoe UI,sans-serif;'
+        + 'text-decoration:none;letter-spacing:.2px;position:relative;z-index:2147483000;border-bottom:1px solid #374151');
+      barra.innerHTML = FLOR + '<span>← Volver a Grow Panel</span>';
+      document.body.prepend(barra);
+    }
+    barra.href = destino();
+  }
+
   function pintar() {
+    barraVolver();
     const sitio = document.getElementById('grow-panel-boton');
     if (!sitio || total < 2) return;
     // Abierta dentro de Grow Panel («Abre tus apps»): arriba ya está «Volver a Grow Panel»
