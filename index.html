@@ -16,9 +16,9 @@
 try { const t = localStorage.getItem('growpanel.tema'); if (t === 'claro') document.documentElement.dataset.theme = 'light'; else if (t === 'oscuro') document.documentElement.dataset.theme = 'dark'; } catch (e) {}
 </script>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#6b7280;--ln:#e5e7eb;--activo:#b45309;color-scheme:light}
-:root[data-theme=dark]{--bg:#12151b;--card:#1b2029;--tx:#e8eaee;--mut:#9aa3b2;--ln:#2a313d;--activo:#fbbf24;color-scheme:dark}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12151b;--card:#1b2029;--tx:#e8eaee;--mut:#9aa3b2;--ln:#2a313d;--activo:#fbbf24;color-scheme:dark}}
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#6b7280;--ln:#e5e7eb;--activo:#b45309;--fila:#e9ecf1;color-scheme:light}
+:root[data-theme=dark]{--bg:#12151b;--card:#1b2029;--tx:#e8eaee;--mut:#9aa3b2;--ln:#2a313d;--activo:#fbbf24;--fila:#262d39;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12151b;--card:#1b2029;--tx:#e8eaee;--mut:#9aa3b2;--ln:#2a313d;--activo:#fbbf24;--fila:#262d39;color-scheme:dark}}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;font-family:system-ui,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx)}
@@ -70,10 +70,10 @@ body.visor-abierto{overflow:hidden}
 .reg-app-cab b{display:block}
 .reg-tabla{width:auto;min-width:min(100%,380px);border-collapse:separate;border-spacing:0 6px;font-size:14px;margin-top:4px}
 .reg-tabla th{font-size:13px;font-weight:800;color:var(--tx);text-align:center;padding:0 14px 2px}
-.reg-tabla td{background:var(--bg);padding:10px 14px;border-top:1px solid var(--ln);border-bottom:1px solid var(--ln)}
-.reg-tabla td:first-child{border-left:1px solid var(--ln);border-radius:10px 0 0 10px;font-weight:600;padding-right:24px}
-.reg-tabla td:last-child{border-right:1px solid var(--ln);border-radius:0 10px 10px 0}
-.reg-tabla td+td{text-align:center;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;min-width:58px}
+.reg-tabla td{background:var(--fila);color:var(--tx);font-weight:400;padding:10px 14px}
+.reg-tabla td:first-child{border-radius:10px 0 0 10px;padding-right:24px}
+.reg-tabla td:last-child{border-radius:0 10px 10px 0}
+.reg-tabla td+td{text-align:center;font-size:15px;font-variant-numeric:tabular-nums;min-width:58px}
 .reg-aviso{font-size:13px;margin:8px 0;padding:8px;border-radius:8px;background:var(--bg)}
 .reg-cuenta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--ln)}
 .reg-b.google{background:#f59e0b;border-color:#d97706;color:#1c1300;font-weight:800;padding:8px 14px}
