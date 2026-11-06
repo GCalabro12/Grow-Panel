@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.25';
+  const VERSION = 'v1.26';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -164,7 +164,8 @@ a.app:hover{border-color:var(--c)}
       v.cuenta = c.cuenta || (google ? 'cuenta de Google' : 'sin cuenta de Google');
       if (!google) v.consejo = `Entra en ${app.nombre} con Google${mia ? ' (' + mia + ')' : ''} para verla en todos tus aparatos`;
       else if (mia && c.cuenta && /@/.test(c.cuenta) && c.cuenta.toLowerCase() !== mia.toLowerCase()) v.consejo = `Envía con ${c.cuenta}; Grow Panel usa ${mia}`;
-    } else if (app.registro_activo && mia) {
+    } else if (app.registro_activo && mia && !reg[app.registro]) {
+      // Ni números ni cuenta: no llega nada de esta app con tu cuenta
       v.cuenta = 'sin números de tu cuenta';
       v.consejo = `Entra en ${app.nombre} con tu cuenta de Google (${mia})`;
     }
