@@ -180,7 +180,7 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
   function cerrar() {
     if (visor.hidden) return;
     visor.hidden = true; document.body.classList.remove('visor-abierto');
-    marco.src = 'about:blank';
+    try { marco.contentWindow.location.replace('about:blank'); } catch (err) { marco.src = 'about:blank'; }
     panel.cargar();   // por si la app ha actualizado su resumen
   }
   panel.addEventListener('grow-panel-abrir', e => {
@@ -190,14 +190,12 @@ document.getElementById('ver').textContent = window.GrowPanel.VERSION;
     e.preventDefault();
     if (destino.origin !== location.origin) { location.assign(url); return; }
     document.getElementById('visor-nombre').textContent = nombre;
-    marco.title = nombre; marco.src = url;
+    marco.title = nombre;
+    // replace: así la app no deja pasos en el historial y «Volver» cierra siempre a la primera
+    try { marco.contentWindow.location.replace(url); } catch (err) { marco.src = url; }
     visor.hidden = false; document.body.classList.add('visor-abierto');
-    history.pushState({ visor: true }, '');
   });
-  document.getElementById('visor-volver').addEventListener('click', () => {
-    if (history.state && history.state.visor) history.back(); else cerrar();
-  });
-  addEventListener('popstate', cerrar);
+  document.getElementById('visor-volver').addEventListener('click', cerrar);
 })();
 
 // Mi registro diario: clave personal (sin cuentas), resumen de hoy y de los últimos 7 días, borrar mis datos.
