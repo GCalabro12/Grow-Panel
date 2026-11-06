@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.19';
+  const VERSION = 'v1.20';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -114,12 +114,41 @@ a.app:hover{border-color:var(--c)}
     return new Date(fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
   }
 
+  // Registro diario → ficha: si la página da window.GrowPanelRegistro(), sus números (de internet, iguales en el móvil
+  // y en el PC) sirven de resumen cuando son más recientes que lo que la app dejó en este navegador.
+  const NOMBRES_DATO = { pasos: 'pasos', pausas_vista: 'pausas de la vista', minutos_concentracion: 'min de concentración',
+    tareas_hechas: 'tareas hechas', tareas_total: 'tareas en total', bloques_con_tareas: 'bloques con tareas', bloques_total: 'bloques',
+    sesiones: 'sesiones hoy', minutos: 'minutos hoy', racha: 'días de racha', semana: 'esta semana', acciones_pendientes: 'acciones pendientes' };
+  function fichasDelRegistro(filas) {
+    const ultimo = {};
+    (filas || []).forEach(f => {
+      const u = ultimo[f.app];
+      if (!u || f.fecha > u.fecha) ultimo[f.app] = { fecha: f.fecha, enviado: f.enviado, datos: {} };
+      const v = ultimo[f.app];
+      if (v.fecha === f.fecha) { v.datos[f.dato] = f.valor; if (f.enviado > v.enviado) v.enviado = f.enviado; }
+    });
+    const hoy = new Date(), dia = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    const res = {};
+    Object.entries(ultimo).forEach(([app, v]) => {
+      const fmt = n => Number(n).toLocaleString('es-ES', { maximumFractionDigits: 1 });
+      res[app] = { ficha: 1, estado: 'ok', mensaje: v.fecha === dia(hoy) ? 'Números de hoy' : 'Números del ' + v.fecha.slice(8, 10) + '/' + v.fecha.slice(5, 7),
+        cifras: Object.entries(v.datos).slice(0, 3).map(([k, n]) => ({ valor: fmt(n), etiqueta: NOMBRES_DATO[k] || k.replace(/_/g, ' ') })),
+        actualizado: (v.enviado || v.fecha).replace(' ', 'T') + (v.enviado ? 'Z' : 'T20:00:00'), frecuencia_horas: 48, delRegistro: true };
+    });
+    return res;
+  }
+
   // Une la entrada del registro con su ficha y decide el estado visible
-  function combinar(app, f) {
-    if (!app.ficha) {
-      f = local('growpanel.fichas')[app.id];
-      if (!f) return { app, estado: 'pausa', mensaje: 'Conectada · resumen próximamente' };
-    }
+  function combinar(app, f, reg) {
+    if (!app.ficha) f = local('growpanel.fichas')[app.id] || null;
+    // El registro diario manda si es más reciente que lo que la app dejó en este navegador
+    const r = reg && app.registro && reg[app.registro];
+    if (r && (!f || !(Date.parse(f.actualizado) >= Date.parse(r.actualizado)))) f = Object.assign({}, r, { version: f && f.version });
+    if (!f) return app.ficha ? { app, estado: 'mudo', mensaje: 'Todavía no ha publicado su ficha' } : { app, estado: 'pausa', mensaje: 'Conectada · resumen próximamente' };
+    return combinarFicha(app, f);
+  }
+
+  function combinarFicha(app, f) {
     if (!f) return { app, estado: 'mudo', mensaje: 'Todavía no ha publicado su ficha' };
     const t = Date.parse(f.actualizado);
     const limite = (Number(f.frecuencia_horas) || 24) * 1.5 * 3600e3;
@@ -183,9 +212,14 @@ a.app:hover{border-color:var(--c)}
         this.toggleAttribute('oculto', visibles.length < 2);
         const ocultar = (this.getAttribute('ocultar') || '').split(',').map(s => s.trim()).filter(Boolean);
         const apps = visibles.filter(a => !ocultar.includes(a.id));
-        const fichas = await Promise.all(apps.map(a => leerJSON(a.ficha).catch(() => null)));
+        const [fichas, filasReg] = await Promise.all([
+          Promise.all(apps.map(a => a.ficha ? leerJSON(a.ficha).catch(() => null) : null)),
+          typeof window.GrowPanelRegistro === 'function'
+            ? Promise.race([window.GrowPanelRegistro().catch(() => null), new Promise(ok => setTimeout(() => ok(null), 6000))]) : null
+        ]);
         if (turno !== this._turno || this._arrastrando) return;
-        const vistas = apps.map((a, i) => combinar(a, fichas[i])).sort((x, y) => ORDEN[x.estado] - ORDEN[y.estado]);
+        const diario = filasReg ? fichasDelRegistro(filasReg) : null;
+        const vistas = apps.map((a, i) => combinar(a, fichas[i], diario)).sort((x, y) => ORDEN[x.estado] - ORDEN[y.estado]);
         // Orden elegido por el usuario; las apps nuevas van al final, por estado
         const orden = ordenGuardado();
         if (orden.length) {

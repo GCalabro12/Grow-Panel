@@ -388,7 +388,18 @@ window.CuentaAmable = (() => {
     pintar();
   });
 
-  window.CuentaAmable.alCambiar(() => { if (!caja.hidden) pintar(); });
+  window.CuentaAmable.alCambiar(() => { if (!caja.hidden) pintar(); document.querySelector('grow-panel').cargar(); });
+  // Para las tarjetas de «Abre tus apps»: números del registro de ayer y hoy (de internet: iguales en todos tus aparatos)
+  window.GrowPanelRegistro = async () => {
+    let clave = leerClave(); if (!clave) { guardarClave(nuevaClave()); clave = leerClave(); }
+    await vincular(clave);
+    const hoy = new Date(), ayer = new Date(); ayer.setDate(hoy.getDate() - 1);
+    const url = `${REGISTRO}/registro?desde=${dia(ayer)}&hasta=${dia(hoy)}`;
+    let r = await fetch(url, { headers: { Authorization: await autorizacion(clave) }, cache: 'no-store' });
+    if (r.status === 401) r = await fetch(url, { headers: { Authorization: 'Bearer ' + clave }, cache: 'no-store' });
+    return r.ok ? ((await r.json()).filas || []) : null;
+  };
+  document.querySelector('grow-panel').cargar();
   btn.addEventListener('click', () => {
     const abrir = caja.hidden;
     caja.hidden = !abrir; btn.setAttribute('aria-expanded', String(abrir));
