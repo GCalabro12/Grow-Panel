@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Grow Panel</title>
 <meta name="description" content="Grow Panel: el panel central de tus apps · by Práctica Integral">
-<meta name="theme-color" content="#6b7280">
+<meta name="theme-color" content="#f59e0b">
 <link rel="icon" type="image/png" sizes="32x32" href="icono-32.png">
 <link rel="icon" type="image/svg+xml" href="icono.svg">
 <link rel="apple-touch-icon" href="icono-180.png">
@@ -120,12 +120,24 @@ a.reg-b{text-decoration:none;display:inline-block}
 .abajo button:hover{color:var(--tx)}
 .abajo button[aria-current=page]{color:var(--activo);border-top-color:#f59e0b}
 body.visor-abierto .abajo{display:none}
+/* App instalada: Grow Panel usa la barra de título (naranja); los botones del navegador quedan recogidos */
+.titulo-app{display:none}
+@media (display-mode: window-controls-overlay){
+  .titulo-app{display:flex;position:fixed;left:env(titlebar-area-x,0);top:env(titlebar-area-y,0);width:env(titlebar-area-width,100%);height:env(titlebar-area-height,33px);
+    align-items:center;gap:8px;padding:0 12px;box-sizing:border-box;background:#f59e0b;color:#1c1300;font:800 13px/1 system-ui,"Segoe UI",sans-serif;
+    -webkit-app-region:drag;app-region:drag;z-index:60;user-select:none}
+  .titulo-app .flor{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#fff;flex:none}
+  .titulo-app svg{width:16px;height:16px}
+  body{padding-top:env(titlebar-area-height,33px)}
+  .visor{top:env(titlebar-area-height,33px)}
+}
 /* Modo incrustado (iframe): solo el panel */
 body.embed{background:transparent}body.embed main{padding:8px}
 body.embed .top,body.embed .guia,body.embed details,body.embed .pie,body.embed .abajo{display:none}
 </style>
 </head>
 <body>
+<div class="titulo-app" aria-hidden="true"><span class="flor"><svg viewBox="0 0 512 512"><circle cx="256" cy="107.5" r="69.1" fill="#f59e0b"/><circle cx="397.2" cy="210.1" r="69.1" fill="#0f766e"/><circle cx="343.3" cy="376.1" r="69.1" fill="#8b5cf6"/><circle cx="168.7" cy="376.1" r="69.1" fill="#3b82f6"/><circle cx="114.8" cy="210.1" r="69.1" fill="#ef4444"/><circle cx="256" cy="256" r="79.4" fill="#6b7280"/></svg></span>Grow Panel</div>
 <main>
   <div class="top">
     <h1 class="oculto">Grow Panel</h1>
