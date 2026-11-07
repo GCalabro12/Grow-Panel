@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.55';
+  const VERSION = 'v1.56';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -43,7 +43,10 @@
 .franja .rec .ic{display:inline-block}
 .franja .rec.girando{animation:none}.franja .rec.girando .ic{animation:g 1s linear infinite}
 .cab .sub{color:var(--gp-mut);font-size:13px;margin-top:6px;text-align:center}
-.cab .act{color:var(--gp-mut);font-size:12.5px;margin-top:2px;text-align:center}
+.cab .bajo{display:grid;grid-template-columns:1fr auto 1fr;align-items:baseline;gap:4px 10px;margin-top:6px}
+.cab .bajo .sub{grid-column:2;margin-top:0}
+.cab .act{grid-column:3;justify-self:end;text-align:right;color:var(--gp-mut);font-size:12.5px;padding-right:8px}
+@media (max-width:560px){.cab .bajo{grid-template-columns:1fr}.cab .bajo .sub,.cab .act{grid-column:1;justify-self:center;text-align:center;padding-right:0}}
 .rec{border:1px solid var(--gp-ln);background:var(--gp-bg);color:var(--gp-mut);width:36px;height:36px;
   border-radius:50%;font-size:17px;cursor:pointer;flex:none}
 .rec:hover{color:var(--gp-tx)}
@@ -317,7 +320,7 @@ a.app:hover{border-color:var(--c)}
     cabecera(sub) {
       if (this.hasAttribute('sin-titulo')) return '';
       return `<div class="cab"><div class="franja"><h2>${esc(this.getAttribute('titulo') || 'Grow Panel')}</h2>
-        <button class="rec" title="Volver a leer los resúmenes que han dejado tus apps" aria-label="Actualizar datos"><span class="ic">↻</span> Actualizar datos</button></div><div class="sub">${esc(sub)}</div><div class="act">${esc(textoActualizado(this._leido))}</div></div>`;
+        <button class="rec" title="Volver a leer los resúmenes que han dejado tus apps" aria-label="Actualizar datos"><span class="ic">↻</span> Actualizar datos</button></div><div class="bajo"><div class="sub">${esc(sub)}</div><div class="act">${esc(textoActualizado(this._leido))}</div></div></div>`;
     }
     pintarActualizado() {
       const el = this.shadowRoot && this.shadowRoot.querySelector('.act');
