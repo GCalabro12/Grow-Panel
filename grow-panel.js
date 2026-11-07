@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.54';
+  const VERSION = 'v1.55';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -61,6 +61,9 @@ a.app:hover{border-color:var(--c)}
 .cuenta{margin-left:auto;font-size:11px;color:var(--gp-mut);overflow-wrap:anywhere}
 .cuenta+.cuando{margin-left:0}
 .consejo{display:block;margin-top:4px;font-size:12px;color:var(--gp-aviso);font-weight:600}
+.fechas{display:flex;align-items:center;gap:4px 10px;flex-wrap:wrap;font-size:12.5px;color:var(--gp-mut);margin-top:3px}
+.fechas .punto{margin-top:0}
+.fechas .dia{margin-left:auto;color:var(--gp-tx);font-weight:600;white-space:nowrap}
 .msg{display:flex;align-items:flex-start;gap:7px;font-size:14px;margin-top:3px;line-height:1.35}
 .punto{width:9px;height:9px;border-radius:50%;background:var(--c);flex:none;margin-top:5px}
 .cifras{grid-column:2;display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
@@ -135,10 +138,22 @@ a.app:hover{border-color:var(--c)}
   // Registro diario → ficha: si la página da window.GrowPanelRegistro(), sus números (de internet, iguales en el móvil
   // y en el PC) sirven de resumen cuando son más recientes que lo que la app dejó en este navegador.
   const NOMBRES_DATO = { pasos: 'pasos', pausas_vista: 'pausas de la vista', minutos_concentracion: 'min de concentración',
-    tareas_hechas: 'tareas hechas', tareas_total: 'tareas en total', bloques_con_tareas: 'bloques con tareas', bloques_total: 'bloques',
+    tareas_hechas: 'tareas realizadas', tareas_pendientes: 'tareas pendientes', habitos_hechos: 'hábitos realizados', areas_accion: 'áreas que piden acción', tareas_total: 'tareas en total', bloques_con_tareas: 'bloques con tareas', bloques_total: 'bloques',
     sesiones: 'sesiones hoy', minutos: 'minutos hoy', racha: 'días de racha', semana: 'esta semana', acciones_pendientes: 'acciones pendientes',
     minutos_presencia: 'min de presencia', practicas_hoy: 'prácticas hoy', racha_dias: 'días de racha', practicas_semana: 'prácticas esta semana',
     dias_registrados: 'días registrados', registrado_hoy: 'registrado hoy', compromiso_semana: 'compromiso semanal', metas_sencillas_hoy: 'metas sencillas hoy', metas_sencillas_hechas: 'metas sencillas hechas' };
+  // Orden de las cifras en la tarjeta (Gustavo, 7-11-2026). Life: pendientes, realizadas, hábitos y áreas
+  const ORDEN_CIFRAS = { 'amable-life': ['tareas_pendientes', 'tareas_hechas', 'habitos_hechos', 'areas_accion'] };
+  const ORDEN_ETIQUETAS = { 'equilibra': [/pendiente/i, /realizad|hech/i, /h[áa]bito/i, /[áa]rea/i] };
+  function ordenarCifras(cifras, reglas) {
+    if (!reglas || !Array.isArray(cifras)) return cifras;
+    const pos = c => { const i = reglas.findIndex(r => r.test(c.etiqueta || '')); return i < 0 ? 99 : i; };
+    return cifras.map((c, i) => [c, i]).sort((x, y) => pos(x[0]) - pos(y[0]) || x[1] - y[1]).map(x => x[0]);
+  }
+  const textoDia = (fecha) => {   // fecha AAAA-MM-DD → «Datos solo de hoy» / «Datos del 06/11»
+    const h = new Date(), hoy = h.getFullYear() + '-' + String(h.getMonth() + 1).padStart(2, '0') + '-' + String(h.getDate()).padStart(2, '0');
+    return fecha === hoy ? 'Datos solo de hoy' : 'Datos del ' + fecha.slice(8, 10) + '/' + fecha.slice(5, 7);
+  };
   function fichasDelRegistro(filas) {
     const ultimo = {};
     (filas || []).forEach(f => {
@@ -157,8 +172,16 @@ a.app:hover{border-color:var(--c)}
     if (res.__pasosDePC && ultimo['amable-life']) delete ultimo['amable-life'].datos.pasos;
     Object.entries(ultimo).forEach(([app, v]) => {
       const fmt = n => Number(n).toLocaleString('es-ES', { maximumFractionDigits: 1 });
-      res[app] = { ficha: 1, estado: 'ok', mensaje: v.fecha === dia(hoy) ? 'Números de hoy' : 'Números del ' + v.fecha.slice(8, 10) + '/' + v.fecha.slice(5, 7),
-        cifras: Object.entries(v.datos).slice(0, 3).map(([k, n]) => ({ valor: fmt(n), etiqueta: (app === 'amable-fit' && k === 'minutos' ? 'min de ejercicio hoy' : NOMBRES_DATO[k]) || k.replace(/_/g, ' ') })),
+      const d = v.datos, orden = ORDEN_CIFRAS[app] || [];
+      if (app === 'amable-life' && d.tareas_pendientes === undefined && d.tareas_total !== undefined && d.tareas_hechas !== undefined)
+        d.tareas_pendientes = Math.max(0, d.tareas_total - d.tareas_hechas);
+      if (app === 'amable-life' && d.tareas_pendientes !== undefined) delete d.tareas_total;
+      const claves = Object.keys(d).map((k, i) => [k, i]).sort((x, y) => {
+        const a = orden.indexOf(x[0]), b = orden.indexOf(y[0]);
+        return (a < 0 ? 99 : a) - (b < 0 ? 99 : b) || x[1] - y[1];
+      }).map(x => x[0]);
+      res[app] = { ficha: 1, estado: 'ok', mensaje: '', diaDatos: v.fecha,
+        cifras: claves.slice(0, 4).map(k => [k, d[k]]).map(([k, n]) => ({ valor: fmt(n), etiqueta: (app === 'amable-fit' && k === 'minutos' ? 'min de ejercicio hoy' : NOMBRES_DATO[k]) || k.replace(/_/g, ' ') })),
         actualizado: (v.enviado || v.fecha).replace(' ', 'T') + (v.enviado ? 'Z' : 'T20:00:00'), frecuencia_horas: 48, delRegistro: true };
     });
     return res;
@@ -202,7 +225,11 @@ a.app:hover{border-color:var(--c)}
     const t = Date.parse(f.actualizado);
     const limite = (Number(f.frecuencia_horas) || 24) * 1.5 * 3600e3;
     const estado = ESTADOS[f.estado] && f.estado !== 'mudo' ? f.estado : 'aviso';
-    const v = { app, f, t, estado, mensaje: String(f.mensaje || ESTADOS[estado]).slice(0, 90) };
+    const v = { app, f, t, estado, mensaje: f.delRegistro ? '' : String(f.mensaje || ESTADOS[estado]).slice(0, 90) };
+    // De qué día son los números: el del registro, o el del último envío de la app
+    const fd = f.diaDatos || (t ? new Date(t - new Date(t).getTimezoneOffset() * 60000).toISOString().slice(0, 10) : '');
+    if (fd) v.dia = textoDia(fd);
+    if (ORDEN_ETIQUETAS[app.id]) v.f = Object.assign({}, f, { cifras: ordenarCifras(f.cifras, ORDEN_ETIQUETAS[app.id]) });
     if (!t || Date.now() - t > limite) {
       v.estado = 'mudo';
       v.mensaje = t ? `Sin ficha nueva desde el ${new Date(t).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}` : 'Ficha sin fecha';
@@ -214,13 +241,14 @@ a.app:hover{border-color:var(--c)}
     const a = v.app, base = urlSegura(a.url), url = base && (a.externa ? base : base + (base.includes('?') ? '&' : '?') + 'growpanel=' + n + (v.pendiente ? '&gpguia=1' : '')), icono = urlSegura(a.icono), color = colorSeguro(a.color);
     const tag = url ? 'a' : 'div';
     const attrs = url ? ` href="${esc(url)}" target="_blank" rel="noopener"` : '';
-    const cifras = (v.f && Array.isArray(v.f.cifras) ? v.f.cifras.slice(0, 3) : [])
+    const cifras = (v.f && Array.isArray(v.f.cifras) ? v.f.cifras.slice(0, 4) : [])
       .map(c => `<span><b>${esc(c.valor)}</b> ${esc(c.etiqueta)}</span>`).join('');
     return `<div class="item${v.pendiente ? ' pendiente' : ''}" data-id="${esc(a.id)}"><${tag} class="app" style="--c:var(--gp-${v.estado})${color ? `;--a:${color}` : ''}"${attrs} title="${esc(a.nombre)} · ${esc(ESTADOS[v.estado])}">
   <span class="ico">${icono ? `<img src="${esc(icono)}" alt="">` : esc(a.emoji || (a.nombre || '•').charAt(0))}</span>
   <span>
-    <span class="fila"><b>${esc(a.nombre)}</b>${v.f && v.f.version ? `<span class="ver">${esc(v.f.version)}</span>` : ''}${v.cuenta ? `<span class="cuenta" title="Cuenta con la que envía sus números">(${esc(v.cuenta)})</span>` : ''}${v.t ? `<span class="cuando" title="Último cambio de sus números">actualizado ${hace(v.t)}</span>` : ''}</span>
-    <span class="msg"><i class="punto"></i>${esc(v.mensaje)}</span>${v.consejo ? (v.pendiente ? `<span class="consejo clica">👉 ${esc(v.consejo)}</span>` : `<span class="consejo">⚠ ${esc(v.consejo)}</span>`) : ''}
+    <span class="fila"><b>${esc(a.nombre)}</b>${v.f && v.f.version ? `<span class="ver">${esc(v.f.version)}</span>` : ''}${v.cuenta ? `<span class="cuenta" title="Cuenta con la que envía sus números">(${esc(v.cuenta)})</span>` : ''}</span>
+    ${v.t ? `<span class="fechas"><i class="punto"></i><span title="Último cambio de sus números">actualizado ${hace(v.t)}</span>${v.dia && v.estado !== 'mudo' ? `<span class="dia">${esc(v.dia)}</span>` : ''}</span>` : ''}
+    ${v.mensaje ? `<span class="msg">${v.t ? '' : '<i class="punto"></i>'}${esc(v.mensaje)}</span>` : ''}${v.consejo ? (v.pendiente ? `<span class="consejo clica">👉 ${esc(v.consejo)}</span>` : `<span class="consejo">⚠ ${esc(v.consejo)}</span>`) : ''}
   </span>
   ${cifras ? `<span class="cifras">${cifras}</span>` : ''}
 </${tag}><button class="asa" type="button" title="Arrastra para ordenar" aria-label="Mover ${esc(a.nombre)}: arrastra o usa las flechas arriba y abajo">${PUNTOS}</button></div>`;
