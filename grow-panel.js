@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.53';
+  const VERSION = 'v1.54';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -43,6 +43,7 @@
 .franja .rec .ic{display:inline-block}
 .franja .rec.girando{animation:none}.franja .rec.girando .ic{animation:g 1s linear infinite}
 .cab .sub{color:var(--gp-mut);font-size:13px;margin-top:6px;text-align:center}
+.cab .act{color:var(--gp-mut);font-size:12.5px;margin-top:2px;text-align:center}
 .rec{border:1px solid var(--gp-ln);background:var(--gp-bg);color:var(--gp-mut);width:36px;height:36px;
   border-radius:50%;font-size:17px;cursor:pointer;flex:none}
 .rec:hover{color:var(--gp-tx)}
@@ -105,6 +106,18 @@ a.app:hover{border-color:var(--c)}
     const r = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) throw new Error(r.status);
     return r.json();
+  }
+
+  // «Actualizado a las 18:37 · hace 1 minuto»: cuándo leyó Grow Panel los datos por última vez
+  function textoActualizado(t) {
+    if (!t) return '';
+    const d = new Date(t), hoy = new Date();
+    const hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    const min = Math.floor((Date.now() - t) / 60000);
+    const cuanto = min < 1 ? 'ahora' : min < 60 ? `hace ${min} ${min === 1 ? 'minuto' : 'minutos'}`
+      : `hace ${Math.floor(min / 60)} h${min % 60 ? ' ' + (min % 60) + ' min' : ''}`;
+    const dia = d.toDateString() === hoy.toDateString() ? '' : ` el ${d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}`;
+    return `Actualizado${dia} a las ${hora} · ${cuanto}`;
   }
 
   function hace(fecha) {
@@ -218,11 +231,13 @@ a.app:hover{border-color:var(--c)}
       if (!this.shadowRoot) this.attachShadow({ mode: 'open' }).innerHTML = `<style>${CSS}</style><div id="raiz"></div>`;
       this.cargar();
       this._t = setInterval(() => this.cargar(), 10 * 60e3);
+      this._reloj = setInterval(() => this.pintarActualizado(), 20e3);
       this._v = () => { if (!document.hidden) this.cargar(); };
       document.addEventListener('visibilitychange', this._v);
     }
     disconnectedCallback() {
       clearInterval(this._t);
+      clearInterval(this._reloj);
       document.removeEventListener('visibilitychange', this._v);
     }
     async cargar() {
@@ -262,6 +277,7 @@ a.app:hover{border-color:var(--c)}
           const pos = v => { const i = orden.indexOf(v.app.id); return i < 0 ? 1e6 : i; };
           vistas.sort((x, y) => pos(x) - pos(y));
         }
+        this._leido = Date.now();
         this.pintar(raiz, vistas, visibles.length);
       } catch (e) {
         if (turno !== this._turno) return;
@@ -273,7 +289,11 @@ a.app:hover{border-color:var(--c)}
     cabecera(sub) {
       if (this.hasAttribute('sin-titulo')) return '';
       return `<div class="cab"><div class="franja"><h2>${esc(this.getAttribute('titulo') || 'Grow Panel')}</h2>
-        <button class="rec" title="Volver a leer los resúmenes que han dejado tus apps" aria-label="Actualizar datos"><span class="ic">↻</span> Actualizar datos</button></div><div class="sub">${esc(sub)}</div></div>`;
+        <button class="rec" title="Volver a leer los resúmenes que han dejado tus apps" aria-label="Actualizar datos"><span class="ic">↻</span> Actualizar datos</button></div><div class="sub">${esc(sub)}</div><div class="act">${esc(textoActualizado(this._leido))}</div></div>`;
+    }
+    pintarActualizado() {
+      const el = this.shadowRoot && this.shadowRoot.querySelector('.act');
+      if (el) el.textContent = textoActualizado(this._leido);
     }
     pintar(raiz, vistas, total) {
       const n = vistas.length;
