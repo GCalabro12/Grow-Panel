@@ -152,6 +152,17 @@ a.reg-b{text-decoration:none;display:inline-block}
 .abajo-in{display:flex;width:100%;max-width:600px}
 .abajo button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px 9px;border:0;border-top:3px solid transparent;background:transparent;color:var(--mut);font:600 12px system-ui,"Segoe UI",sans-serif;cursor:pointer}
 .abajo button svg{width:24px;height:24px}
+.abajo button .emo{display:block;height:24px;font-size:21px;line-height:24px}
+.dia-ent{border:1px solid var(--ln);border-radius:10px;margin:8px 0;background:var(--card)}
+.dia-ent>summary{cursor:pointer;padding:10px 12px;font-weight:700;font-size:14.5px;list-style:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dia-ent>summary::-webkit-details-marker{display:none}
+.dia-ent>summary::before{content:"▸";color:var(--mut);transition:transform .15s}
+.dia-ent[open]>summary::before{transform:rotate(90deg)}
+.dia-ent>summary .animo{margin-left:auto;font-weight:600;color:var(--mut);font-size:13.5px}
+.dia-ent .cuerpo{padding:0 14px 12px;font-size:14px;line-height:1.5}
+.dia-ent .cuerpo p{margin:7px 0}
+.dia-ent .cuerpo b{font-weight:700}
+.dia-editando{margin:8px 0;padding:8px 12px;border-radius:10px;background:#fef3c7;color:#78350f;font-size:13.5px;font-weight:600}
 .abajo button:hover{color:var(--tx)}
 .abajo button[aria-current=page]{color:var(--activo);border-top-color:#f59e0b}
 body.visor-abierto .abajo{display:none}
@@ -192,6 +203,9 @@ body.embed .top,body.embed .guia,body.embed details,body.embed .pie,body.embed .
       <button class="reg-b google" id="aviso-entrar" type="button">Entrar con Google</button></div>
     <grow-panel titulo="Abre tus apps"></grow-panel>
   </section>
+  <section class="vista" id="v-diario" hidden>
+    <div id="dia-caja"></div>
+  </section>
   <section class="vista" id="v-resumen" hidden>
     <div id="reg-caja"></div>
   </section>
@@ -216,6 +230,7 @@ body.embed .top,body.embed .guia,body.embed details,body.embed .pie,body.embed .
 </main>
 <nav class="abajo" aria-label="Secciones de Grow Panel"><div class="abajo-in">
   <button type="button" data-v="apps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Abrir apps</button>
+  <button type="button" data-v="diario"><span class="emo" aria-hidden="true">📓</span>Diario</button>
   <button type="button" data-v="resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><rect x="5" y="11" width="3" height="6" rx="1"/><rect x="10.5" y="6" width="3" height="11" rx="1"/><rect x="16" y="13" width="3" height="4" rx="1"/></svg>Resúmenes</button>
   <button type="button" data-v="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ajustes</button>
 </div></nav>
@@ -391,6 +406,7 @@ window.CuentaAmable = (() => {
   const HORA_OK = /^([01]\d|2[0-3]):[0-5]\d$/;
   const resCaja = document.getElementById('reg-caja'), ajCaja = document.getElementById('aj-caja');
   const vRes = document.getElementById('v-resumen'), vAj = document.getElementById('v-ajustes');
+  const vDia = document.getElementById('v-diario'), diaCaja = document.getElementById('dia-caja');
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const leerClave = () => { try { const k = localStorage.getItem('growpanel.clave'); return CLAVE_OK.test(k || '') ? k : null; } catch (e) { return null; } };
   const guardarClave = k => { try { localStorage.setItem('growpanel.clave', k); return true; } catch (e) { return false; } };
@@ -617,11 +633,6 @@ window.CuentaAmable = (() => {
           <button class="reg-b act girando" data-a="actualizar" title="Recoger lo último de tus apps"><span class="ic">↻</span> Actualizar datos</button>
           <div class="reg-nota" style="margin-top:8px">Hoy y los últimos 7 días: lo último que han dejado tus apps, estén en el móvil o en el PC. Solo números, y solo los ves tú.</div>
           <div class="reg-res"><div class="reg-nota">Cargando…</div></div></div></details>`
-      + `<details class="sec" data-sec="diario"${abierta('diario') ? ' open' : ''}><summary>📓 Diario de 5 minutos</summary><div class="sec-cuerpo">
-          <div class="seg periodos">${['ayer', 'hoy'].map(d => `<button type="button" data-a="diario-dia" data-d="${d}" class="${d === diarioDia ? 'on' : ''}">${d === 'hoy' ? 'Hoy' : 'Ayer'}</button>`).join('')}</div>
-          <div class="reg-nota">Un repaso del día en 5 minutos. Se guarda solo mientras escribes, y lo usa la IA para tu resumen. Solo lo ves tú.</div>
-          <div class="diario"><div class="reg-nota">Cargando…</div></div>
-          <div class="reg-nota diario-msg" style="margin:8px 0 0"></div></div></details>`
       + `<details class="sec" data-sec="texto"${abierta('texto') ? ' open' : ''}><summary>✍️ Resumen en texto</summary><div class="sec-cuerpo">
           <div class="seg periodos">${Object.entries(PERIODOS_IA).map(([p, n]) => `<button type="button" data-a="ia-periodo" data-p="${p}" class="${p === iaPeriodo ? 'on' : ''}${toca[p] ? ' toca' : ''}"${toca[p] ? ` title="${esc(toca[p])}"` : ''}>${n}</button>`).join('')}</div>
           ${Object.values(toca).length ? `<div class="reg-nota">🔴 ${esc(Object.values(toca).join(' '))}</div>` : ''}
@@ -629,7 +640,6 @@ window.CuentaAmable = (() => {
           <div class="fila"><button class="reg-b google" data-a="ia-generar">✨ Generar con IA</button><button class="reg-b" data-a="ia-leer">🔊 Escuchar</button></div>
           <div class="reg-nota" style="margin-top:8px">La IA de Google lee tus números y tu diario de 5 minutos solo para escribirte cómo te ha ido.</div></div></details>`;
     cargarTextoIA();
-    cargarDiario();
     let cuerpo;
     try { cuerpo = await resumen(); } catch (e) { cuerpo = '<div class="reg-aviso">No se pudo leer tu resumen. Revisa la conexión y pulsa ↻ Actualizar datos.</div>'; }
     const res = resCaja.querySelector('.reg-res'); if (res) res.innerHTML = cuerpo;
@@ -638,19 +648,20 @@ window.CuentaAmable = (() => {
 
   // --- Diario de 5 minutos (las preguntas del journal de Gustavo en Notion) ---
   // Por la mañana se suele rellenar el de ayer: antes de las 12 se abre «Ayer»
+  // diarioDia: 'ayer', 'hoy' o una fecha AAAA-MM-DD (al editar un diario anterior)
   let diarioDia = new Date().getHours() < 12 ? 'ayer' : 'hoy', diarioDatos = {}, diarioT = null;
-  const fechaDiario = () => { const d = new Date(); if (diarioDia === 'ayer') d.setDate(d.getDate() - 1); return dia(d); };
+  const fechaDiario = () => { if (/^\d{4}-/.test(diarioDia)) return diarioDia; const d = new Date(); if (diarioDia === 'ayer') d.setDate(d.getDate() - 1); return dia(d); };
   const ANIMOS = [[1, '😣 Muy malo'], [2, '🙁 Malo'], [3, '😐 Sin nada especial'], [4, '🙂 Bueno'], [5, '🤩 Espectacular']];
   const BIEN = [['rutina_manana', 'Hice mi rutina matutina'], ['ejercicio', 'Hice ejercicio'], ['rutina_noche', 'Hice mi rutina nocturna']];
   const ALINEADO = [['no', 'No'], ['medias', 'A medias'], ['si', 'Sí']];
   const area = (k, ph) => `<textarea data-d="${k}" placeholder="${esc(ph || '')}">${esc(diarioDatos[k] || '')}</textarea>`;
   function pintarDiario(anterior) {
-    const caja = resCaja.querySelector('.diario'); if (!caja) return;
+    const caja = diaCaja.querySelector('.diario'); if (!caja) return;
     const r = diarioDatos, bien = r.bien || [];
     if (!r.quien_soy && anterior) r.quien_soy = anterior;
     caja.innerHTML = `
       <div class="preg">1. ❤️ ¿Cómo te sentiste, con el día ya terminado?</div>
-      <div class="ayuda">Tus números del día ya están arriba, en «Resumen del día en datos».</div>
+      <div class="ayuda">Tus números del día los tienes en la pestaña «Resúmenes».</div>
       <div class="opciones">${ANIMOS.map(([v, n]) => `<button type="button" data-a="diario-animo" data-v="${v}" class="${r.animo === v ? 'on' : ''}">${n}</button>`).join('')}</div>
       <div class="preg">2. 👍🏽 ¿Qué fue bien?</div>
       ${BIEN.map(([k, n]) => `<label class="marca"><input type="checkbox" data-b="${k}"${bien.includes(k) ? ' checked' : ''}> ${n}</label>`).join('')}
@@ -676,7 +687,7 @@ window.CuentaAmable = (() => {
       ${r.animo && r.sapo ? '<div class="final">🎉 ¡Muy bien! Que descanses. Mañana, a comerte el sapo y el día 🥳</div>' : ''}`;
   }
   async function cargarDiario() {
-    const caja = resCaja.querySelector('.diario'); if (!caja) return;
+    const caja = diaCaja.querySelector('.diario'); if (!caja) return;
     diarioDatos = {};
     try {
       const r = await pedir('/diario?fecha=' + fechaDiario()); const j = r.ok ? await r.json() : {};
@@ -685,12 +696,12 @@ window.CuentaAmable = (() => {
     } catch (e) { caja.innerHTML = '<div class="reg-aviso">No se pudo abrir tu diario. Revisa la conexión.</div>'; }
   }
   function leerFormDiario() {
-    const caja = resCaja.querySelector('.diario'); if (!caja) return;
+    const caja = diaCaja.querySelector('.diario'); if (!caja) return;
     caja.querySelectorAll('textarea[data-d]').forEach(t => { diarioDatos[t.dataset.d] = t.value; });
     diarioDatos.bien = [...caja.querySelectorAll('input[data-b]')].filter(x => x.checked).map(x => x.dataset.b);
   }
   function guardarDiarioLuego() {
-    const m = resCaja.querySelector('.diario-msg'); if (m) m.textContent = 'Guardando…';
+    const m = diaCaja.querySelector('.diario-msg'); if (m) m.textContent = 'Guardando…';
     clearTimeout(diarioT);
     diarioT = setTimeout(async () => {
       try {
@@ -699,8 +710,116 @@ window.CuentaAmable = (() => {
       } catch (e) { if (m) m.textContent = 'No se pudo guardar. Revisa la conexión.'; }
     }, 1200);
   }
-  resCaja.addEventListener('input', e => { if (e.target.closest('.diario')) { leerFormDiario(); guardarDiarioLuego(); } });
-  resCaja.addEventListener('change', e => { if (e.target.matches('.diario input[data-b]')) { leerFormDiario(); guardarDiarioLuego(); } });
+  diaCaja.addEventListener('input', e => { if (e.target.closest('.diario')) { leerFormDiario(); guardarDiarioLuego(); } });
+  diaCaja.addEventListener('change', e => { if (e.target.matches('.diario input[data-b]')) { leerFormDiario(); guardarDiarioLuego(); } });
+
+  // --- Pestaña «Diario» (Gustavo, 8-11-2026): diario de 5 minutos, diarios anteriores y resúmenes solo del diario ---
+  const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  const DIAS_SEM = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  const fechaLarga = f => { const d = new Date(f + 'T12:00:00'); const s = DIAS_SEM[d.getDay()] + ', ' + d.getDate() + ' de ' + MESES[d.getMonth()] + (d.getFullYear() !== new Date().getFullYear() ? ' de ' + d.getFullYear() : ''); return s.charAt(0).toUpperCase() + s.slice(1); };
+  const ddmm = f => f.slice(8, 10) + '/' + f.slice(5, 7);
+  function diarioLeible(r) {
+    const p = (tit, txt) => txt ? `<p><b>${tit}</b> ${esc(txt).replace(/\n/g, '<br>')}</p>` : '';
+    const bien = [...(r.bien || []).map(k => (BIEN.find(x => x[0] === k) || [k, k])[1]), r.bien_otro].filter(Boolean).join(' · ');
+    const al = r.alineado ? (ALINEADO.find(x => x[0] === r.alineado) || [0, ''])[1] : '';
+    return p('❤️ Cómo me sentí:', r.animo ? (ANIMOS.find(x => x[0] === r.animo) || [0, ''])[1] : '')
+      + p('👍🏽 Qué fue bien:', bien) + p('👎🏽 Qué puede mejorar:', r.mejorar) + p('🔮 Quién soy:', r.quien_soy)
+      + p('🔮 Viví alineado:', al + (r.porque ? (al ? ' — ' : '') + r.porque : '')) + p('🙏🏽 Agradezco:', r.agradecer)
+      + p('🧠 Aprendí:', r.aprendido) + p('🎯 Tarea más importante para el día siguiente:', r.sapo) + p('🎯 Otras tareas:', r.otras_tareas)
+      || '<p class="reg-nota">Este día está vacío.</p>';
+  }
+  let diaLista = [], diaMas = false, dPeriodo = 'semana', dTexto = null, dPidiendo = false;
+  const PERIODOS_DIARIO = { semana: 'Semana', mes: 'Mes', trimestre: 'Trimestre', anio: 'Año' };
+  function pintarSegDiario() {
+    const seg = diaCaja.querySelector('.seg-diario'); if (!seg) return;
+    const otro = /^\d{4}-/.test(diarioDia);
+    seg.innerHTML = ['ayer', 'hoy'].map(d => `<button type="button" data-a="diario-dia" data-d="${d}" class="${d === diarioDia ? 'on' : ''}">${d === 'hoy' ? 'Hoy' : 'Ayer'}</button>`).join('');
+    const ed = diaCaja.querySelector('.dia-editando');
+    if (ed) { ed.hidden = !otro; ed.textContent = otro ? '✏️ Estás escribiendo en el diario del ' + fechaLarga(diarioDia).toLowerCase() + '.' : ''; }
+  }
+  async function pintarDiarioVista() {
+    await window.CuentaAmable.iniciar();
+    await vincular(miClave());
+    const u = window.CuentaAmable.usuario(), toca = periodosQueTocan();
+    const abierta = s => { try { return localStorage.getItem('growpanel.sec.' + s) !== '0'; } catch (e) { return true; } };
+    diaCaja.innerHTML = `<div class="franja-res"><h2>📓 Diario</h2></div>`
+      + (u ? '' : `<div class="tarjeta fila"><span style="flex:1;min-width:200px">Entra con tu cuenta de Google para tener tu diario en el móvil y en el PC.</span>
+        <button class="reg-b google" data-a="entrar">Entrar con Google</button></div>`)
+      + `<details class="sec" data-sec="d-hoy"${abierta('d-hoy') ? ' open' : ''}><summary>✍️ Diario de 5 minutos</summary><div class="sec-cuerpo">
+          <div class="seg periodos seg-diario"></div>
+          <div class="dia-editando" hidden></div>
+          <div class="reg-nota">Un repaso del día en 5 minutos. Se guarda solo mientras escribes. Solo lo ves tú.</div>
+          <div class="diario"><div class="reg-nota">Cargando…</div></div>
+          <div class="reg-nota diario-msg" style="margin:8px 0 0"></div></div></details>`
+      + `<details class="sec" data-sec="d-ant"${abierta('d-ant') ? ' open' : ''}><summary>📚 Diarios anteriores</summary><div class="sec-cuerpo">
+          <div class="dia-lista"><div class="reg-nota">Cargando…</div></div></div></details>`
+      + `<details class="sec" data-sec="d-res"${abierta('d-res') ? ' open' : ''}><summary>🔮 Resumen de tu diario</summary><div class="sec-cuerpo">
+          <div class="seg periodos">${Object.entries(PERIODOS_DIARIO).map(([p, n]) => `<button type="button" data-a="dia-periodo" data-p="${p}" class="${p === dPeriodo ? 'on' : ''}${toca[p] ? ' toca' : ''}"${toca[p] ? ` title="${esc(toca[p])}"` : ''}>${n}</button>`).join('')}</div>
+          <div class="ia-caja dia-ia vacia">Cargando…</div>
+          <div class="fila"><button class="reg-b google" data-a="dia-generar">✨ Generar con IA</button><button class="reg-b" data-a="dia-leer">🔊 Escuchar</button></div>
+          <div class="reg-nota" style="margin-top:8px">Solo con lo que has escrito en tu diario, sin los números de tus apps. La IA de Google lo lee solo para escribirte tu resumen.</div></div></details>`;
+    pintarSegDiario();
+    cargarDiario();
+    cargarListaDiario(false);
+    cargarDiarioIA();
+  }
+  async function cargarListaDiario(mas) {
+    const caja = diaCaja.querySelector('.dia-lista'); if (!caja) return;
+    if (!mas) diaLista = [];
+    try {
+      const antes = mas && diaLista.length ? diaLista[diaLista.length - 1].fecha : '';
+      const r = await pedir('/diario/lista?n=20' + (antes ? '&antes=' + antes : ''));
+      const j = r.ok ? await r.json() : null;
+      if (!j) throw new Error(r.status);
+      diaLista = diaLista.concat(j.dias || []); diaMas = !!j.mas;
+    } catch (e) { caja.innerHTML = '<div class="reg-aviso">No se pudieron leer tus diarios anteriores. Revisa la conexión.</div>'; return; }
+    caja.innerHTML = diaLista.length
+      ? diaLista.map(d => { const r = d.respuestas || {}, an = r.animo ? (ANIMOS.find(x => x[0] === r.animo) || [0, ''])[1] : '';
+          return `<details class="dia-ent"><summary>${esc(fechaLarga(d.fecha))}${an ? `<span class="animo">${esc(an)}</span>` : ''}</summary>
+            <div class="cuerpo">${diarioLeible(r)}<button class="reg-b" data-a="dia-editar" data-f="${esc(d.fecha)}">✏️ Editar este día</button></div></details>`; }).join('')
+        + (diaMas ? '<button class="reg-b" data-a="dia-mas" style="margin-top:6px">Ver más días</button>' : '')
+      : '<div class="reg-nota">Todavía no hay diarios guardados. El primero lo escribes arriba.</div>';
+  }
+  function pintarDiarioIA(msg) {
+    const caja = diaCaja.querySelector('.dia-ia'), btn = diaCaja.querySelector('[data-a="dia-generar"]'), leer = diaCaja.querySelector('[data-a="dia-leer"]');
+    if (!caja) return;
+    if (msg) { caja.className = 'ia-caja dia-ia vacia'; caja.textContent = msg; }
+    else if (dTexto) { caja.className = 'ia-caja dia-ia'; caja.innerHTML = esc(dTexto).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
+    else { caja.className = 'ia-caja dia-ia vacia'; caja.textContent = 'Pulsa «Generar con IA» y te escribo el resumen ' + NOMBRE_PERIODO[dPeriodo] + ' a partir de tu diario: cómo te has sentido, lo que ha ido bien, lo que puedes mejorar y tus valores.'; }
+    if (btn) btn.textContent = dTexto ? '↻ Volver a escribir' : '✨ Generar con IA';
+    if (leer) leer.hidden = !dTexto;
+  }
+  async function cargarDiarioIA() {
+    dTexto = null; pintarDiarioIA('Cargando…');
+    try { const r = await pedir(`/resumen-ia?tipo=diario&periodo=${dPeriodo}&hoy=${dia(new Date())}`); const j = r.ok ? await r.json() : {}; dTexto = j.texto || null; } catch (e) {}
+    pintarDiarioIA();
+  }
+  async function generarDiarioIA() {
+    if (dPidiendo) return; dPidiendo = true;
+    pararDiarioLectura();
+    pintarDiarioIA('✨ Escribiendo el resumen de tu diario ' + NOMBRE_PERIODO[dPeriodo] + '…');
+    try {
+      const r = await pedir('/resumen-ia', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipo: 'diario', periodo: dPeriodo, hoy: dia(new Date()), rehacer: !!dTexto }) });
+      const j = await r.json().catch(() => ({}));
+      if (j.texto) { dTexto = j.texto; pintarDiarioIA(); }
+      else pintarDiarioIA(j.error || 'No se pudo escribir el resumen. Inténtalo otra vez.');
+    } catch (e) { pintarDiarioIA('No se pudo escribir el resumen: revisa la conexión.'); }
+    dPidiendo = false;
+  }
+  function pararDiarioLectura() { try { speechSynthesis.cancel(); } catch (e) {} const b = diaCaja.querySelector('[data-a="dia-leer"]'); if (b) b.textContent = '🔊 Escuchar'; }
+  function leerDiarioIA() {
+    if (!dTexto || !('speechSynthesis' in window)) return;
+    const b = diaCaja.querySelector('[data-a="dia-leer"]');
+    if (speechSynthesis.speaking) { pararDiarioLectura(); return; }
+    const limpio = dTexto.replace(/\*\*/g, '').replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu, '').replace(/\n{2,}/g, '.\n');
+    const u = new SpeechSynthesisUtterance(limpio); u.lang = 'es-ES'; u.rate = 1;
+    const voces = speechSynthesis.getVoices().filter(v => /^es(-|_)ES/i.test(v.lang));
+    u.voice = voces.find(v => /Helena|Elvira|Google/i.test(v.name)) || voces[0] || null;
+    u.onend = () => { if (b) b.textContent = '🔊 Escuchar'; };
+    speechSynthesis.speak(u);
+    if (b) b.textContent = '⏹ Parar';
+  }
 
   // --- Resumen en texto con IA (día, semana, mes, trimestre, año) ---
   const PERIODOS_IA = { dia: 'Hoy', semana: 'Semana', mes: 'Mes', trimestre: 'Trimestre', anio: 'Año' };
@@ -763,10 +882,10 @@ window.CuentaAmable = (() => {
     if (b) b.textContent = '⏹ Parar';
   }
   // Recordar qué secciones tienes abiertas
-  resCaja.addEventListener('toggle', e => {
+  [resCaja, diaCaja].forEach(c => c.addEventListener('toggle', e => {
     const d = e.target; if (!d.matches || !d.matches('details.sec')) return;
     try { localStorage.setItem('growpanel.sec.' + d.dataset.sec, d.open ? '1' : '0'); } catch (err) {}
-  }, true);
+  }, true));
 
   async function pintarAjustes() {
     const clave = miClave();
@@ -825,6 +944,7 @@ window.CuentaAmable = (() => {
 
   function pintar() {
     if (!vRes.hidden) pintarResumen();
+    if (!vDia.hidden) pintarDiarioVista();
     if (!vAj.hidden) pintarAjustes();
   }
 
@@ -844,9 +964,23 @@ window.CuentaAmable = (() => {
     else if (accion === 'ia-generar') { generarTextoIA(); return; }
     else if (accion === 'diario-dia') {
       diarioDia = a.dataset.d;
-      caja.querySelectorAll('[data-a="diario-dia"]').forEach(x => x.classList.toggle('on', x === a));
+      pintarSegDiario();
       cargarDiario(); return;
     }
+    else if (accion === 'dia-editar') {
+      diarioDia = a.dataset.f;
+      pintarSegDiario(); cargarDiario();
+      const sec = diaCaja.querySelector('[data-sec="d-hoy"]'); if (sec) { sec.open = true; sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      return;
+    }
+    else if (accion === 'dia-mas') { a.disabled = true; a.textContent = 'Cargando…'; cargarListaDiario(true); return; }
+    else if (accion === 'dia-periodo') {
+      dPeriodo = a.dataset.p; pararDiarioLectura();
+      caja.querySelectorAll('[data-a="dia-periodo"]').forEach(x => x.classList.toggle('on', x === a));
+      cargarDiarioIA(); return;
+    }
+    else if (accion === 'dia-generar') { generarDiarioIA(); return; }
+    else if (accion === 'dia-leer') { leerDiarioIA(); return; }
     else if (accion === 'diario-animo' || accion === 'diario-alineado') {
       leerFormDiario();
       const k = accion === 'diario-animo' ? 'animo' : 'alineado', v = k === 'animo' ? Number(a.dataset.v) : a.dataset.v;
@@ -923,6 +1057,7 @@ window.CuentaAmable = (() => {
     pintar();
   }
   resCaja.addEventListener('click', alClic);
+  diaCaja.addEventListener('click', alClic);
   ajCaja.addEventListener('click', alClic);
   ajCaja.addEventListener('change', async e => {
     if (e.target.id === 'aviso-push') {
@@ -1027,7 +1162,7 @@ bInst.addEventListener('click', async () => { if (!aviso) return; aviso.prompt()
 addEventListener('appinstalled', () => { bInst.hidden = true; });
 
 (() => {
-  const VISTAS = ['apps', 'resumen', 'ajustes'], botones = document.querySelectorAll('.abajo button');
+  const VISTAS = ['apps', 'diario', 'resumen', 'ajustes'], botones = document.querySelectorAll('.abajo button');
   function mostrar() {
     const v = VISTAS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'apps';
     VISTAS.forEach(n => { document.getElementById('v-' + n).hidden = n !== v; });
