@@ -77,10 +77,26 @@ body.visor-abierto{overflow:hidden}
 .diario .preg{margin:18px 0 6px;font-weight:800;font-size:15px}
 .diario .preg:first-child{margin-top:4px}
 .diario .ayuda{font-size:12.5px;color:var(--mut);margin:-2px 0 6px}
+.diario .campo{position:relative}
+.diario .campo textarea{padding-right:46px}
+.diario .mic{position:absolute;right:8px;bottom:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--ln);background:var(--card);color:var(--mut);display:grid;place-items:center;cursor:pointer;padding:0}
+.diario .mic:hover{color:var(--tx)}
+.diario .mic.grabando{background:#dc2626;border-color:#dc2626;color:#fff;animation:micLatido 1.2s infinite}
+@keyframes micLatido{50%{box-shadow:0 0 0 6px rgba(220,38,38,.25)}}
+.diario .preg-fila{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:6px 14px}
+.diario .dia-num{font-weight:500;font-size:13px;text-align:right;margin-left:auto;line-height:1.45}
+.diario .dia-num b{font-weight:800}
+.diario .dia-num .num-act{font-size:12px;color:var(--mut);display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px;margin-top:3px}
+.diario .num-rec{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
 .diario textarea{width:100%;min-height:56px;resize:vertical;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);padding:10px 12px;font:inherit;font-size:14.5px;line-height:1.5}
 .diario .opciones{display:flex;flex-wrap:wrap;gap:8px}
 .diario .opciones button{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 12px;font-size:14px;cursor:pointer}
 .diario .opciones button.on{background:#f59e0b;border-color:#d97706;color:#1c1300;font-weight:800}
+.diario .chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
+.diario .chips label{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 12px;font-size:14px;cursor:pointer;user-select:none}
+.diario .chips input{position:absolute;opacity:0;pointer-events:none}
+.diario .chips label:has(input:checked){background:#f59e0b;border-color:#d97706;color:#1c1300;font-weight:800}
+.diario .chips label:has(input:focus-visible){outline:2px solid #d97706;outline-offset:2px}
 .diario label.marca{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:14.5px;cursor:pointer}
 .diario label.marca input{width:20px;height:20px;accent-color:#f59e0b}
 .diario .final{margin-top:18px;padding:14px;border-radius:12px;background:#fef3c7;color:#78350f;font-weight:800;text-align:center}
@@ -689,23 +705,81 @@ window.CuentaAmable = (() => {
   let diarioDia = new Date().getHours() < 12 ? 'ayer' : 'hoy', diarioDatos = {}, diarioT = null;
   const fechaDiario = () => { if (/^\d{4}-/.test(diarioDia)) return diarioDia; const d = new Date(); if (diarioDia === 'ayer') d.setDate(d.getDate() - 1); return dia(d); };
   const ANIMOS = [[1, '😣 Muy mal'], [2, '🙁 Mal'], [3, '😐 Sin nada especial'], [4, '🙂 Bien'], [5, '🤩 Espectacular']];
-  const BIEN = [['rutina_manana', 'Hice mi rutina matutina'], ['ejercicio', 'Hice ejercicio'], ['rutina_noche', 'Hice mi rutina nocturna']];
+  // Pregunta 2 (Gustavo, 9-11-2026): lo que ayudó a sentirse bien y las apps no miden; así el resumen ve qué se repite los días buenos
+  const BIEN = [['dormir', '😴 Dormí bien'], ['gente', '👥 Tiempo con personas que quiero'], ['naturaleza', '🌳 Naturaleza o aire libre'], ['logro', '🏆 Logré algo que me importa'],
+    ['calma', '🧘 Un momento de calma'], ['ayudar', '🤝 Ayudé a alguien'], ['disfrutar', '🎨 Hice algo que disfruto']];
+  const BIEN_ANTES = [['rutina_manana', 'Hice mi rutina matutina'], ['ejercicio', 'Hice ejercicio'], ['rutina_noche', 'Hice mi rutina nocturna']];   // diarios anteriores
   const ALINEADO = [['no', 'No'], ['medias', 'A medias'], ['si', 'Sí']];
   // «¿Quién soy?» ya empieza escrito con «Soy una persona que » (Gustavo, 8-11-2026): solo hay que seguir la frase
   const INICIO_SOY = 'Soy una persona que ';
-  const area = (k, ph, ini) => `<textarea data-d="${k}" placeholder="${esc(ph || '')}">${esc(diarioDatos[k] || ini || '')}</textarea>`;
+  // Micrófono para dictar en cada hueco de texto (Gustavo, 9-11-2026): icono de línea, nunca emoji
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const MIC_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>';
+  const area = (k, ph, ini) => `<div class="campo"><textarea data-d="${k}" placeholder="${esc(ph || '')}">${esc(diarioDatos[k] || ini || '')}</textarea>`
+    + (SR ? `<button type="button" class="mic" data-mic="${k}" aria-label="Dictar con la voz" title="Dictar con la voz">${MIC_SVG}</button>` : '') + '</div>';
+  let rec = null, recK = null;
+  const marcarMics = () => diaCaja.querySelectorAll('.mic').forEach(m => m.classList.toggle('grabando', !!rec && m.dataset.mic === recK));
+  diaCaja.addEventListener('click', e => {
+    const b = e.target.closest('.mic'); if (!b || !SR) return;
+    const k = b.dataset.mic;
+    if (rec) { const mismo = recK === k; try { rec.stop(); } catch (err) {} rec = null; recK = null; marcarMics(); if (mismo) return; }
+    const r = new SR(); rec = r; recK = k;
+    r.lang = 'es-ES'; r.continuous = true; r.interimResults = false;
+    r.onresult = ev => {
+      let txt = ''; for (let i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) txt += ev.results[i][0].transcript;
+      txt = txt.trim(); if (!txt) return;
+      const ta = diaCaja.querySelector(`textarea[data-d="${k}"]`); if (!ta) return;
+      const antes = ta.value;
+      if (antes.trim() && !/[.!?…]\s*$/.test(antes)) txt = txt.charAt(0).toLowerCase() + txt.slice(1);   // sigue la frase («Soy una persona que …»)
+      ta.value = antes + (antes && !/\s$/.test(antes) ? ' ' : '') + txt;
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    r.onerror = ev => { if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') { const m = diaCaja.querySelector('.diario-msg'); if (m) m.textContent = 'Para dictar, permite el micrófono en el navegador.'; } };
+    r.onend = () => { if (rec === r) { rec = null; recK = null; } marcarMics(); };
+    try { r.start(); } catch (err) { rec = null; recK = null; }
+    marcarMics();
+  });
+
+  // Números de Amable Life del día, a la derecha de «¿Qué fue bien?» (Gustavo, 9-11-2026)
+  const numCache = {};
+  async function cargarNumerosDiario(forzar) {
+    const caja = diaCaja.querySelector('.dia-num'); if (!caja) return;
+    const f = fechaDiario();
+    if (!forzar && numCache[f]) { caja.innerHTML = numCache[f]; return; }
+    caja.innerHTML = '<span class="reg-nota">Mirando Amable Life…</span>';
+    const boton = '<button type="button" class="num-rec" data-a="dia-num"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>Actualizar</button>';
+    let html;
+    try {
+      const r = await pedir('/registro?fecha=' + f + '&app=amable-life'); if (!r.ok) throw new Error(r.status);
+      const filas = (await r.json()).filas || [], v = {}; let ult = 0;
+      filas.forEach(x => { v[x.dato] = x.valor; const ms = Date.parse((x.enviado || '').replace(' ', 'T') + 'Z'); if (ms > ult) ult = ms; });
+      if (!filas.length) html = `<div>Amable Life no ha dejado números de este día.</div><div class="num-act">${boton}</div>`;
+      else {
+        const n = x => `<b>${Number(x) || 0}</b>`, partes = [n(v.tareas_hechas) + ' tareas completadas'];
+        if (v.tareas_saltadas !== undefined) partes.push(n(v.tareas_saltadas) + ' saltadas');
+        partes.push(n(v.habitos_hechos) + ' hábitos hechos');
+        const d = new Date(ult), dos = x => String(x).padStart(2, '0');
+        const cuando = ult ? `Actualizado hasta el ${dos(d.getDate())}/${dos(d.getMonth() + 1)} a las ${dos(d.getHours())}:${dos(d.getMinutes())}` : '';
+        html = `<div>${partes.join(' · ')}</div><div class="num-act"><span>${cuando}</span>${boton}</div>`;
+      }
+      numCache[f] = html;
+    } catch (e) { html = `<div class="reg-nota">No se pudieron leer los números de Amable Life.</div><div class="num-act">${boton}</div>`; }
+    if (diaCaja.querySelector('.dia-num') === caja) caja.innerHTML = html;
+  }
   function pintarDiario(anterior) {
     const caja = diaCaja.querySelector('.diario'); if (!caja) return;
     const r = diarioDatos, bien = r.bien || [];
-    if (!r.quien_soy && anterior) r.quien_soy = anterior;
+    // 9-11-2026: ya no se copia la frase de otro día; solo sale escrito «Soy una persona que » (Gustavo)
     caja.innerHTML = `
       <div class="preg">1. ❤️ ¿Cómo te sentiste, con el día ya terminado?</div>
       <div class="ayuda">Tus números del día los tienes en la pestaña «Resúmenes».</div>
       <div class="opciones">${ANIMOS.map(([v, n]) => `<button type="button" data-a="diario-animo" data-v="${v}" class="${r.animo === v ? 'on' : ''}">${n}</button>`).join('')}</div>
-      <div class="preg">2. 👍🏽 ¿Qué fue bien?</div>
+      <div class="preg preg-fila"><span>2. 👍🏽 ¿Qué fue bien?</span>${r.animo >= 3 ? '<div class="dia-num"></div>' : ''}</div>
       ${r.animo === 1 || r.animo === 2   // Gustavo, 9-11-2026: con «Muy mal» o «Mal» no se pregunta qué fue bien
         ? '<div class="ayuda">No hace falta responder: hoy marcaste que te sentiste mal.</div>'
-        : BIEN.map(([k, n]) => `<label class="marca"><input type="checkbox" data-b="${k}"${bien.includes(k) ? ' checked' : ''}> ${n}</label>`).join('') + area('bien_otro', 'Otra cosa que fue bien…')}
+        : '<div class="ayuda">¿Qué te ayudó a sentirte así? Marca las que quieras. Tus tareas y hábitos ya se guardan solos desde tus apps.</div>'
+          + '<div class="chips">' + BIEN.map(([k, n]) => `<label><input type="checkbox" data-b="${k}"${bien.includes(k) ? ' checked' : ''}>${n}</label>`).join('') + '</div>'
+          + area('bien_otro', 'Otra cosa que fue bien…')}
       <div class="preg">3. 👎🏽 ¿Qué no ha ido tan bien y puede mejorar?</div>
       ${area('mejorar')}
       <div class="preg">4. 🔮 ¿Quién soy? Mis valores actuales</div>
@@ -725,6 +799,7 @@ window.CuentaAmable = (() => {
       ${area('sapo', 'Mi tarea sapo de mañana…')}
       ${area('otras_tareas', 'Otras 2 tareas importantes…')}
       ${r.animo && r.sapo ? '<div class="final">🎉 ¡Muy bien! Que descanses. Mañana, a comerte el sapo y el día 🥳</div>' : ''}`;
+    cargarNumerosDiario(); marcarMics();
   }
   async function cargarDiario() {
     const caja = diaCaja.querySelector('.diario'); if (!caja) return;
@@ -740,7 +815,8 @@ window.CuentaAmable = (() => {
     caja.querySelectorAll('textarea[data-d]').forEach(t => { diarioDatos[t.dataset.d] = t.value; });
     if ((diarioDatos.quien_soy || '').trim() === INICIO_SOY.trim()) diarioDatos.quien_soy = '';   // solo el principio: no cuenta como escrito
     const marcas = caja.querySelectorAll('input[data-b]');   // si la pregunta 2 está escondida, se conserva lo que hubiera
-    if (marcas.length) diarioDatos.bien = [...marcas].filter(x => x.checked).map(x => x.dataset.b);
+    const viejas = (diarioDatos.bien || []).filter(k => !BIEN.some(x => x[0] === k));   // las de antes (rutinas) no se borran
+    if (marcas.length) diarioDatos.bien = viejas.concat([...marcas].filter(x => x.checked).map(x => x.dataset.b));
   }
   function guardarDiarioLuego() {
     const m = diaCaja.querySelector('.diario-msg'); if (m) m.textContent = 'Guardando…';
@@ -765,7 +841,7 @@ window.CuentaAmable = (() => {
   const ddmm = f => f.slice(8, 10) + '/' + f.slice(5, 7);
   function diarioLeible(r) {
     const p = (tit, txt) => txt ? `<p><b>${tit}</b> ${esc(txt).replace(/\n/g, '<br>')}</p>` : '';
-    const bien = [...(r.bien || []).map(k => (BIEN.find(x => x[0] === k) || [k, k])[1]), r.bien_otro].filter(Boolean).join(' · ');
+    const bien = [...(r.bien || []).map(k => (BIEN.concat(BIEN_ANTES).find(x => x[0] === k) || [k, k])[1]), r.bien_otro].filter(Boolean).join(' · ');
     const al = r.alineado ? (ALINEADO.find(x => x[0] === r.alineado) || [0, ''])[1] : '';
     return p('❤️ Cómo me sentí:', r.animo ? (ANIMOS.find(x => x[0] === r.animo) || [0, ''])[1] : '')
       + p('👍🏽 Qué fue bien:', bien) + p('👎🏽 Qué puede mejorar:', r.mejorar) + p('🔮 Quién soy:', r.quien_soy)
@@ -1142,6 +1218,7 @@ window.CuentaAmable = (() => {
       cargarTextoIA(); return;
     }
     else if (accion === 'ia-generar') { generarTextoIA(); return; }
+    else if (accion === 'dia-num') { cargarNumerosDiario(true); return; }
     else if (accion === 'diario-dia') {
       diarioDia = a.dataset.d;
       pintarSegDiario();
