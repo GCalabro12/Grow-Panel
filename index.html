@@ -993,7 +993,8 @@ window.CuentaAmable = (() => {
           <div class="reg-nota">Suena mientras Grow Panel esté abierto, aunque esté detrás de otras ventanas.</div>
           <label class="interruptor" style="margin-top:8px"><input type="checkbox" id="aviso-push" role="switch"><b>Avisarme también con Grow Panel cerrado</b></label>
           <div class="reg-nota">Te llega un aviso al móvil o al PC. Al tocarlo se abre Grow Panel con la alarma. Se activa en cada aparato.</div>
-          <div class="fila"><button class="reg-b" data-a="probar-alarma">🔔 Probar la alarma</button><span class="reg-nota aviso-msg" style="margin:0"></span></div>
+          <div class="fila"><button class="reg-b" data-a="probar-alarma">🔔 Probar la alarma</button><button class="reg-b" data-a="probar-aviso">📲 Probar el aviso con Grow Panel cerrado</button></div>
+          <div class="reg-nota aviso-msg" style="margin:6px 0 0"></div>
         </div>
       </div>
       <div class="reg-nota auto-msg" style="margin:8px 0 0"></div></details>`;
@@ -1163,12 +1164,12 @@ window.CuentaAmable = (() => {
     }
     else if (accion === 'probar-aviso') {
       const m = caja.querySelector('.aviso-msg');
-      if (!(await suscripcion())) { if (m) m.textContent = 'Primero activa el aviso en este aparato.'; return; }
+      if (!(await suscripcion())) { if (m) m.textContent = 'Primero activa «Avisarme también con Grow Panel cerrado» en este aparato.'; return; }
       if (m) m.textContent = 'Enviando…';
       try {
         const r = await pedir('/push/probar', { method: 'POST' }); const j = await r.json();
         const est = (j.resultados || []).map(x => x.estado || x.error);
-        if (m) m.textContent = est.some(x => x === 201 || x === 200) ? '✓ Enviado: te llegará en unos segundos.' : 'No se pudo enviar (' + est.join(', ') + ').';
+        if (m) m.textContent = est.some(x => x === 201 || x === 200) ? '✓ Enviado: en unos segundos te llega el aviso a todos tus aparatos con el aviso activado. Puedes cerrar Grow Panel para verlo.' : 'No se pudo enviar (' + est.join(', ') + ').';
       } catch (err) { if (m) m.textContent = 'No se pudo enviar: revisa la conexión.'; }
       return;
     }
