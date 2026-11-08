@@ -184,6 +184,9 @@ a.reg-b{text-decoration:none;display:inline-block}
 .dia-ent .cuerpo{padding:0 14px 12px;font-size:14px;line-height:1.5}
 .dia-ent .cuerpo p{margin:7px 0}
 .dia-ent .cuerpo b{font-weight:700}
+.dia-cab{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
+.dia-cab .seg{margin:0}
+.dia-fecha{font-weight:800;font-size:16.5px}
 .dia-editando{margin:8px 0;padding:8px 12px;border-radius:10px;background:#fef3c7;color:#78350f;font-size:13.5px;font-weight:600}
 .abajo button:hover{color:var(--tx)}
 .abajo button[aria-current=page]{color:var(--activo);border-top-color:#f59e0b}
@@ -768,6 +771,7 @@ window.CuentaAmable = (() => {
     const seg = diaCaja.querySelector('.seg-diario'); if (!seg) return;
     const otro = /^\d{4}-/.test(diarioDia);
     seg.innerHTML = ['ayer', 'hoy'].map(d => `<button type="button" data-a="diario-dia" data-d="${d}" class="${d === diarioDia ? 'on' : ''}">${d === 'hoy' ? 'Hoy' : 'Ayer'}</button>`).join('');
+    const fe = diaCaja.querySelector('.dia-fecha'); if (fe) fe.textContent = '📅 ' + fechaLarga(fechaDiario());
     const ed = diaCaja.querySelector('.dia-editando');
     if (ed) { ed.hidden = !otro; ed.textContent = otro ? '✏️ Estás escribiendo en el diario del ' + fechaLarga(diarioDia).toLowerCase() + '.' : ''; }
   }
@@ -780,7 +784,7 @@ window.CuentaAmable = (() => {
       + (u ? '' : `<div class="tarjeta fila"><span style="flex:1;min-width:200px">Entra con tu cuenta de Google para tener tu diario en el móvil y en el PC.</span>
         <button class="reg-b google" data-a="entrar">Entrar con Google</button></div>`)
       + `<details class="sec" data-sec="d-hoy"${abierta('d-hoy') ? ' open' : ''}><summary>✍️ Diario de 5 minutos</summary><div class="sec-cuerpo">
-          <div class="seg periodos seg-diario"></div>
+          <div class="dia-cab"><div class="seg periodos seg-diario"></div><div class="dia-fecha"></div></div>
           <div class="dia-editando" hidden></div>
           <div class="reg-nota">Un repaso del día en 5 minutos. Se guarda solo mientras escribes. Solo lo ves tú.</div>
           <div class="diario"><div class="reg-nota">Cargando…</div></div>
