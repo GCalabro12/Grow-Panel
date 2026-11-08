@@ -26,7 +26,7 @@ main{max-width:1000px;margin:0 auto;padding:16px 16px calc(96px + env(safe-area-
 .top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
 .top{flex-wrap:wrap}
 .logo{height:56px;width:auto;display:block}
-.lema{width:100%;margin-top:-4px}
+.lema{flex:1;min-width:0;margin:0;padding-left:12px;border-left:2px solid var(--ln);font-size:15px;font-weight:600;line-height:1.25}
 .oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .volver{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--tx);background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:8px 12px;text-decoration:none;margin:-6px 0 16px}
 .volver:hover{border-color:#8b5cf6}
@@ -213,9 +213,9 @@ body.embed .top,body.embed .guia,body.embed details,body.embed .pie,body.embed .
       <source srcset="logo-oscuro.svg" media="(prefers-color-scheme: dark)">
       <img class="logo" src="logo.svg" alt="Grow Panel">
     </picture>
+    <div class="mut lema">Agrupa apps Amables</div>
     <span class="ver" id="ver"></span>
     <button class="instalar" id="instalar" hidden>📲 Instalar</button>
-    <div class="mut lema">Apps para crecer, conectadas para crecer más</div>
   </div>
 
   <a class="volver" id="volver" hidden></a>
