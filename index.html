@@ -953,11 +953,12 @@ window.CuentaAmable = (() => {
       <div class="fila"><a class="reg-b" href="mailto:info@practicaintegral.club?subject=${encodeURIComponent('Grow Panel · Ayuda')}&body=${encodeURIComponent(sop)}">Email</a>
       <a class="reg-b" target="_blank" rel="noopener" href="https://wa.me/34658825799?text=${encodeURIComponent(sop)}">WhatsApp</a></div></div>`;
     const on = leerCompartir();
-    const datos = `<div class="tarjeta"><h3>Tus datos</h3>
+    let datosAbierta = true; try { datosAbierta = localStorage.getItem('growpanel.sec.aj-datos') !== '0'; } catch (e) {}
+    const datos = `<details class="tarjeta plegable" data-sec="aj-datos"${datosAbierta ? ' open' : ''}><summary><h3>🔒 Tus datos</h3></summary>
       <label class="interruptor"><input type="checkbox" id="compartir" role="switch"${on ? ' checked' : ''}><b>Compartir los registros de mis apps para verlos agrupados en Grow Panel</b></label>
       <div class="reg-nota compartir-nota">${textoCompartir(on)}</div>
       <div class="reg-nota">Tus apps nunca mandan textos: solo números (pasos, minutos, tareas…). Tu diario de 5 minutos lo escribes tú en Grow Panel. Todo solo lo ves tú, y «Borrar mis datos» lo borra todo. Vale para todas tus apps Amable, en el móvil y en el PC.</div>
-      <div class="reg-nota" id="reg-msg"></div>${borrarHTML()}${clavePanel(clave)}</div>`;
+      <div class="reg-nota" id="reg-msg"></div>${borrarHTML()}${clavePanel(clave)}</details>`;
     // (6-11-2026, Gustavo: sin hora de cierre ni aviso diario: el resumen está siempre al día con «Actualizar datos»)
     ajCaja.innerHTML = temaH + cuenta + autoHTML() + inst + ayuda + datos
       + `<div class="reg-nota" style="text-align:center">Grow Panel ${esc(V)}</div>`;
@@ -978,7 +979,8 @@ window.CuentaAmable = (() => {
   }
   function autoHTML() {
     const c = leerAuto();
-    return `<div class="tarjeta" id="tarjeta-auto"><h3>⏰ Resumen automático y recordatorio</h3>
+    let abierta = true; try { abierta = localStorage.getItem('growpanel.sec.aj-auto') !== '0'; } catch (e) {}
+    return `<details class="tarjeta plegable" id="tarjeta-auto" data-sec="aj-auto"${abierta ? ' open' : ''}><summary><h3>⏰ Resumen automático y recordatorio</h3></summary>
       <label class="interruptor"><input type="checkbox" id="auto-on" role="switch"${c.auto ? ' checked' : ''}><b>Escribirme el resumen del día yo solo</b></label>
       <div class="auto-cuerpo"${c.auto ? '' : ' hidden'}>
         <div class="reg-nota" style="margin:12px 0 6px">¿Qué días?</div>
@@ -994,7 +996,7 @@ window.CuentaAmable = (() => {
           <div class="fila"><button class="reg-b" data-a="probar-alarma">🔔 Probar la alarma</button><span class="reg-nota aviso-msg" style="margin:0"></span></div>
         </div>
       </div>
-      <div class="reg-nota auto-msg" style="margin:8px 0 0"></div></div>`;
+      <div class="reg-nota auto-msg" style="margin:8px 0 0"></div></details>`;
   }
   // Pone en la tarjeta lo que hay guardado en internet (si no lo estás tocando)
   function pintarAuto() {
