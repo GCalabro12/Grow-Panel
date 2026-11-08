@@ -1,5 +1,5 @@
 // Service worker de Grow Panel: permite instalarlo y abrirlo sin conexión (datos siempre frescos si hay red)
-const CACHE = "growpanel-v1.58";
+const CACHE = "growpanel-v1.59";
 const BASE = ["./", "./index.html", "./grow-panel.js", "./manifest.json", "./logo.svg", "./logo-oscuro.svg",
   "./icono.svg", "./icono-192.png", "./icono-512.png", "./icono-32.png", "./icono-180.png"];
 self.addEventListener("install", e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE)).then(() => self.skipWaiting())));
@@ -17,11 +17,12 @@ self.addEventListener("fetch", e => {
   }).catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || caches.match("./index.html"))));
 });
 
-// Aviso del resumen del día (Web Push sin contenido: el texto lo pone Grow Panel)
+// Recordatorio del diario de 5 minutos (Web Push sin contenido: lo manda el registro diario antes de la hora del resumen)
 self.addEventListener("push", e => {
-  e.waitUntil(self.registration.showNotification("Grow Panel", {
-    body: "Tu resumen del día está listo. Toca para verlo.",
-    icon: "icono-192.png", badge: "icono-192.png", tag: "resumen-dia", data: { url: "./#resumen" }
+  e.waitUntil(self.registration.showNotification("📓 Es hora de tu diario de 5 minutos", {
+    body: "Toca para escribirlo. Después Grow Panel recoge los datos de tus apps y te escribe el resumen del día.",
+    icon: "icono-192.png", badge: "icono-192.png", tag: "diario", renotify: true, requireInteraction: true,
+    vibrate: [400, 200, 400, 200, 400], data: { url: "./#alarma-diario" }
   }));
 });
 self.addEventListener("notificationclick", e => {

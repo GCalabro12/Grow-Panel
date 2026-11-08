@@ -152,6 +152,28 @@ a.reg-b{text-decoration:none;display:inline-block}
 .abajo-in{display:flex;width:100%;max-width:600px}
 .abajo button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px 9px;border:0;border-top:3px solid transparent;background:transparent;color:var(--mut);font:600 12px system-ui,"Segoe UI",sans-serif;cursor:pointer}
 .abajo button svg{width:24px;height:24px}
+.plegable>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap}
+.plegable>summary::-webkit-details-marker{display:none}
+.plegable>summary h3{margin:0}
+.plegable>summary::after{content:"▾";margin-left:auto;color:var(--mut);font-size:18px;transition:transform .15s}
+.plegable[open]>summary{margin-bottom:12px}
+.plegable[open]>summary::after{transform:rotate(180deg)}
+.dias-sem{display:flex;gap:6px;flex-wrap:wrap}
+.dias-sem button{width:40px;height:40px;border-radius:50%;border:1px solid var(--ln);background:var(--card);color:var(--tx);font:700 15px system-ui,"Segoe UI",sans-serif;cursor:pointer}
+.dias-sem button.on{background:#f59e0b;border-color:#d97706;color:#1c1300}
+#tarjeta-auto select,#tarjeta-auto input[type=time]{font:inherit;font-size:15px;padding:7px 10px;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx)}
+#tarjeta-auto .fila>span:first-child{min-width:150px}
+.auto-explica{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fef3c7;color:#78350f}
+.alarma-full{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom));background:radial-gradient(circle at 50% 30%,#fcd34d,#f59e0b 45%,#b45309);color:#1c1300;text-align:center;overflow:auto}
+.alarma-full .caja{max-width:440px;width:100%}
+.alarma-full .ico{font-size:88px;line-height:1;display:inline-block;animation:alarmaMueve .5s ease-in-out infinite alternate}
+@keyframes alarmaMueve{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+.alarma-full h1{font-size:30px;line-height:1.2;margin:14px 0 10px}
+.alarma-full p{font-size:16.5px;line-height:1.45;margin:0 0 22px}
+.alarma-full .bots{display:flex;flex-direction:column;gap:10px}
+.alarma-full button{border:0;border-radius:14px;padding:15px 18px;font:800 17px system-ui,"Segoe UI",sans-serif;cursor:pointer;background:rgba(255,255,255,.55);color:#1c1300}
+.alarma-full button.prin{background:#1c1300;color:#fff}
+.alarma-full button.sonido{display:block;margin:0 auto 16px;background:#fff;animation:alarmaMueve .6s ease-in-out infinite alternate}
 .abajo button .emo{display:block;height:24px;font-size:21px;line-height:24px}
 .dia-ent{border:1px solid var(--ln);border-radius:10px;margin:8px 0;background:var(--card)}
 .dia-ent>summary{cursor:pointer;padding:10px 12px;font-weight:700;font-size:14.5px;list-style:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -433,7 +455,7 @@ window.CuentaAmable = (() => {
   miClave();   // la clave se crea sola la primera vez (nunca se cambia una que ya existe)
 
   // Hora del resumen del día: en internet (la misma en el móvil y en el PC) y una copia en este navegador
-  const leerHora = () => { try { const h = localStorage.getItem('growpanel.hora_resumen'); return HORA_OK.test(h || '') ? h : '20:00'; } catch (e) { return '20:00'; } };
+  const leerHora = () => { try { const h = localStorage.getItem('growpanel.hora_resumen'); return HORA_OK.test(h || '') ? h : '22:00'; } catch (e) { return '22:00'; } };
   const guardarHoraLocal = h => { try { localStorage.setItem('growpanel.hora_resumen', h); } catch (e) {} };
   const leerTema = () => { try { return localStorage.getItem('growpanel.tema') || 'auto'; } catch (e) { return 'auto'; } };
   // «Compartir los números de mis apps»: uno solo, aquí (las apps no tienen sección propia). Vive en internet (/ajustes).
@@ -474,10 +496,16 @@ window.CuentaAmable = (() => {
   async function cargarHora() {
     try {
       const r = await pedir('/ajustes');
-      if (r.ok) { const j = await r.json(); if (HORA_OK.test(j.hora_resumen || '')) guardarHoraLocal(j.hora_resumen); if (typeof j.compartir === 'boolean') guardarCompartirLocal(j.compartir); }
+      if (r.ok) { const j = await r.json(); if (HORA_OK.test(j.hora_resumen || '')) guardarHoraLocal(j.hora_resumen); if (typeof j.compartir === 'boolean') guardarCompartirLocal(j.compartir);
+        if (typeof j.resumen_auto === 'boolean') guardarAutoLocal({ auto: j.resumen_auto, dias: String(j.resumen_dias ?? '0123456'), recordar: Number(j.recordar) || 0 }); }
     } catch (e) {}
     return leerHora();
   }
+  // Resumen automático (8-11-2026): días (0 = domingo … 6 = sábado), hora (la del resumen) y recordatorio del diario (minutos antes)
+  const leerAuto = () => { let a = {}; try { a = JSON.parse(localStorage.getItem('growpanel.auto')) || {}; } catch (e) {}
+    return { auto: a.auto !== false, dias: typeof a.dias === 'string' && /^[0-6]{0,7}$/.test(a.dias) ? a.dias : '0123456', recordar: Number.isInteger(a.recordar) ? a.recordar : 30, hora: leerHora() }; };
+  const guardarAutoLocal = c => { const a = leerAuto(); try { localStorage.setItem('growpanel.auto', JSON.stringify({ auto: c.auto ?? a.auto, dias: c.dias ?? a.dias, recordar: c.recordar ?? a.recordar })); } catch (e) {} };
+  const alarmaAqui = () => { try { return localStorage.getItem('growpanel.alarma_aqui') !== '0'; } catch (e) { return true; } };
   const zonaHoraria = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid'; } catch (e) { return 'Europe/Madrid'; } };
 
   // --- Aviso del resumen del día en este aparato (Web Push) ---
@@ -518,7 +546,13 @@ window.CuentaAmable = (() => {
     sw.checked = !!(await suscripcion()) && Notification.permission === 'granted';
   }
 
-  setTimeout(() => { suscripcion().then(s => { if (s) apagarAviso(); }).catch(() => {}); }, 4000);
+  // Una vez al día: tu zona horaria (para que el resumen automático y el recordatorio vayan a tu hora) y tus ajustes al día
+  setTimeout(async () => {
+    try { if (localStorage.getItem('growpanel.zona_enviada') === dia(new Date())) { cargarHora(); return; } } catch (e) {}
+    try { const r = await pedir('/ajustes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ zona: zonaHoraria() }) });
+      if (r.ok) { try { localStorage.setItem('growpanel.zona_enviada', dia(new Date())); } catch (e) {} } } catch (e) {}
+    cargarHora();
+  }, 3000);
 
   // Código de un solo uso para que una app se una sola a tu cuenta (solo si has entrado con Google)
   window.GrowPanelCodigo = async () => {
@@ -882,8 +916,8 @@ window.CuentaAmable = (() => {
     if (b) b.textContent = '⏹ Parar';
   }
   // Recordar qué secciones tienes abiertas
-  [resCaja, diaCaja].forEach(c => c.addEventListener('toggle', e => {
-    const d = e.target; if (!d.matches || !d.matches('details.sec')) return;
+  [resCaja, diaCaja, ajCaja].forEach(c => c.addEventListener('toggle', e => {
+    const d = e.target; if (!d.matches || !d.matches('details[data-sec]')) return;
     try { localStorage.setItem('growpanel.sec.' + d.dataset.sec, d.open ? '1' : '0'); } catch (err) {}
   }, true));
 
@@ -893,8 +927,9 @@ window.CuentaAmable = (() => {
     await vincular(clave);
     const u = window.CuentaAmable.usuario(), hora = leerHora(), tema = leerTema(), V = window.GrowPanel.VERSION;
     const inicial = ((u && (u.displayName || u.email)) || '?').trim().charAt(0).toUpperCase();
+    const abiertaAj = s => { try { return localStorage.getItem('growpanel.sec.' + s) === '1'; } catch (e) { return false; } };
     const cuenta = u
-      ? `<div class="tarjeta"><h3>Tu cuenta</h3>
+      ? `<details class="tarjeta plegable" data-sec="aj-cuenta"${abiertaAj('aj-cuenta') ? ' open' : ''}><summary><h3>👤 Tu cuenta</h3><span class="reg-nota" style="margin:0">${esc(u.email || '')}</span></summary>
           <div class="fila" style="margin-bottom:8px"><span class="avatar">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer">` : esc(inicial)}</span>
           <span style="flex:1;min-width:0;overflow-wrap:anywhere"><b>${esc(u.displayName || 'Cuenta de Google')}</b><br><span class="reg-nota">${esc(u.email || '')}</span></span></div>
           <div class="reg-nota">Has entrado con Google. Es tu Cuenta Amable: la misma en todas tus apps Amable, en el móvil y en el PC.</div>
@@ -903,11 +938,11 @@ window.CuentaAmable = (() => {
             <div class="reg-nota">¿En alguna app entraste con otro Gmail? Añádelo aquí y Grow Panel sabrá que también eres tú. No cambias de cuenta en esa app ni pierdes nada.</div>
             <div class="alias-lista reg-nota">Cargando…</div>
             <button class="reg-b" data-a="alias-anadir">+ Añadir otro Gmail</button></div>
-          <div class="reg-nota cuenta-msg" style="margin-bottom:0"></div></div>`
-      : `<div class="tarjeta"><h3>Tu cuenta</h3>
+          <div class="reg-nota cuenta-msg" style="margin-bottom:0"></div></details>`
+      : `<div class="tarjeta"><h3>👤 Tu cuenta</h3>
           <div class="reg-nota">No has entrado. Entra con tu cuenta de Google para ver lo mismo en el móvil y en el PC, y en todas tus apps Amable.</div>
           <button class="reg-b google" data-a="entrar">Entrar con Google</button><div class="reg-nota cuenta-msg" style="margin-bottom:0"></div></div>`;
-    const temaH = `<div class="tarjeta"><h3>Tema</h3><div class="seg">${[['auto', 'Automático'], ['claro', 'Claro'], ['oscuro', 'Oscuro']]
+    const temaH = `<div class="tarjeta"><h3>🎨 Tema</h3><div class="seg">${[['auto', 'Automático'], ['claro', 'Claro'], ['oscuro', 'Oscuro']]
       .map(([v, n]) => `<button type="button" data-a="tema" data-tema="${v}" class="${v === tema ? 'on' : ''}">${n}</button>`).join('')}</div></div>`;
     const instalada = ['standalone', 'minimal-ui', 'window-controls-overlay', 'fullscreen'].some(m => matchMedia(`(display-mode: ${m})`).matches) || navigator.standalone === true;
     const inst = `<div class="tarjeta"><h3>Instalar Grow Panel</h3><div class="reg-nota" style="margin-bottom:${!instalada && window.gpAviso ? '10px' : '0'}">${instalada ? 'Ya la tienes instalada: estás usando Grow Panel como app, en su propia ventana.'
@@ -924,11 +959,141 @@ window.CuentaAmable = (() => {
       <div class="reg-nota">Tus apps nunca mandan textos: solo números (pasos, minutos, tareas…). Tu diario de 5 minutos lo escribes tú en Grow Panel. Todo solo lo ves tú, y «Borrar mis datos» lo borra todo. Vale para todas tus apps Amable, en el móvil y en el PC.</div>
       <div class="reg-nota" id="reg-msg"></div>${borrarHTML()}${clavePanel(clave)}</div>`;
     // (6-11-2026, Gustavo: sin hora de cierre ni aviso diario: el resumen está siempre al día con «Actualizar datos»)
-    ajCaja.innerHTML = cuenta + temaH + inst + ayuda + datos
+    ajCaja.innerHTML = temaH + cuenta + autoHTML() + inst + ayuda + datos
       + `<div class="reg-nota" style="text-align:center">Grow Panel ${esc(V)}</div>`;
-    refrescarHora(ajCaja, hora);
+    refrescarHora(ajCaja, hora).then(() => pintarAuto());
+    pintarAvisoPush();
     if (u) pintarAlias();
   }
+
+  // --- Resumen automático y recordatorio del diario (Ajustes) ---
+  const DIAS_CORTOS = [['1', 'L', 'lunes'], ['2', 'M', 'martes'], ['3', 'X', 'miércoles'], ['4', 'J', 'jueves'], ['5', 'V', 'viernes'], ['6', 'S', 'sábado'], ['0', 'D', 'domingo']];
+  const RECORDAR = [[30, '30 minutos antes'], [45, '45 minutos antes'], [60, '1 hora antes'], [90, '1 h 30 min antes'], [0, 'No recordármelo']];
+  const menosMin = (h, m) => { const [a, b] = h.split(':').map(Number); const x = (a * 60 + b - m + 1440) % 1440; return String(Math.floor(x / 60)).padStart(2, '0') + ':' + String(x % 60).padStart(2, '0'); };
+  function textoAuto(c) {
+    if (!c.auto) return 'Apagado: el resumen solo se escribe cuando pulses «Generar con IA» en «Resúmenes».';
+    if (!c.dias) return 'Elige al menos un día.';
+    const dias = c.dias.length === 7 ? 'Todos los días' : 'Los ' + DIAS_CORTOS.filter(d => c.dias.includes(d[0])).map(d => d[2]).join(', ').replace(/, ([^,]*)$/, ' y $1');
+    return `${dias}${c.recordar ? `, a las ${menosMin(c.hora, c.recordar)} suena la alarma para que escribas tu diario de 5 minutos, y` : ','} a las ${c.hora} Grow Panel recoge los datos de tus apps y te escribe el resumen del día. Lo verás en «Resúmenes».`;
+  }
+  function autoHTML() {
+    const c = leerAuto();
+    return `<div class="tarjeta" id="tarjeta-auto"><h3>⏰ Resumen automático y recordatorio</h3>
+      <label class="interruptor"><input type="checkbox" id="auto-on" role="switch"${c.auto ? ' checked' : ''}><b>Escribirme el resumen del día yo solo</b></label>
+      <div class="auto-cuerpo"${c.auto ? '' : ' hidden'}>
+        <div class="reg-nota" style="margin:12px 0 6px">¿Qué días?</div>
+        <div class="dias-sem">${DIAS_CORTOS.map(([v, n, l]) => `<button type="button" data-a="auto-dia" data-d="${v}" title="${l}" aria-pressed="${c.dias.includes(v)}" class="${c.dias.includes(v) ? 'on' : ''}">${n}</button>`).join('')}</div>
+        <div class="fila" style="margin-top:12px"><span>¿A qué hora?</span><input type="time" id="auto-hora" value="${esc(c.hora)}" aria-label="Hora del resumen automático"></div>
+        <div class="fila" style="margin-top:10px"><span>📓 Recordarme el diario</span><select id="auto-recordar" aria-label="Cuándo recordarte el diario">${RECORDAR.map(([v, n]) => `<option value="${v}"${v === c.recordar ? ' selected' : ''}>${n}</option>`).join('')}</select></div>
+        <div class="auto-explica reg-nota">${esc(textoAuto(c))}</div>
+        <div class="recordar-cuerpo"${c.recordar ? '' : ' hidden'}>
+          <label class="interruptor" style="margin-top:12px"><input type="checkbox" id="alarma-aqui" role="switch"${alarmaAqui() ? ' checked' : ''}><b>Alarma a pantalla completa, con sonido, en este aparato</b></label>
+          <div class="reg-nota">Suena mientras Grow Panel esté abierto, aunque esté detrás de otras ventanas.</div>
+          <label class="interruptor" style="margin-top:8px"><input type="checkbox" id="aviso-push" role="switch"><b>Avisarme también con Grow Panel cerrado</b></label>
+          <div class="reg-nota">Te llega un aviso al móvil o al PC. Al tocarlo se abre Grow Panel con la alarma. Se activa en cada aparato.</div>
+          <div class="fila"><button class="reg-b" data-a="probar-alarma">🔔 Probar la alarma</button><span class="reg-nota aviso-msg" style="margin:0"></span></div>
+        </div>
+      </div>
+      <div class="reg-nota auto-msg" style="margin:8px 0 0"></div></div>`;
+  }
+  // Pone en la tarjeta lo que hay guardado en internet (si no lo estás tocando)
+  function pintarAuto() {
+    const tj = ajCaja.querySelector('#tarjeta-auto'); if (!tj || tj.contains(document.activeElement) && document.activeElement.tagName !== 'BUTTON') return;
+    const c = leerAuto();
+    tj.querySelector('#auto-on').checked = c.auto;
+    tj.querySelector('.auto-cuerpo').hidden = !c.auto;
+    tj.querySelectorAll('[data-a="auto-dia"]').forEach(b => { const on = c.dias.includes(b.dataset.d); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+    tj.querySelector('#auto-hora').value = c.hora;
+    tj.querySelector('#auto-recordar').value = String(c.recordar);
+    tj.querySelector('.recordar-cuerpo').hidden = !c.recordar;
+    tj.querySelector('.auto-explica').textContent = textoAuto(c);
+  }
+  async function guardarAuto(cambios) {
+    const m = ajCaja.querySelector('.auto-msg');
+    if (cambios.hora) guardarHoraLocal(cambios.hora);
+    guardarAutoLocal(cambios);
+    pintarAuto();
+    if (m) m.textContent = 'Guardando…';
+    const cuerpo = { zona: zonaHoraria() };
+    if (cambios.hora) cuerpo.hora_resumen = cambios.hora;
+    if (cambios.auto !== undefined) cuerpo.resumen_auto = cambios.auto;
+    if (cambios.dias !== undefined) cuerpo.resumen_dias = cambios.dias;
+    if (cambios.recordar !== undefined) cuerpo.recordar = cambios.recordar;
+    let ok = false;
+    try { const r = await pedir('/ajustes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) }); ok = r.ok; } catch (e) {}
+    if (m) m.textContent = ok ? '✓ Guardado para todos tus aparatos' : 'No se pudo guardar en internet: revisa la conexión. En este aparato sí queda guardado.';
+    revisarAlarma();
+  }
+
+  // --- Alarma del diario a pantalla completa, con sonido (como las de Amable Life) ---
+  let ctxAudio = null, sonido = null;
+  function abrirAudio() { try { ctxAudio = ctxAudio || new (window.AudioContext || window.webkitAudioContext)(); if (ctxAudio.state === 'suspended') ctxAudio.resume(); } catch (e) {} }
+  ['pointerdown', 'keydown', 'touchstart'].forEach(ev => addEventListener(ev, abrirAudio, { passive: true }));
+  // Pitidos de despertador durante «seg» segundos
+  function sonarAlarma(seg) {
+    abrirAudio(); if (!ctxAudio) return false;
+    pararSonido();
+    const g = ctxAudio.createGain(); g.gain.value = 0.22; g.connect(ctxAudio.destination);
+    const t0 = ctxAudio.currentTime + 0.05;
+    for (let s = 0; s < seg; s++) for (const [d, f] of [[0, 880], [0.17, 1175], [0.34, 880], [0.51, 1175]]) {
+      const o = ctxAudio.createOscillator(), e = ctxAudio.createGain();
+      o.type = 'square'; o.frequency.value = f;
+      e.gain.setValueAtTime(0, t0 + s + d); e.gain.linearRampToValueAtTime(1, t0 + s + d + 0.01); e.gain.linearRampToValueAtTime(0, t0 + s + d + 0.14);
+      o.connect(e); e.connect(g); o.start(t0 + s + d); o.stop(t0 + s + d + 0.15);
+    }
+    sonido = g;
+    return ctxAudio.state === 'running';
+  }
+  function pararSonido() { if (sonido) { try { sonido.disconnect(); } catch (e) {} sonido = null; } }
+  const guardarLS = (k, v) => { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} };
+  const leerLS = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  function mostrarAlarma(prueba) {
+    if (document.querySelector('.alarma-full')) return;
+    const c = leerAuto();
+    const el = document.createElement('div');
+    el.className = 'alarma-full'; el.setAttribute('role', 'alertdialog'); el.setAttribute('aria-label', 'Es hora de tu diario de 5 minutos');
+    el.innerHTML = `<div class="caja"><div class="ico">📓</div><h1>Es hora de tu diario de 5 minutos</h1>
+      <p>${c.auto ? `A las ${esc(c.hora)} Grow Panel recoge los datos de tus apps y te escribe el resumen del día. Con tu diario, el resumen te entiende mejor.` : 'Un repaso del día en 5 minutos: cómo te has sentido, qué fue bien y tu tarea más importante para mañana.'}</p>
+      <button class="sonido" data-x="sonido" hidden>🔊 Toca para oír la alarma</button>
+      <div class="bots"><button class="prin" data-x="escribir">✍️ Escribir mi diario</button>
+      <button data-x="luego">⏰ Recuérdamelo en 10 minutos</button><button data-x="no">${prueba ? 'Cerrar la prueba' : 'Hoy no'}</button></div></div>`;
+    document.body.appendChild(el);
+    if (!sonarAlarma(60)) el.querySelector('[data-x="sonido"]').hidden = false;
+    el.querySelector('.prin').focus();
+    el.addEventListener('click', e => {
+      const b = e.target.closest('[data-x]'); if (!b) return;
+      if (b.dataset.x === 'sonido') { b.hidden = !sonarAlarma(60); return; }
+      pararSonido(); el.remove();
+      if (b.dataset.x === 'luego' && !prueba) guardarLS('growpanel.alarma_luego', String(Date.now() + 10 * 60000));
+      if (b.dataset.x === 'escribir') { location.hash = '#diario'; setTimeout(() => { const s = document.querySelector('[data-sec="d-hoy"]'); if (s) s.open = true; }, 600); }
+    });
+    // Si Grow Panel está detrás de otras ventanas: aviso del sistema (al tocarlo, Grow Panel se pone delante)
+    if (document.hidden && 'Notification' in window && Notification.permission === 'granted' && navigator.serviceWorker) {
+      navigator.serviceWorker.ready.then(r => r.showNotification('📓 Es hora de tu diario de 5 minutos', {
+        body: 'Toca para escribirlo. Después Grow Panel te escribe el resumen del día.', icon: 'icono-192.png', badge: 'icono-192.png',
+        tag: 'diario', renotify: true, requireInteraction: true, vibrate: [400, 200, 400, 200, 400], data: { url: './#alarma-diario' } })).catch(() => {});
+    }
+  }
+  window.GrowPanelAlarma = mostrarAlarma;
+  let revisando = false;
+  async function revisarAlarma() {
+    if (revisando) return; revisando = true;
+    try {
+      const c = leerAuto(), ahora = new Date(), hoy = dia(ahora);
+      if (!c.auto || !c.recordar || !alarmaAqui()) return;
+      const luego = Number(leerLS('growpanel.alarma_luego')) || 0;
+      if (luego && Date.now() >= luego) { guardarLS('growpanel.alarma_luego', null); mostrarAlarma(false); return; }
+      if (luego || leerLS('growpanel.alarma_dia') === hoy || !c.dias.includes(String(ahora.getDay()))) return;
+      const [h, m] = c.hora.split(':').map(Number), obj = h * 60 + m, min = ahora.getHours() * 60 + ahora.getMinutes();
+      if (min < obj - c.recordar || min >= obj) return;
+      guardarLS('growpanel.alarma_dia', hoy);
+      // Si ya has escrito el diario de hoy, no suena
+      try { const r = await pedir('/diario?fecha=' + hoy); const j = r.ok ? await r.json() : {}; const d = j.respuestas || {}; if (d.animo && d.sapo) return; } catch (e) {}
+      mostrarAlarma(false);
+    } finally { revisando = false; }
+  }
+  setInterval(revisarAlarma, 20000);
+  setTimeout(revisarAlarma, 5000);
 
   // Lista de «otros Gmail» de la persona
   async function pintarAlias() {
@@ -988,6 +1153,12 @@ window.CuentaAmable = (() => {
       pintarDiario(); guardarDiarioLuego(); return;
     }
     else if (accion === 'ia-leer') { leerTextoIA(); return; }
+    else if (accion === 'probar-alarma') { mostrarAlarma(true); return; }
+    else if (accion === 'auto-dia') {
+      const c = leerAuto(), d = a.dataset.d;
+      const dias = c.dias.includes(d) ? c.dias.replace(d, '') : [...c.dias + d].sort().join('');
+      guardarAuto({ dias }); return;
+    }
     else if (accion === 'probar-aviso') {
       const m = caja.querySelector('.aviso-msg');
       if (!(await suscripcion())) { if (m) m.textContent = 'Primero activa el aviso en este aparato.'; return; }
@@ -1063,11 +1234,15 @@ window.CuentaAmable = (() => {
     if (e.target.id === 'aviso-push') {
       const m = ajCaja.querySelector('.aviso-msg'), on = e.target.checked;
       try {
-        if (on) { await activarAviso(); if (m) m.textContent = '✓ Activado en este aparato. Pulsa «Probar aviso» para verlo.'; }
+        if (on) { await activarAviso(); if (m) m.textContent = '✓ Activado en este aparato: te avisará aunque Grow Panel esté cerrado.'; }
         else { await apagarAviso(); if (m) m.textContent = 'Apagado en este aparato.'; }
       } catch (err) { e.target.checked = !on; if (m) m.textContent = err.message || 'No se pudo.'; }
       return;
     }
+    if (e.target.id === 'auto-on') { guardarAuto({ auto: e.target.checked }); return; }
+    if (e.target.id === 'auto-hora') { if (HORA_OK.test(e.target.value || '')) guardarAuto({ hora: e.target.value }); return; }
+    if (e.target.id === 'auto-recordar') { guardarAuto({ recordar: Number(e.target.value) }); return; }
+    if (e.target.id === 'alarma-aqui') { guardarLS('growpanel.alarma_aqui', e.target.checked ? '1' : '0'); const m = ajCaja.querySelector('.auto-msg'); if (m) m.textContent = '✓ Guardado en este aparato'; return; }
     if (e.target.id !== 'compartir') return;
     const on = e.target.checked, nota = ajCaja.querySelector('.compartir-nota'), msg = ajCaja.querySelector('#reg-msg');
     guardarCompartirLocal(on); if (nota) nota.textContent = textoCompartir(on);
@@ -1164,6 +1339,7 @@ addEventListener('appinstalled', () => { bInst.hidden = true; });
 (() => {
   const VISTAS = ['apps', 'diario', 'resumen', 'ajustes'], botones = document.querySelectorAll('.abajo button');
   function mostrar() {
+    if (location.hash === '#alarma-diario') { history.replaceState(null, '', '#diario'); setTimeout(() => window.GrowPanelAlarma && window.GrowPanelAlarma(false), 300); }
     const v = VISTAS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'apps';
     VISTAS.forEach(n => { document.getElementById('v-' + n).hidden = n !== v; });
     botones.forEach(b => { if (b.dataset.v === v) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
