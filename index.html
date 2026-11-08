@@ -703,8 +703,9 @@ window.CuentaAmable = (() => {
       <div class="ayuda">Tus números del día los tienes en la pestaña «Resúmenes».</div>
       <div class="opciones">${ANIMOS.map(([v, n]) => `<button type="button" data-a="diario-animo" data-v="${v}" class="${r.animo === v ? 'on' : ''}">${n}</button>`).join('')}</div>
       <div class="preg">2. 👍🏽 ¿Qué fue bien?</div>
-      ${BIEN.map(([k, n]) => `<label class="marca"><input type="checkbox" data-b="${k}"${bien.includes(k) ? ' checked' : ''}> ${n}</label>`).join('')}
-      ${area('bien_otro', 'Otra cosa que fue bien…')}
+      ${r.animo === 1 || r.animo === 2   // Gustavo, 9-11-2026: con «Muy mal» o «Mal» no se pregunta qué fue bien
+        ? '<div class="ayuda">No hace falta responder: hoy marcaste que te sentiste mal.</div>'
+        : BIEN.map(([k, n]) => `<label class="marca"><input type="checkbox" data-b="${k}"${bien.includes(k) ? ' checked' : ''}> ${n}</label>`).join('') + area('bien_otro', 'Otra cosa que fue bien…')}
       <div class="preg">3. 👎🏽 ¿Qué no ha ido tan bien y puede mejorar?</div>
       ${area('mejorar')}
       <div class="preg">4. 🔮 ¿Quién soy? Mis valores actuales</div>
@@ -738,7 +739,8 @@ window.CuentaAmable = (() => {
     const caja = diaCaja.querySelector('.diario'); if (!caja) return;
     caja.querySelectorAll('textarea[data-d]').forEach(t => { diarioDatos[t.dataset.d] = t.value; });
     if ((diarioDatos.quien_soy || '').trim() === INICIO_SOY.trim()) diarioDatos.quien_soy = '';   // solo el principio: no cuenta como escrito
-    diarioDatos.bien = [...caja.querySelectorAll('input[data-b]')].filter(x => x.checked).map(x => x.dataset.b);
+    const marcas = caja.querySelectorAll('input[data-b]');   // si la pregunta 2 está escondida, se conserva lo que hubiera
+    if (marcas.length) diarioDatos.bien = [...marcas].filter(x => x.checked).map(x => x.dataset.b);
   }
   function guardarDiarioLuego() {
     const m = diaCaja.querySelector('.diario-msg'); if (m) m.textContent = 'Guardando…';
