@@ -688,7 +688,7 @@ window.CuentaAmable = (() => {
   // diarioDia: 'ayer', 'hoy' o una fecha AAAA-MM-DD (al editar un diario anterior)
   let diarioDia = new Date().getHours() < 12 ? 'ayer' : 'hoy', diarioDatos = {}, diarioT = null;
   const fechaDiario = () => { if (/^\d{4}-/.test(diarioDia)) return diarioDia; const d = new Date(); if (diarioDia === 'ayer') d.setDate(d.getDate() - 1); return dia(d); };
-  const ANIMOS = [[1, '😣 Muy malo'], [2, '🙁 Malo'], [3, '😐 Sin nada especial'], [4, '🙂 Bueno'], [5, '🤩 Espectacular']];
+  const ANIMOS = [[1, '😣 Muy mal'], [2, '🙁 Mal'], [3, '😐 Sin nada especial'], [4, '🙂 Bien'], [5, '🤩 Espectacular']];
   const BIEN = [['rutina_manana', 'Hice mi rutina matutina'], ['ejercicio', 'Hice ejercicio'], ['rutina_noche', 'Hice mi rutina nocturna']];
   const ALINEADO = [['no', 'No'], ['medias', 'A medias'], ['si', 'Sí']];
   // «¿Quién soy?» ya empieza escrito con «Soy una persona que » (Gustavo, 8-11-2026): solo hay que seguir la frase
