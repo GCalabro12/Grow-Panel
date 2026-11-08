@@ -691,7 +691,9 @@ window.CuentaAmable = (() => {
   const ANIMOS = [[1, '😣 Muy malo'], [2, '🙁 Malo'], [3, '😐 Sin nada especial'], [4, '🙂 Bueno'], [5, '🤩 Espectacular']];
   const BIEN = [['rutina_manana', 'Hice mi rutina matutina'], ['ejercicio', 'Hice ejercicio'], ['rutina_noche', 'Hice mi rutina nocturna']];
   const ALINEADO = [['no', 'No'], ['medias', 'A medias'], ['si', 'Sí']];
-  const area = (k, ph) => `<textarea data-d="${k}" placeholder="${esc(ph || '')}">${esc(diarioDatos[k] || '')}</textarea>`;
+  // «¿Quién soy?» ya empieza escrito con «Soy una persona que » (Gustavo, 8-11-2026): solo hay que seguir la frase
+  const INICIO_SOY = 'Soy una persona que ';
+  const area = (k, ph, ini) => `<textarea data-d="${k}" placeholder="${esc(ph || '')}">${esc(diarioDatos[k] || ini || '')}</textarea>`;
   function pintarDiario(anterior) {
     const caja = diaCaja.querySelector('.diario'); if (!caja) return;
     const r = diarioDatos, bien = r.bien || [];
@@ -707,7 +709,7 @@ window.CuentaAmable = (() => {
       ${area('mejorar')}
       <div class="preg">4. 🔮 ¿Quién soy? Mis valores actuales</div>
       <div class="ayuda">Una frase del tipo «Soy una persona que prioriza el deporte antes que el trabajo».</div>
-      ${area('quien_soy', 'Soy una persona que…')}
+      ${area('quien_soy', 'Soy una persona que…', INICIO_SOY)}
       <div class="preg">5. 🔮 ¿Viviste alineado con la persona que quieres ser?</div>
       <div class="opciones">${ALINEADO.map(([v, n]) => `<button type="button" data-a="diario-alineado" data-v="${v}" class="${r.alineado === v ? 'on' : ''}">${n}</button>`).join('')}</div>
       <div class="preg">6. 🔮 ¿Por qué?</div>
@@ -735,6 +737,7 @@ window.CuentaAmable = (() => {
   function leerFormDiario() {
     const caja = diaCaja.querySelector('.diario'); if (!caja) return;
     caja.querySelectorAll('textarea[data-d]').forEach(t => { diarioDatos[t.dataset.d] = t.value; });
+    if ((diarioDatos.quien_soy || '').trim() === INICIO_SOY.trim()) diarioDatos.quien_soy = '';   // solo el principio: no cuenta como escrito
     diarioDatos.bien = [...caja.querySelectorAll('input[data-b]')].filter(x => x.checked).map(x => x.dataset.b);
   }
   function guardarDiarioLuego() {
@@ -747,6 +750,9 @@ window.CuentaAmable = (() => {
       } catch (e) { if (m) m.textContent = 'No se pudo guardar. Revisa la conexión.'; }
     }, 1200);
   }
+  diaCaja.addEventListener('focusin', e => {
+    const t = e.target; if (t.matches && t.matches('textarea[data-d="quien_soy"]') && t.value === INICIO_SOY) setTimeout(() => { const n = t.value.length; t.setSelectionRange(n, n); }, 0);
+  });
   diaCaja.addEventListener('input', e => { if (e.target.closest('.diario')) { leerFormDiario(); guardarDiarioLuego(); } });
   diaCaja.addEventListener('change', e => { if (e.target.matches('.diario input[data-b]')) { leerFormDiario(); guardarDiarioLuego(); } });
 
