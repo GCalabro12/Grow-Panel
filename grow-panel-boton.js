@@ -46,6 +46,35 @@
     const resto = location.hash.replace(/^#/, '').split('&').filter(p => !/^gp(clave|correo|codigo)=/.test(p)).join('&');
     history.replaceState(null, '', location.pathname + location.search + (resto ? '#' + resto : ''));
   }
+  // 9-11-2026 (seguridad, revisión de Amable Meta): antes de unir, se pregunta a la persona con el correo de la Grow Panel.
+  // Así nadie puede unir tu cuenta a SU Grow Panel mandándote un enlace con su código. Si dices que no, no se envía nada.
+  function preguntarUnion(correo) {
+    return new Promise(ok => {
+      const fondo = document.createElement('div');
+      fondo.setAttribute('role', 'dialog'); fondo.setAttribute('aria-modal', 'true');
+      fondo.style.cssText = 'position:fixed;inset:0;z-index:2147483600;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+      const caja = document.createElement('div');
+      caja.style.cssText = 'background:#fff;color:#1f2937;max-width:380px;width:100%;border-radius:16px;padding:20px 18px 16px;box-shadow:0 12px 40px rgba(0,0,0,.35);font-size:15.5px;line-height:1.45';
+      const tit = document.createElement('div');
+      tit.style.cssText = 'font-weight:800;font-size:17px;margin-bottom:8px';
+      tit.textContent = '¿Unir ' + nombre + ' con Grow Panel?';
+      const txt = document.createElement('div');
+      txt.textContent = (correo ? 'Se unirá a la Grow Panel de ' + correo + '. ' : 'Se unirá a una Grow Panel. ')
+        + 'Esa cuenta verá los números diarios de esta app. Di que sí solo si la Grow Panel es tuya.';
+      const fila = document.createElement('div');
+      fila.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap';
+      const boton = (texto, css, valor) => {
+        const b = document.createElement('button'); b.type = 'button'; b.textContent = texto;
+        b.style.cssText = 'border-radius:999px;padding:10px 18px;font-size:15px;font-weight:700;cursor:pointer;' + css;
+        b.addEventListener('click', () => { fondo.remove(); ok(valor); });
+        return b;
+      };
+      fila.append(boton('No', 'background:#fff;color:#374151;border:1px solid #d1d5db', false),
+        boton('Sí, unir', 'background:#d97706;color:#fff;border:1px solid #b45309', true));
+      caja.append(tit, txt, fila); fondo.appendChild(caja);
+      (document.body || document.documentElement).appendChild(fondo);
+    });
+  }
   if (mk) {
     // La app expone window.growPanelSesion() → su «Bearer» ('meta.<…>', 'pc.<…>' o el token de Firebase), o null si aún no hay
     // sesión; y lanza el evento 'growpanel-sesion' al entrar. Se reintenta cada 5 s durante 60 s.
@@ -57,9 +86,18 @@
       try {
         const sesion = await window.growPanelSesion();
         if (sesion) {
+          hecho = true;   // se pregunta una sola vez
+          // Primero, de quién es la Grow Panel (sin mandar la sesión) y la pregunta
+          let correo = null;
+          try {
+            const q = await fetch(REGISTRO + '/vincular-app', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ codigo, consulta: true }) });
+            const j = await q.json().catch(() => ({}));
+            if (!q.ok) { try { window.dispatchEvent(new CustomEvent('growpanel-unida', { detail: j })); } catch (e) {} return; }
+            if (typeof j.correo === 'string' && /^[^\s@<>"']+@[^\s@<>"']+$/.test(j.correo)) correo = j.correo;
+          } catch (e) { return; }
+          if (!(await preguntarUnion(correo))) { try { window.dispatchEvent(new CustomEvent('growpanel-unida', { detail: { ok: false, error: 'no quisiste unirla' } })); } catch (e) {} return; }
           const r = await fetch(REGISTRO + '/vincular-app', { method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ codigo, sesion, app: (window.GrowPanelApp || '') }) });
-          hecho = true;   // salga bien o mal, no se repite (el motivo queda en el registro)
           let res = {}; try { res = await r.json(); } catch (e) {}
           if (r.ok && res.ok) {
             try { sessionStorage.setItem('growpanel.unida', '1'); } catch (e) {}
