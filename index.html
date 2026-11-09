@@ -81,6 +81,8 @@ body.visor-abierto{overflow:hidden}
 .diario .campo textarea{padding-right:46px}
 .diario .mic{position:absolute;right:8px;bottom:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--ln);background:var(--card);color:var(--mut);display:grid;place-items:center;cursor:pointer;padding:0}
 .diario .mic:hover{color:var(--tx)}
+.diario .mic.pensando{color:#d97706;border-color:#f59e0b;animation:micGira 1s linear infinite}
+@keyframes micGira{50%{opacity:.35}}
 .diario .mic.grabando{background:#dc2626;border-color:#dc2626;color:#fff;animation:micLatido 1.2s infinite}
 @keyframes micLatido{50%{box-shadow:0 0 0 6px rgba(220,38,38,.25)}}
 .diario .preg-fila{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:6px 14px}
@@ -99,6 +101,13 @@ body.visor-abierto{overflow:hidden}
 .diario .chips label:has(input:focus-visible){outline:2px solid #d97706;outline-offset:2px}
 .diario label.marca{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:14.5px;cursor:pointer}
 .diario label.marca input{width:20px;height:20px;accent-color:#f59e0b}
+.diario .paso-cal{margin:8px 0;padding:10px 12px;border:1px solid var(--ln);border-radius:12px;background:var(--bg)}
+.diario .paso-cal b{display:block;font-size:14.5px;margin-bottom:3px}
+.diario .paso-cal .ayuda{margin:0}
+.diario .cal-botones{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.diario .btn-life,.diario .btn-hecho{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:10px 16px;font-size:14.5px;font-weight:700;cursor:pointer;text-decoration:none;border:1px solid var(--ln);background:var(--card);color:var(--tx)}
+.diario .btn-life{border-color:#d97706;color:#b45309}
+.diario .btn-hecho.on{background:#16a34a;border-color:#15803d;color:#fff}
 .diario .final{margin-top:18px;padding:14px;border-radius:12px;background:#fef3c7;color:#78350f;font-weight:800;text-align:center}
 .ia-caja{background:var(--fila);border-radius:12px;padding:16px 18px;line-height:1.65;font-size:15px;white-space:pre-wrap;min-height:60px;margin-bottom:10px}
 .ia-caja b{font-size:16px}
@@ -712,32 +721,109 @@ window.CuentaAmable = (() => {
   const ALINEADO = [['no', 'No'], ['medias', 'A medias'], ['si', 'Sí']];
   // «¿Quién soy?» ya empieza escrito con «Soy una persona que » (Gustavo, 8-11-2026): solo hay que seguir la frase
   const INICIO_SOY = 'Soy una persona que ';
-  // Micrófono para dictar en cada hueco de texto (Gustavo, 9-11-2026): icono de línea, nunca emoji
+  // Micrófono para dictar en cada hueco de texto (Gustavo, 9-11-2026): icono de línea, nunca emoji.
+  // Dos formas: el dictado del navegador (Chrome, Android) o, si no hay o falla (Brave…), grabar la voz y que el registro
+  // la pase a texto con IA (POST /transcribir). Primer toque: empieza (rojo). Segundo toque: para y escribe.
+  // Pregunta 9 (Gustavo, 9-11-2026): el sapo y las 2 estrellas se ponen en el calendario de Amable Life
+  const LIFE_URL = 'https://gcalabro12.github.io/Amable-Life/';
+  const ICO_CAL_LINEA = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+  const ICO_HECHO = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const PUEDE_GRABAR = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+  let modoVoz = SR && !navigator.brave ? 'directo' : (PUEDE_GRABAR ? 'grabar' : '');
   const MIC_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>';
   const area = (k, ph, ini) => `<div class="campo"><textarea data-d="${k}" placeholder="${esc(ph || '')}">${esc(diarioDatos[k] || ini || '')}</textarea>`
-    + (SR ? `<button type="button" class="mic" data-mic="${k}" aria-label="Dictar con la voz" title="Dictar con la voz">${MIC_SVG}</button>` : '') + '</div>';
-  let rec = null, recK = null;
-  const marcarMics = () => diaCaja.querySelectorAll('.mic').forEach(m => m.classList.toggle('grabando', !!rec && m.dataset.mic === recK));
-  diaCaja.addEventListener('click', e => {
-    const b = e.target.closest('.mic'); if (!b || !SR) return;
-    const k = b.dataset.mic;
-    if (rec) { const mismo = recK === k; try { rec.stop(); } catch (err) {} rec = null; recK = null; marcarMics(); if (mismo) return; }
+    + (modoVoz ? `<button type="button" class="mic" data-mic="${k}" aria-label="Dictar con la voz" title="Dictar con la voz">${MIC_SVG}</button>` : '') + '</div>';
+  let rec = null, recK = null, grab = null;
+  const pensando = new Set();
+  const avisoVoz = txt => { const m = diaCaja.querySelector('.diario-msg'); if (m) m.textContent = txt; };
+  const marcarMics = () => diaCaja.querySelectorAll('.mic').forEach(m => {
+    const k = m.dataset.mic;
+    m.classList.toggle('grabando', (!!rec && k === recK) || (!!grab && k === grab.k));
+    m.classList.toggle('pensando', pensando.has(k));
+  });
+  function ponerTexto(k, txt) {
+    txt = String(txt || '').trim(); if (!txt) return;
+    const ta = diaCaja.querySelector(`textarea[data-d="${k}"]`); if (!ta) return;
+    const antes = ta.value;
+    if (antes.trim() && !/[.!?…]\s*$/.test(antes)) txt = txt.charAt(0).toLowerCase() + txt.slice(1);   // sigue la frase («Soy una persona que …»)
+    ta.value = antes + (antes && !/\s$/.test(antes) ? ' ' : '') + txt;
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  function dictadoDirecto(k) {
     const r = new SR(); rec = r; recK = k;
     r.lang = 'es-ES'; r.continuous = true; r.interimResults = false;
     r.onresult = ev => {
       let txt = ''; for (let i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) txt += ev.results[i][0].transcript;
-      txt = txt.trim(); if (!txt) return;
-      const ta = diaCaja.querySelector(`textarea[data-d="${k}"]`); if (!ta) return;
-      const antes = ta.value;
-      if (antes.trim() && !/[.!?…]\s*$/.test(antes)) txt = txt.charAt(0).toLowerCase() + txt.slice(1);   // sigue la frase («Soy una persona que …»)
-      ta.value = antes + (antes && !/\s$/.test(antes) ? ' ' : '') + txt;
-      ta.dispatchEvent(new Event('input', { bubbles: true }));
+      ponerTexto(k, txt);
     };
-    r.onerror = ev => { if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') { const m = diaCaja.querySelector('.diario-msg'); if (m) m.textContent = 'Para dictar, permite el micrófono en el navegador.'; } };
+    r.onerror = ev => {
+      if (ev.error === 'not-allowed') { avisoVoz('Para dictar, permite el micrófono en el navegador.'); return; }
+      // El navegador no tiene dictado de verdad (Brave, por ejemplo): desde ahora se graba y lo escribe la IA
+      if (['network', 'service-not-allowed', 'language-not-supported'].includes(ev.error) && PUEDE_GRABAR) {
+        modoVoz = 'grabar'; if (rec === r) { rec = null; recK = null; } empezarGrabacion(k);
+      }
+    };
     r.onend = () => { if (rec === r) { rec = null; recK = null; } marcarMics(); };
-    try { r.start(); } catch (err) { rec = null; recK = null; }
+    try { r.start(); } catch (err) { rec = null; recK = null; if (PUEDE_GRABAR) { modoVoz = 'grabar'; empezarGrabacion(k); } }
     marcarMics();
+  }
+  async function empezarGrabacion(k) {
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch (e) { avisoVoz('Para dictar, permite el micrófono en el navegador.'); marcarMics(); return; }
+    const mr = new MediaRecorder(stream), trozos = [];
+    mr.ondataavailable = e => { if (e.data && e.data.size) trozos.push(e.data); };
+    mr.onstop = () => { stream.getTracks().forEach(x => x.stop()); transcribir(new Blob(trozos, { type: mr.mimeType || 'audio/webm' }), k); };
+    mr.start();
+    grab = { mr, k, tope: setTimeout(pararGrabacion, 120000) };   // como mucho 2 minutos seguidos
+    avisoVoz('Grabando… toca otra vez el micrófono cuando termines.');
+    marcarMics();
+  }
+  function pararGrabacion() {
+    if (!grab) return;
+    const g = grab; grab = null; clearTimeout(g.tope);
+    try { g.mr.stop(); } catch (e) {}
+    marcarMics();
+  }
+  // La grabación se pasa a WAV de 16 kHz y un canal (lo entiende la IA sin problemas y pesa poco)
+  async function aWav(blob) {
+    const Ctx = window.AudioContext || window.webkitAudioContext, ctx = new Ctx();
+    const buf = await ctx.decodeAudioData(await blob.arrayBuffer()); try { ctx.close(); } catch (e) {}
+    const sr = 16000, off = new OfflineAudioContext(1, Math.max(1, Math.ceil(buf.duration * sr)), sr);
+    const src = off.createBufferSource(); src.buffer = buf; src.connect(off.destination); src.start();
+    const d = (await off.startRendering()).getChannelData(0), v = new DataView(new ArrayBuffer(44 + d.length * 2));
+    const txt = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    txt(0, 'RIFF'); v.setUint32(4, 36 + d.length * 2, true); txt(8, 'WAVE'); txt(12, 'fmt '); v.setUint32(16, 16, true);
+    v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    txt(36, 'data'); v.setUint32(40, d.length * 2, true);
+    for (let i = 0; i < d.length; i++) { const s = Math.max(-1, Math.min(1, d[i])); v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true); }
+    return { datos: new Uint8Array(v.buffer), segundos: buf.duration };
+  }
+  async function transcribir(blob, k) {
+    pensando.add(k); marcarMics(); avisoVoz('Pasando tu voz a texto… (a veces tarda un poco)');
+    try {
+      const w = await aWav(blob);
+      if (w.segundos < 0.6) { avisoVoz('No se ha oído nada. Toca el micrófono, habla y vuelve a tocarlo.'); return; }
+      let bin = ''; for (let i = 0; i < w.datos.length; i += 0x8000) bin += String.fromCharCode.apply(null, w.datos.subarray(i, i + 0x8000));
+      const r = await pedir('/transcribir', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audio: btoa(bin), tipo: 'audio/wav' }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { avisoVoz(j.error || 'No se pudo pasar tu voz a texto. Inténtalo otra vez.'); return; }
+      if (!j.texto) { avisoVoz('No se ha entendido nada. Prueba a hablar más cerca del micrófono.'); return; }
+      ponerTexto(k, j.texto);
+    } catch (e) { avisoVoz('No se pudo pasar tu voz a texto. Inténtalo otra vez.'); }
+    finally { pensando.delete(k); marcarMics(); }
+  }
+  diaCaja.addEventListener('click', e => {
+    const b = e.target.closest('.mic'); if (!b || !modoVoz) return;
+    const k = b.dataset.mic;
+    if (pensando.has(k)) return;
+    const activo = (rec && recK) || (grab && grab.k);
+    if (rec) { try { rec.stop(); } catch (err) {} rec = null; recK = null; }
+    if (grab) pararGrabacion();
+    marcarMics();
+    if (activo === k) return;   // segundo toque en el mismo: solo para
+    if (modoVoz === 'directo') dictadoDirecto(k); else empezarGrabacion(k);
   });
 
   // Números de Amable Life del día, a la derecha de «¿Qué fue bien?» (Gustavo, 9-11-2026)
@@ -794,11 +880,17 @@ window.CuentaAmable = (() => {
       <div class="preg">8. 🧠 ¿Qué has aprendido? <span class="reg-nota">(opcional)</span></div>
       <div class="ayuda">Refuerza tu memoria a largo plazo; te dará ideas.</div>
       ${area('aprendido')}
-      <div class="preg">9. 🎯 ¿Cuál es la tarea más importante para mañana?</div>
-      <div class="ayuda">Tu tarea estrella o «sapo», de 60 a 90 minutos: urgente o que te dé satisfacción.</div>
-      ${area('sapo', 'Mi tarea sapo de mañana…')}
-      ${area('otras_tareas', 'Otras 2 tareas importantes…')}
-      ${r.animo && r.sapo ? '<div class="final">🎉 ¡Muy bien! Que descanses. Mañana, a comerte el sapo y el día 🥳</div>' : ''}`;
+      <div class="preg">9. 🎯 Prepara mañana en tu calendario</div>
+      <div class="paso-cal"><b>🐸 Ponle un sapo a la tarea más importante de mañana</b>
+        <div class="ayuda">Escribe 🐸 al principio de esa tarea en tu calendario. Es la de 60 a 90 minutos: urgente o que te dé satisfacción.</div></div>
+      <div class="paso-cal"><b>⭐ Ponle una estrella a 2 tareas importantes de mañana</b>
+        <div class="ayuda">Escribe ⭐ al principio de cada una de esas dos tareas.</div></div>
+      <div class="cal-botones">
+        <a class="btn-life" href="${LIFE_URL}" target="_blank" rel="noopener">${ICO_CAL_LINEA}Abrir Amable Life</a>
+        <button type="button" data-a="diario-planificado" class="btn-hecho${r.planificado ? ' on' : ''}" aria-pressed="${r.planificado ? 'true' : 'false'}">${ICO_HECHO}${r.planificado ? 'Hecho' : 'Marcar como hecho'}</button>
+      </div>
+      ${r.sapo || r.otras_tareas ? '<div class="ayuda" style="margin-top:10px">Lo que escribiste aquí antes:</div>' + area('sapo', 'Mi tarea sapo de mañana…') + area('otras_tareas', 'Otras 2 tareas importantes…') : ''}
+      ${r.animo && (r.sapo || r.planificado) ? '<div class="final">🎉 ¡Muy bien! Que descanses. Mañana, a comerte el sapo y el día 🥳</div>' : ''}`;
     cargarNumerosDiario(); marcarMics();
   }
   async function cargarDiario() {
@@ -846,7 +938,7 @@ window.CuentaAmable = (() => {
     return p('❤️ Cómo me sentí:', r.animo ? (ANIMOS.find(x => x[0] === r.animo) || [0, ''])[1] : '')
       + p('👍🏽 Qué fue bien:', bien) + p('👎🏽 Qué puede mejorar:', r.mejorar) + p('🔮 Quién soy:', r.quien_soy)
       + p('🔮 Viví alineado:', al + (r.porque ? (al ? ' — ' : '') + r.porque : '')) + p('🙏🏽 Agradezco:', r.agradecer)
-      + p('🧠 Aprendí:', r.aprendido) + p('🎯 Tarea más importante para el día siguiente:', r.sapo) + p('🎯 Otras tareas:', r.otras_tareas)
+      + p('🧠 Aprendí:', r.aprendido) + p('🐸 Día siguiente:', r.planificado ? 'sapo y 2 estrellas puestos en el calendario' : '') + p('🎯 Tarea más importante para el día siguiente:', r.sapo) + p('🎯 Otras tareas:', r.otras_tareas)
       || '<p class="reg-nota">Este día está vacío.</p>';
   }
   let diaLista = [], diaMas = false, dPeriodo = 'semana', dTexto = null, dPidiendo = false;
@@ -1179,7 +1271,7 @@ window.CuentaAmable = (() => {
       if (min < obj - c.recordar || min >= obj) return;
       guardarLS('growpanel.alarma_dia', hoy);
       // Si ya has escrito el diario de hoy, no suena
-      try { const r = await pedir('/diario?fecha=' + hoy); const j = r.ok ? await r.json() : {}; const d = j.respuestas || {}; if (d.animo && d.sapo) return; } catch (e) {}
+      try { const r = await pedir('/diario?fecha=' + hoy); const j = r.ok ? await r.json() : {}; const d = j.respuestas || {}; if (d.animo && (d.sapo || d.planificado)) return; } catch (e) {}
       mostrarAlarma(false);
     } finally { revisando = false; }
   }
@@ -1219,6 +1311,11 @@ window.CuentaAmable = (() => {
     }
     else if (accion === 'ia-generar') { generarTextoIA(); return; }
     else if (accion === 'dia-num') { cargarNumerosDiario(true); return; }
+    else if (accion === 'diario-planificado') {
+      leerFormDiario();
+      diarioDatos.planificado = diarioDatos.planificado ? undefined : true;
+      pintarDiario(); guardarDiarioLuego(); return;
+    }
     else if (accion === 'diario-dia') {
       diarioDia = a.dataset.d;
       pintarSegDiario();
