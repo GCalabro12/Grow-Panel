@@ -1540,9 +1540,13 @@ async function gpMiraVersion() {
   gpUltMira = Date.now();
   try {
     if (navigator.serviceWorker) navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {});
-    // La versión está en grow-panel.js (se sube en cada cambio, junto con la caché de sw.js)
-    const txt = await (await fetch('./grow-panel.js?v=' + Date.now(), { cache: 'no-store' })).text();
-    const v = (txt.match(/const VERSION = '([^']+)'/) || [])[1];
+    // Primero version.txt (unos pocos bytes); si no está, grow-panel.js, donde vive VERSION
+    let v = '';
+    try { const r = await fetch('./version.txt?v=' + Date.now(), { cache: 'no-store' }); if (r.ok) v = (await r.text()).trim(); } catch (e) {}
+    if (!/^v[\d.]+$/.test(v)) {
+      const txt = await (await fetch('./grow-panel.js?v=' + Date.now(), { cache: 'no-store' })).text();
+      v = (txt.match(/const VERSION = '([^']+)'/) || [])[1];
+    }
     let ya = false; try { ya = sessionStorage.getItem('growpanel-recarga') === v; } catch (e) {}
     if (v && v !== window.GrowPanel.VERSION && !ya && !gpEstaOcupado()) gpRecargar(v);
   } catch (e) {}
