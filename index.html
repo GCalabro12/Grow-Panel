@@ -81,6 +81,8 @@ body.visor-abierto{overflow:hidden}
 .diario .campo textarea{padding-right:46px}
 .diario .mic{position:absolute;right:8px;bottom:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--ln);background:var(--card);color:var(--mut);display:grid;place-items:center;cursor:pointer;padding:0}
 .diario .mic:hover{color:var(--tx)}
+.diario .mic-nota{font-size:13px;color:var(--mut);margin:-2px 4px 10px;line-height:1.35}
+.diario .mic-nota.no{color:#b45309;font-weight:600}
 .diario .mic.pensando{color:#d97706;border-color:#f59e0b;animation:micGira 1s linear infinite}
 @keyframes micGira{50%{opacity:.35}}
 .diario .mic.grabando{background:#dc2626;border-color:#dc2626;color:#fff;animation:micLatido 1.2s infinite}
@@ -731,7 +733,10 @@ window.CuentaAmable = (() => {
   const ICO_HECHO = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const PUEDE_GRABAR = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
-  let modoVoz = SR && !navigator.brave ? 'directo' : (PUEDE_GRABAR ? 'grabar' : '');
+  // 10-11-2026: en el ordenador se graba siempre (el dictado del navegador a menudo no arranca allí); en el móvil, dictado del navegador
+  const ES_MOVIL = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform || ''));
+  const APARATO = ES_MOVIL ? 'móvil' : 'ordenador';
+  let modoVoz = SR && !navigator.brave && (ES_MOVIL || !PUEDE_GRABAR) ? 'directo' : (PUEDE_GRABAR ? 'grabar' : '');
   const MIC_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>';
   const area = (k, ph, ini) => `<div class="campo"><textarea data-d="${k}" placeholder="${esc(ph || '')}">${esc(diarioDatos[k] || ini || '')}</textarea>`
     + (modoVoz ? `<button type="button" class="mic" data-mic="${k}" aria-label="Dictar con la voz" title="Dictar con la voz">${MIC_SVG}</button>` : '') + '</div>';
@@ -739,7 +744,40 @@ window.CuentaAmable = (() => {
   const pensando = new Set();
   // Para la autoactualización: no recargar si estás dictando, si la IA está escribiendo tu voz o si falta guardar el diario
   window.gpOcupado = () => !!(rec || grab || pensando.size || diarioPendiente);
-  const avisoVoz = txt => { const m = diaCaja.querySelector('.diario-msg'); if (m) m.textContent = txt; };
+  // Los avisos del micrófono salen debajo del hueco donde dictas (antes iban al final del diario y no se veían)
+  let ultK = null;
+  function avisoVoz(txt, k, no) {
+    k = k || ultK; if (!k) return;
+    const ta = diaCaja.querySelector(`textarea[data-d="${k}"]`), campo = ta && ta.closest('.campo'); if (!campo) return;
+    let n = campo.nextElementSibling;
+    if (!n || !n.classList.contains('mic-nota')) { n = document.createElement('div'); n.className = 'mic-nota'; campo.after(n); }
+    n.textContent = txt || ''; n.hidden = !txt; n.classList.toggle('no', !!no);
+  }
+  // Si en este aparato no se puede grabar, se dice una vez y los micrófonos desaparecen
+  let micMotivo = '';
+  function micNoActivo(motivo, k) {
+    modoVoz = ''; micMotivo = motivo;
+    diaCaja.querySelectorAll('.mic').forEach(b => b.remove());
+    if (k) avisoVoz(`El micrófono no está activo en este ${APARATO}: ${motivo}`, k, true);
+  }
+  // Si se quitaron antes de pintar, se avisa una vez debajo del primer hueco de texto
+  function ponerNotaMic() {
+    const ta = micMotivo && diaCaja.querySelector('.diario .campo textarea');
+    if (ta) avisoVoz(`El micrófono no está activo en este ${APARATO}: ${micMotivo}`, ta.dataset.d, true);
+  }
+  // Antes de enseñarlos: si el navegador tiene el micrófono bloqueado o no hay ninguno conectado, ni aparecen
+  (async () => {
+    try {
+      if (navigator.permissions && navigator.permissions.query) {
+        const pm = await navigator.permissions.query({ name: 'microphone' });
+        if (pm.state === 'denied') { micNoActivo('el navegador lo tiene bloqueado (se activa en el candado de la barra de direcciones).'); ponerNotaMic(); return; }
+      }
+      if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+        const ds = await navigator.mediaDevices.enumerateDevices();
+        if (ds.length && !ds.some(d => d.kind === 'audioinput')) { micNoActivo('no hay ningún micrófono conectado.'); ponerNotaMic(); }
+      }
+    } catch (e) {}
+  })();
   const marcarMics = () => diaCaja.querySelectorAll('.mic').forEach(m => {
     const k = m.dataset.mic;
     m.classList.toggle('grabando', (!!rec && k === recK) || (!!grab && k === grab.k));
@@ -761,26 +799,36 @@ window.CuentaAmable = (() => {
       ponerTexto(k, txt);
     };
     r.onerror = ev => {
-      if (ev.error === 'not-allowed') { avisoVoz('Para dictar, permite el micrófono en el navegador.'); return; }
-      // El navegador no tiene dictado de verdad (Brave, por ejemplo): desde ahora se graba y lo escribe la IA
-      if (['network', 'service-not-allowed', 'language-not-supported'].includes(ev.error) && PUEDE_GRABAR) {
-        modoVoz = 'grabar'; if (rec === r) { rec = null; recK = null; } empezarGrabacion(k);
+      // El dictado del navegador no funciona aquí (Brave, permiso, sin servicio…): desde ahora se graba y lo escribe la IA
+      if (['not-allowed', 'audio-capture', 'network', 'service-not-allowed', 'language-not-supported'].includes(ev.error)) {
+        if (rec === r) { rec = null; recK = null; }
+        if (PUEDE_GRABAR) { modoVoz = 'grabar'; empezarGrabacion(k); }
+        else micNoActivo(ev.error === 'audio-capture' ? 'no hay ningún micrófono conectado.' : 'el navegador no deja usarlo.', k);
       }
     };
-    r.onend = () => { if (rec === r) { rec = null; recK = null; } marcarMics(); };
-    try { r.start(); } catch (err) { rec = null; recK = null; if (PUEDE_GRABAR) { modoVoz = 'grabar'; empezarGrabacion(k); } }
+    r.onend = () => { if (rec === r) { rec = null; recK = null; avisoVoz('', k); } marcarMics(); };
+    try { r.start(); avisoVoz('Te escucho… toca otra vez el micrófono cuando termines.', k); }
+    catch (err) { rec = null; recK = null; if (PUEDE_GRABAR) { modoVoz = 'grabar'; empezarGrabacion(k); } else micNoActivo('el navegador no deja usarlo.', k); }
     marcarMics();
   }
   async function empezarGrabacion(k) {
     let stream;
+    avisoVoz('Abriendo el micrófono… si el navegador te pide permiso, dale a «Permitir».', k);
     try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-    catch (e) { avisoVoz('Para dictar, permite el micrófono en el navegador.'); marcarMics(); return; }
+    catch (e) {
+      const n = e && e.name;
+      if (n === 'NotReadableError' || n === 'AbortError') avisoVoz('Otro programa está usando el micrófono. Ciérralo y vuelve a tocar el micrófono.', k, true);
+      else micNoActivo(n === 'NotFoundError' || n === 'OverconstrainedError' ? 'no hay ningún micrófono conectado.'
+        : n === 'NotAllowedError' || n === 'SecurityError' ? 'el navegador lo tiene bloqueado (se activa en el candado de la barra de direcciones).'
+        : 'el navegador no deja grabar.', k);
+      marcarMics(); return;
+    }
     const mr = new MediaRecorder(stream), trozos = [];
     mr.ondataavailable = e => { if (e.data && e.data.size) trozos.push(e.data); };
     mr.onstop = () => { stream.getTracks().forEach(x => x.stop()); transcribir(new Blob(trozos, { type: mr.mimeType || 'audio/webm' }), k); };
     mr.start();
     grab = { mr, k, tope: setTimeout(pararGrabacion, 120000) };   // como mucho 2 minutos seguidos
-    avisoVoz('Grabando… toca otra vez el micrófono cuando termines.');
+    avisoVoz('Grabando… toca otra vez el micrófono cuando termines.', k);
     marcarMics();
   }
   function pararGrabacion() {
@@ -804,22 +852,22 @@ window.CuentaAmable = (() => {
     return { datos: new Uint8Array(v.buffer), segundos: buf.duration };
   }
   async function transcribir(blob, k) {
-    pensando.add(k); marcarMics(); avisoVoz('Pasando tu voz a texto… (a veces tarda un poco)');
+    pensando.add(k); marcarMics(); avisoVoz('Pasando tu voz a texto… (a veces tarda un poco)', k);
     try {
       const w = await aWav(blob);
-      if (w.segundos < 0.6) { avisoVoz('No se ha oído nada. Toca el micrófono, habla y vuelve a tocarlo.'); return; }
+      if (w.segundos < 0.6) { avisoVoz('No se ha oído nada. Toca el micrófono, habla y vuelve a tocarlo.', k); return; }
       let bin = ''; for (let i = 0; i < w.datos.length; i += 0x8000) bin += String.fromCharCode.apply(null, w.datos.subarray(i, i + 0x8000));
       const r = await pedir('/transcribir', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audio: btoa(bin), tipo: 'audio/wav' }) });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) { avisoVoz(j.error || 'No se pudo pasar tu voz a texto. Inténtalo otra vez.'); return; }
-      if (!j.texto) { avisoVoz('No se ha entendido nada. Prueba a hablar más cerca del micrófono.'); return; }
-      ponerTexto(k, j.texto);
-    } catch (e) { avisoVoz('No se pudo pasar tu voz a texto. Inténtalo otra vez.'); }
+      if (!r.ok) { avisoVoz(j.error || 'No se pudo pasar tu voz a texto. Inténtalo otra vez.', k); return; }
+      if (!j.texto) { avisoVoz('No se ha entendido nada. Prueba a hablar más cerca del micrófono.', k); return; }
+      ponerTexto(k, j.texto); avisoVoz('', k);
+    } catch (e) { avisoVoz('No se pudo pasar tu voz a texto. Inténtalo otra vez.', k); }
     finally { pensando.delete(k); marcarMics(); }
   }
   diaCaja.addEventListener('click', e => {
     const b = e.target.closest('.mic'); if (!b || !modoVoz) return;
-    const k = b.dataset.mic;
+    const k = b.dataset.mic; ultK = k;
     if (pensando.has(k)) return;
     const activo = (rec && recK) || (grab && grab.k);
     if (rec) { try { rec.stop(); } catch (err) {} rec = null; recK = null; }
@@ -894,7 +942,7 @@ window.CuentaAmable = (() => {
       </div>
       ${r.sapo || r.otras_tareas ? '<div class="ayuda" style="margin-top:10px">Lo que escribiste aquí antes:</div>' + area('sapo', 'Mi tarea sapo de mañana…') + area('otras_tareas', 'Otras 2 tareas importantes…') : ''}
       ${r.animo && (r.sapo || r.planificado) ? '<div class="final">🎉 ¡Muy bien! Que descanses. Mañana, a comerte el sapo y el día 🥳</div>' : ''}`;
-    cargarNumerosDiario(); marcarMics();
+    cargarNumerosDiario(); marcarMics(); if (!modoVoz) ponerNotaMic();
   }
   async function cargarDiario() {
     const caja = diaCaja.querySelector('.diario'); if (!caja) return;
