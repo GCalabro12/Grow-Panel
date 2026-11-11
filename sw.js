@@ -1,5 +1,5 @@
 // Service worker de Grow Panel: permite instalarlo y abrirlo sin conexión (datos siempre frescos si hay red)
-const CACHE = "growpanel-v1.77";
+const CACHE = "growpanel-v1.78";
 const BASE = ["./", "./index.html", "./grow-panel.js", "./manifest.json", "./logo.svg", "./logo-oscuro.svg",
   "./icono.svg", "./icono-192.png", "./icono-512.png", "./icono-32.png", "./icono-180.png"];
 // cache:"reload": la copia sin conexión se baja del servidor, nunca de la caché del navegador

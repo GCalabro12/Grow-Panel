@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.77';
+  const VERSION = 'v1.78';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -64,9 +64,10 @@ a.app:hover{border-color:var(--c)}
 .cuenta{margin-left:auto;font-size:11px;color:var(--gp-mut);overflow-wrap:anywhere}
 .cuenta+.cuando{margin-left:0}
 .consejo{display:block;margin-top:4px;font-size:12px;color:var(--gp-aviso);font-weight:600}
-.fechas{display:flex;align-items:center;gap:4px 10px;flex-wrap:wrap;font-size:12.5px;color:var(--gp-mut);margin-top:3px}
+.fechas{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;font-size:12px;color:var(--gp-mut);margin-top:3px;min-width:0}
+.fechas .hace{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .fechas .punto{margin-top:0}
-.fechas .dia{margin-left:auto;color:var(--gp-tx);font-weight:600;white-space:nowrap}
+.fechas .dia{margin-left:auto;padding-left:6px;color:var(--gp-tx);font-weight:600;white-space:nowrap;flex:none}
 .msg{display:flex;align-items:flex-start;gap:7px;font-size:14px;margin-top:3px;line-height:1.35}
 .punto{width:9px;height:9px;border-radius:50%;background:var(--c);flex:none;margin-top:5px}
 .cifras{grid-column:2;display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
@@ -76,7 +77,8 @@ a.app:hover{border-color:var(--c)}
 .item.pendiente .app{border:2px dashed #f59e0b}
 .consejo.clica{display:inline-block;margin-top:6px;padding:4px 10px;border-radius:999px;background:#f59e0b;color:#1c1300;font-weight:800}
 .item .app{height:100%;min-height:96px}
-.asa{position:absolute;left:16px;bottom:8px;width:32px;height:26px;display:grid;place-items:center;padding:0;border:0;
+.item .fila{padding-right:30px}
+.asa{position:absolute;right:6px;top:6px;width:32px;height:26px;display:grid;place-items:center;padding:0;border:0;
   border-radius:6px;background:transparent;color:var(--gp-mut);cursor:grab;touch-action:none}
 .asa:hover,.asa:focus-visible{background:var(--gp-sub);color:var(--gp-tx);outline:none}
 .asa svg{width:12px;height:18px;display:block}
@@ -90,7 +92,8 @@ a.app:hover{border-color:var(--c)}
 :host([compacto]) .cifras{display:none}
 :host([compacto]) .msg{font-size:13px;margin-top:0}
 :host([compacto]) .item .app{min-height:0;padding-left:40px}
-:host([compacto]) .asa{left:4px;bottom:auto;top:50%;transform:translateY(-50%)}
+:host([compacto]) .asa{left:4px;right:auto;bottom:auto;top:50%;transform:translateY(-50%)}
+:host([compacto]) .item .fila{padding-right:0}
 `;
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -245,13 +248,13 @@ a.app:hover{border-color:var(--c)}
     const a = v.app, base = urlSegura(a.url), url = base && (a.externa ? base : base + (base.includes('?') ? '&' : '?') + 'growpanel=' + n + (v.pendiente ? '&gpguia=1' : '')), icono = urlSegura(a.icono), color = colorSeguro(a.color);
     const tag = url ? 'a' : 'div';
     const attrs = url ? ` href="${esc(url)}" target="_blank" rel="noopener"` : '';
-    const cifras = (v.f && Array.isArray(v.f.cifras) ? v.f.cifras.slice(0, 4) : [])
+    const cifras = (v.f && Array.isArray(v.f.cifras) ? v.f.cifras.slice(0, a.registro === 'amable-fit' ? 5 : 4) : [])
       .map(c => `<span><b>${esc(c.valor)}</b> ${esc(c.etiqueta)}</span>`).join('');
     return `<div class="item${v.pendiente ? ' pendiente' : ''}" data-id="${esc(a.id)}"><${tag} class="app" style="--c:var(--gp-${v.estado})${color ? `;--a:${color}` : ''}"${attrs} title="${esc(a.nombre)} · ${esc(ESTADOS[v.estado])}">
   <span class="ico">${icono ? `<img src="${esc(icono)}" alt="">` : esc(a.emoji || (a.nombre || '•').charAt(0))}</span>
   <span>
     <span class="fila"><b>${esc(a.nombre)}</b>${v.f && v.f.version ? `<span class="ver">${esc(v.f.version)}</span>` : ''}${v.cuenta ? `<span class="cuenta" title="Cuenta con la que envía sus números">(${esc(v.cuenta)})</span>` : ''}</span>
-    ${v.t ? `<span class="fechas"><i class="punto"></i><span title="Último cambio de sus números">actualizado ${hace(v.t)}</span>${v.dia && v.estado !== 'mudo' ? `<span class="dia">${esc(v.dia)}</span>` : ''}</span>` : ''}
+    ${v.t ? `<span class="fechas"><i class="punto"></i><span class="hace" title="Último cambio de sus números">actualizado ${hace(v.t)}</span>${v.dia && v.estado !== 'mudo' ? `<span class="dia">${esc(v.dia)}</span>` : ''}</span>` : ''}
     ${v.mensaje ? `<span class="msg">${v.t ? '' : '<i class="punto"></i>'}${esc(v.mensaje)}</span>` : ''}${v.consejo ? (v.pendiente ? `<span class="consejo clica">👉 ${esc(v.consejo)}</span>` : `<span class="consejo">⚠ ${esc(v.consejo)}</span>`) : ''}
   </span>
   ${cifras ? `<span class="cifras">${cifras}</span>` : ''}
