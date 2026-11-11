@@ -88,6 +88,8 @@ body.visor-abierto{overflow:hidden}
 .diario textarea{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20d%3D%22M30%201C21%203%2012%2010%207%2020c3-2%206-3%209-4-2%201-4%203-5%205%206-3%2012-9%2015-14%201-2%203-4%204-6z%22%20fill%3D%22%238a5a2b%22%20stroke%3D%22%233b2410%22%20stroke-width%3D%221.1%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M27%204C20%2010%2013%2017%207%2024%22%20fill%3D%22none%22%20stroke%3D%22%23f3e2b8%22%20stroke-width%3D%22.9%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M8%2023%203%2029%22%20stroke%3D%22%232b1a0b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M3%2029%201.6%2030.6%22%20stroke%3D%22%23111%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E") 1 31,text;background:rgba(255,253,244,.85)}
 .diario .querido{font-family:"Dancing Script","Segoe Script","Brush Script MT",cursive;font-size:34px;font-weight:700;color:#5b3a12;line-height:1.1;margin:0 0 8px;transform:rotate(-1.5deg);transform-origin:left}
 .diario .preg{margin:18px 0 6px;font-weight:800;font-size:15px}
+.diario .preg~.preg{margin-top:34px}
+.diario .preg~.preg::before{content:"";display:block;width:62%;max-width:420px;height:14px;margin:0 auto 26px;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20300%2016%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M4%209.5c18-2.6%2034%201.6%2052-.4%2020-2.2%2037-3%2057-.6%2021%202.4%2040%201.2%2061-.9%2019-1.9%2038-.4%2057%201%2019%201.3%2039-1.4%2061-2.4%203-.1%204.5.4%204.5.4%22%20fill%3D%22none%22%20stroke%3D%22%236b4a1f%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-opacity%3D%22.62%22%2F%3E%3Cpath%20d%3D%22M60%2010.6c26-1.2%2052%20.2%2080-.5%22%20fill%3D%22none%22%20stroke%3D%22%236b4a1f%22%20stroke-width%3D%22.8%22%20stroke-linecap%3D%22round%22%20stroke-opacity%3D%22.35%22%2F%3E%3C%2Fsvg%3E") center/100% 100% no-repeat}
 .diario .preg:first-child,.diario .querido+.preg{margin-top:4px}
 .diario .ayuda{font-size:12.5px;color:var(--mut);margin:-2px 0 6px}
 .diario .campo{position:relative}
@@ -141,22 +143,29 @@ body.visor-abierto{overflow:hidden}
 .reg-logo{width:38px;height:38px;border-radius:10px;background:var(--c,#1f2937);display:inline-flex;align-items:center;justify-content:center;flex:none;overflow:hidden}
 .reg-logo img{width:100%;height:100%;object-fit:cover}
 .reg-app-cab b{display:block}
+.reg-app-cab{display:grid;grid-template-columns:auto 1fr auto auto;column-gap:12px;row-gap:2px;align-items:center}
+.reg-app-cab .reg-nombre{font-size:18px;font-weight:800;line-height:1.2;min-width:0}
+.reg-app-cab .reg-cuando{grid-column:2/-1;margin:0;font-size:12.5px;color:var(--mut);line-height:1.4}
 .reg-app-cab[data-a="plegar-app"]{cursor:pointer;user-select:none;border-radius:10px}
 .reg-app-cab[data-a="plegar-app"]:focus-visible{outline:2px solid var(--ac,#f59e0b);outline-offset:3px}
-.reg-app-cab .asa-datos{margin-left:auto;flex:none;width:28px;height:30px;display:grid;place-items:center;border:0;padding:0;border-radius:6px;background:transparent;color:var(--mut);cursor:grab;touch-action:none}
+.reg-app-cab .asa-datos{grid-column:3;flex:none;width:28px;height:30px;display:grid;place-items:center;border:0;padding:0;border-radius:6px;background:transparent;color:var(--mut);cursor:grab;touch-action:none}
 .reg-app-cab .asa-datos:hover,.reg-app-cab .asa-datos:focus-visible{background:var(--fila);color:var(--tx);outline:none}
 .reg-app-cab .asa-datos+.chev{margin-left:0}
+.reg-app-cab .chev{grid-column:4}
 .reg-app.arrastrando{opacity:.55;border-style:dashed}
-.reg-app-cab .chev{margin-left:auto;flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:var(--mut);transition:transform .2s}
+.reg-app-cab .chev{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:var(--mut);transition:transform .2s}
 .reg-app-cab:hover .chev{background:var(--fila);color:var(--tx)}
 .reg-app.plegada .chev{transform:rotate(-90deg)}
-.reg-app.plegada .reg-tabla tr:not(:first-child),.reg-app.plegada .reg-avisos{display:none}
+.reg-app.plegada .reg-tabla tr:not(:first-child){display:none}
+.reg-app.plegada .reg-avisos{height:0;margin:0;overflow:hidden}
 .reg-tabla{width:auto;min-width:min(100%,380px);border-collapse:separate;border-spacing:0 6px;font-size:14px;margin-top:4px}
 .reg-tabla th.th-abrir{text-align:left;padding-left:0}
 .abrir-app{background:#16a34a;color:#fff;border:0;border-radius:999px;padding:7px 14px;font:inherit;font-size:13.5px;font-weight:800;cursor:pointer;white-space:nowrap}
 .abrir-app:hover{background:#15803d}
-.reg-sin{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
-.reg-avisos:empty{display:none}
+.reg-sin{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px;align-self:start}
+.reg-avisos:empty{margin:0}
+/* Gustavo, 11-11-2026: en cada fila, «Abrir app · Hoy · 7 días» de todas las apps a la misma altura */
+@supports (grid-template-rows:subgrid){#datos-caja .reg-app{display:grid;grid-row:span 3;grid-template-rows:subgrid;row-gap:0;align-content:start}#datos-caja .reg-app>*{align-self:start}}
 .reg-avisos{font-size:13.5px;font-weight:600;color:#b45309;margin:2px 0 6px;line-height:1.4}
 .reg-tabla th{font-size:13px;font-weight:800;color:var(--tx);text-align:center;padding:0 10px 2px;white-space:nowrap}
 .reg-tabla td{background:var(--fila);color:var(--tx);font-weight:400;padding:10px 14px}
@@ -720,7 +729,7 @@ window.CuentaAmable = (() => {
         : `<div class="reg-sin">${boton(a)}<span class="reg-nota" style="margin:0">${fallo ? 'No se han podido leer sus números.' : 'Aún sin números estos 7 días: ábrela una vez.'}</span></div>`;
       const plegada = datos && a.id && plegadas.includes(a.id);
       return `<div class="reg-app${plegada ? ' plegada' : ''}" data-id="${esc(a.id || '')}" style="${ac ? `--ac:${ac};` : ''}${c ? `--c:${c}` : ''}"><div class="reg-app-cab"${datos ? ` data-a="plegar-app" role="button" tabindex="0" aria-expanded="${plegada ? 'false' : 'true'}" title="Plegar o desplegar"` : ''}><span class="reg-logo">${logo(a)}</span>
-        <span><b>${esc(a.nombre)}</b>${cuando ? `<span class="reg-nota" style="margin:0">${esc(cuando)}</span>` : ''}</span>${ASA(a)}${datos ? CHEV : ''}</div>
+        <b class="reg-nombre">${esc(a.nombre)}</b>${ASA(a)}${datos ? CHEV : ''}${cuando ? `<span class="reg-cuando">${esc(cuando)}</span>` : ''}</div>
         <div class="reg-avisos"></div>${cuerpo}</div>`;
     }).join('');
     return (fallo ? '<div class="reg-aviso" style="grid-column:1/-1">No se pudieron leer los números de tus apps. Revisa la conexión y pulsa ↻ Actualizar datos.</div>' : '')
@@ -1009,6 +1018,7 @@ window.CuentaAmable = (() => {
   }
   async function transcribir(blob, k) {
     pensando.add(k); marcarMics(); avisoVoz('Pasando tu voz a texto… (a veces tarda un poco)', k);
+    const paciencia = setTimeout(() => { if (pensando.has(k)) avisoVoz('Sigo pasando tu voz a texto: la IA va lenta ahora, puede tardar hasta un minuto. No cierres Grow Panel.', k); }, 10000);
     try {
       const w = await aWav(blob);
       if (w.segundos < 0.6) { avisoVoz('No se ha oído nada. Toca el micrófono, habla y vuelve a tocarlo.', k); return; }
@@ -1019,7 +1029,7 @@ window.CuentaAmable = (() => {
       if (!j.texto) { avisoVoz('No se ha entendido nada. Prueba a hablar más cerca del micrófono.', k); return; }
       ponerTexto(k, j.texto); avisoVoz('', k);
     } catch (e) { avisoVoz('No se pudo pasar tu voz a texto. Inténtalo otra vez.', k); }
-    finally { pensando.delete(k); marcarMics(); }
+    finally { clearTimeout(paciencia); pensando.delete(k); marcarMics(); }
   }
   diaCaja.addEventListener('click', e => {
     const b = e.target.closest('.mic'); if (!b || !modoVoz) return;
