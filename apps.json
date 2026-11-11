@@ -94,7 +94,8 @@
       "icono": "https://gcalabro12.github.io/Sleep-Amable/icon-192.png",
       "color": "#0B1020",
       "registro": "amable-sleep",
-      "acento": "#8b7cf6"
+      "acento": "#8b7cf6",
+      "registro_activo": true
     }
   ]
 }
