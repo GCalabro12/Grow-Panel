@@ -129,6 +129,8 @@ body.visor-abierto{overflow:hidden}
 .diario .btn-life{border-color:#d97706;color:#b45309}
 .diario .btn-hecho.on{background:#16a34a;border-color:#15803d;color:#fff}
 .diario .final{margin-top:18px;padding:14px;border-radius:12px;background:#fef3c7;color:#78350f;font-weight:800;text-align:center}
+.ia-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.ia-cab .seg.periodos{margin-bottom:0}
 .ia-cuando{font-size:13.5px;color:var(--mut);line-height:1.55;margin:-4px 0 10px}
 .ia-cuando b{color:var(--tx, inherit);font-weight:700}
 .ia-caja{background:var(--fila);border-radius:12px;padding:16px 18px;line-height:1.65;font-size:15px;white-space:pre-wrap;min-height:60px;margin-bottom:10px}
@@ -864,11 +866,12 @@ window.CuentaAmable = (() => {
     const toca = periodosQueTocan();
     resCaja.innerHTML = `<div class="franja-res"><h2>✨ Resumen IA</h2></div>`
       + `<details class="sec" data-sec="texto"${abierta('texto') ? ' open' : ''}><summary>✍️ Resumen en texto</summary><div class="sec-cuerpo">
-          <div class="seg periodos">${Object.entries(PERIODOS_IA).map(([p, n]) => `<button type="button" data-a="ia-periodo" data-p="${p}" class="${p === iaPeriodo ? 'on' : ''}${toca[p] ? ' toca' : ''}"${toca[p] ? ` title="${esc(toca[p])}"` : ''}>${n}</button>`).join('')}</div>
+          <div class="ia-cab"><div class="seg periodos">${Object.entries(PERIODOS_IA).map(([p, n]) => `<button type="button" data-a="ia-periodo" data-p="${p}" class="${p === iaPeriodo ? 'on' : ''}${toca[p] ? ' toca' : ''}"${toca[p] ? ` title="${esc(toca[p])}"` : ''}>${n}</button>`).join('')}</div>
+            <button class="reg-b google" data-a="ia-generar">✨ Generar con IA</button></div>
           ${Object.values(toca).length ? `<div class="reg-nota">🔴 ${esc(Object.values(toca).join(' '))}</div>` : ''}
           <div class="ia-cuando"></div>
           <div class="ia-caja vacia">Cargando…</div>
-          <div class="fila"><button class="reg-b google" data-a="ia-generar">✨ Generar con IA</button><button class="reg-b" data-a="ia-leer">🔊 Escuchar</button></div>
+          <div class="fila"><button class="reg-b" data-a="ia-leer">🔊 Escuchar</button></div>
           <div class="reg-nota" style="margin-top:8px">La IA de Google lee tus números y tu diario de 5 minutos solo para escribirte cómo te ha ido.</div></div></details>`;
     cargarTextoIA();
   }
@@ -1125,6 +1128,7 @@ window.CuentaAmable = (() => {
     try {
       const r = await pedir('/diario?fecha=' + fechaDiario()); const j = r.ok ? await r.json() : {};
       diarioDatos = j.respuestas || {};
+      hechoAlCargar = diarioHecho(diarioDatos);   // si ya estaba hecho al abrirlo, no se vuelve a pedir el resumen
       pintarDiario(j.quien_soy_anterior);
     } catch (e) { caja.innerHTML = '<div class="reg-aviso">No se pudo abrir tu diario. Revisa la conexión.</div>'; }
   }
@@ -1138,7 +1142,20 @@ window.CuentaAmable = (() => {
     const din = caja.querySelectorAll('input[data-din]');
     if (din.length) diarioDatos.dinero = [...din].filter(x => x.checked).map(x => x.dataset.din);
   }
-  let diarioPendiente = false;
+  let diarioPendiente = false, hechoAlCargar = false;
+  const resumenPedido = {};
+  // El diario pasa a «hecho» → en cuanto está guardado, la IA escribe el resumen de ese día (una vez por día)
+  async function resumenAlTerminarDiario(fecha) {
+    if (resumenPedido[fecha]) return; resumenPedido[fecha] = true;
+    const m = () => diaCaja.querySelector('.diario-msg');
+    if (m()) m().textContent = '✨ Diario hecho: la IA está escribiendo tu resumen del día. Lo verás en «Resumen IA».';
+    try {
+      const r = await pedir('/resumen-ia', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ periodo: 'dia', hoy: fecha, rehacer: true }) });
+      const j = await r.json().catch(() => ({}));
+      if (j.texto) { if (m()) m().textContent = '✓ Tu resumen del día ya está escrito: míralo en «Resumen IA».'; }
+      else { resumenPedido[fecha] = false; if (m()) m().textContent = 'No se pudo escribir el resumen ahora. Lo puedes pedir en «Resumen IA».'; }
+    } catch (e) { resumenPedido[fecha] = false; }
+  }
   function guardarDiarioLuego() {
     const m = diaCaja.querySelector('.diario-msg'); if (m) m.textContent = 'Guardando…';
     clearTimeout(diarioT); diarioPendiente = true;
@@ -1146,6 +1163,7 @@ window.CuentaAmable = (() => {
       try {
         const r = await pedir('/diario', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fecha: fechaDiario(), respuestas: diarioDatos }) });
         if (m) m.textContent = r.ok ? '✓ Guardado' : 'No se pudo guardar. Revisa la conexión.';
+        if (r.ok && !hechoAlCargar && diarioHecho(diarioDatos)) resumenAlTerminarDiario(fechaDiario());
       } catch (e) { if (m) m.textContent = 'No se pudo guardar. Revisa la conexión.'; }
       finally { diarioPendiente = false; }
     }, 1200);
@@ -1304,7 +1322,7 @@ window.CuentaAmable = (() => {
       const elDia = ese === hoy ? 'hoy' : ese === dia(ayer) ? 'ayer' : 'el ' + fechaLarga(ese).toLowerCase();
       cuando = `<br>🕖 Escrito ${elDia} a las <b>${hora}</b>`;
     }
-    if (auto && periodo === 'dia') { const a = leerAuto(); if (a.auto) cuando += `<br>✨ Se escribe solo cada día a las ${esc(a.hora)}. Lo cambias en Ajustes.`; }
+    if (auto && periodo === 'dia') { const a = leerAuto(); if (a.auto) cuando += `<br>✨ Se escribe solo en cuanto marcas tu diario como hecho, y si no, a las ${esc(a.hora)}. La hora la cambias en Ajustes.`; }
     return que + cuando;
   }
   function pintarTextoIA(msg) {
