@@ -1354,9 +1354,9 @@ window.CuentaAmable = (() => {
     else if (periodo === 'dia') que = `📅 Resumen de hoy: <b>${esc(fechaLarga(hoy))}</b>`;
     else if (periodo === 'semana') {
       const d = new Date(h); d.setDate(h.getDate() - 6);
-      que = `📅 Resumen de la semana: <b>del ${d.getDate()}${d.getMonth() !== h.getMonth() ? ' de ' + MESES[d.getMonth()] : ''} al ${h.getDate()} de ${mes}</b>`;
+      que = `📅 Resumen de la semana: <b>del ${DIAS_SEM[d.getDay()]} ${d.getDate()}${d.getMonth() !== h.getMonth() ? ' de ' + MESES[d.getMonth()] : ''} al ${DIAS_SEM[h.getDay()]} ${h.getDate()} de ${mes}</b>`;
     }
-    else if (periodo === 'mes') que = `📅 Resumen del mes: <b>${mes} de ${h.getFullYear()}</b> (del 1 al ${h.getDate()})`;
+    else if (periodo === 'mes') { const d1 = new Date(h.getFullYear(), h.getMonth(), 1); que = `📅 Resumen del mes: <b>${mes} de ${h.getFullYear()}</b> (del ${DIAS_SEM[d1.getDay()]} 1 al ${DIAS_SEM[h.getDay()]} ${h.getDate()})`; }
     else if (periodo === 'trimestre') { const q = Math.floor(h.getMonth() / 3); que = `📅 Resumen del trimestre: <b>de ${MESES[q * 3]} a ${MESES[q * 3 + 2]} de ${h.getFullYear()}</b> (hasta hoy)`; }
     else que = `📅 Resumen del año: <b>${h.getFullYear()}</b> (hasta hoy)`;
     let cuando = '';
@@ -1368,6 +1368,8 @@ window.CuentaAmable = (() => {
       cuando = `<br>🕖 Escrito ${elDia} a las <b>${hora}</b>`;
     }
     if (auto && periodo === 'dia') { const a = leerAuto(); if (a.auto) cuando += `<br>✨ Se escribe solo en cuanto marcas tu diario como hecho, y si no, a las ${esc(a.hora)}. La hora la cambias en Ajustes.`; }
+    if (conTexto) cuando += auto ? '<br>📊 Hecho con los números de tus apps y con lo que escribiste en tu diario de 5 minutos.'
+      : '<br>📓 Hecho solo con lo que escribiste en tu diario de 5 minutos (sin los números de tus apps).';
     return que + cuando;
   }
   function pintarTextoIA(msg) {
@@ -1376,7 +1378,7 @@ window.CuentaAmable = (() => {
     if (!caja) return;
     if (msg) { caja.className = 'ia-caja vacia'; caja.textContent = msg; }
     else if (iaTexto) { caja.className = 'ia-caja'; caja.innerHTML = esc(iaTexto).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }   // títulos **…** en negrita
-    else { caja.className = 'ia-caja vacia'; caja.textContent = 'Pulsa «Generar con IA» y te escribo cómo ha ido tu resumen ' + NOMBRE_PERIODO[iaPeriodo] + ', a partir de los números de tus apps.'; }
+    else { caja.className = 'ia-caja vacia'; caja.textContent = 'Pulsa «Generar con IA» y te escribo tu resumen ' + NOMBRE_PERIODO[iaPeriodo] + ' a partir de los números de tus apps y de lo que escribiste en tu diario de 5 minutos.'; }
     if (btn) btn.textContent = iaTexto ? '↻ Volver a escribir' : '✨ Generar con IA';
     if (leer) leer.hidden = !iaTexto;
   }
