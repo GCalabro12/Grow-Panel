@@ -96,6 +96,8 @@ body.visor-abierto{overflow:hidden}
 .diario .opciones{display:flex;flex-wrap:wrap;gap:8px}
 .diario .opciones button{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 12px;font-size:14px;cursor:pointer}
 .diario .opciones button.on{background:#f59e0b;border-color:#d97706;color:#1c1300;font-weight:800}
+.diario .diario-fin{display:flex;justify-content:center;margin:22px 0 6px;padding-top:16px;border-top:1px solid var(--ln)}
+.diario .btn-diario-hecho{font-size:15.5px;padding:12px 22px;border-color:#16a34a;color:#15803d}
 .diario .chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
 .diario .chips label{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 12px;font-size:14px;cursor:pointer;user-select:none}
 .diario .chips input{position:absolute;opacity:0;pointer-events:none}
@@ -720,6 +722,9 @@ window.CuentaAmable = (() => {
   // Pregunta 2 (Gustavo, 9-11-2026): lo que ayudó a sentirse bien y las apps no miden; así el resumen ve qué se repite los días buenos
   const BIEN = [['dormir', '😴 Dormí bien'], ['gente', '👥 Tiempo con personas que quiero'], ['naturaleza', '🌳 Naturaleza o aire libre'], ['logro', '🏆 Logré algo que me importa'],
     ['calma', '🧘 Un momento de calma'], ['ayudar', '🤝 Ayudé a alguien'], ['disfrutar', '🎨 Hice algo que disfruto']];
+  // Pregunta del dinero (Gustavo, 11-11-2026): respuestas rápidas + hueco abierto
+  const DINERO = [['meta', '💼 Trabajé en Amable Meta'], ['apps', '📱 Trabajé en las apps'], ['delicioso', '🍲 Trabajé en Delicioso'], ['calella', '🏢 Trabajé en C. Calella SL']];
+  const diarioHecho = r => !!(r.hecho || (r.animo && (r.sapo || r.planificado)));
   const BIEN_ANTES = [['rutina_manana', 'Hice mi rutina matutina'], ['ejercicio', 'Hice ejercicio'], ['rutina_noche', 'Hice mi rutina nocturna']];   // diarios anteriores
   const ALINEADO = [['no', 'No'], ['medias', 'A medias'], ['si', 'Sí']];
   // «¿Quién soy?» ya empieza escrito con «Soy una persona que » (Gustavo, 8-11-2026): solo hay que seguir la frase
@@ -905,7 +910,7 @@ window.CuentaAmable = (() => {
   }
   function pintarDiario(anterior) {
     const caja = diaCaja.querySelector('.diario'); if (!caja) return;
-    const r = diarioDatos, bien = r.bien || [];
+    const r = diarioDatos, bien = r.bien || [], dinero = r.dinero || [];
     // 9-11-2026: ya no se copia la frase de otro día; solo sale escrito «Soy una persona que » (Gustavo)
     caja.innerHTML = `
       <div class="preg">1. ❤️ ¿Cómo te sentiste, con el día ya terminado?</div>
@@ -931,7 +936,11 @@ window.CuentaAmable = (() => {
       <div class="preg">8. 🧠 ¿Qué has aprendido? <span class="reg-nota">(opcional)</span></div>
       <div class="ayuda">Refuerza tu memoria a largo plazo; te dará ideas.</div>
       ${area('aprendido')}
-      <div class="preg">9. 🎯 Prepara tu calendario de mañana</div>
+      <div class="preg">9. 💶 ¿Qué has hecho hoy en relación al dinero?</div>
+      <div class="ayuda">Marca lo que corresponda o escríbelo con tus palabras.</div>
+      <div class="chips">${DINERO.map(([k, n]) => `<label><input type="checkbox" data-din="${k}"${dinero.includes(k) ? ' checked' : ''}>${n}</label>`).join('')}</div>
+      ${area('dinero_otro', 'Otra cosa: un cobro, una venta, un gasto, una propuesta…')}
+      <div class="preg">10. 🎯 Prepara tu calendario de mañana</div>
       <div class="paso-cal"><b>🐸 Ponle prioridad sapo al menos a una tarea importante de mañana</b>
         <div class="ayuda">En Amable Life, abre la tarea y elige «Prioridad alta (tarea rana)»: el 🐸 se pone solo al principio. Es la de 60 a 90 minutos: urgente o que te dé satisfacción.</div></div>
       <div class="paso-cal"><b>⭐ Ponle prioridad estrella a 2 tareas importantes de mañana</b>
@@ -941,7 +950,10 @@ window.CuentaAmable = (() => {
         <button type="button" data-a="diario-planificado" class="btn-hecho${r.planificado ? ' on' : ''}" aria-pressed="${r.planificado ? 'true' : 'false'}">${ICO_HECHO}${r.planificado ? 'Hecho' : 'Marcar como hecho'}</button>
       </div>
       ${r.sapo || r.otras_tareas ? '<div class="ayuda" style="margin-top:10px">Lo que escribiste aquí antes:</div>' + area('sapo', 'Mi tarea sapo de mañana…') + area('otras_tareas', 'Otras 2 tareas importantes…') : ''}
-      ${r.animo && (r.sapo || r.planificado) ? '<div class="final">🎉 ¡Muy bien! Que descanses. Mañana, a comerte el sapo y el día 🥳</div>' : ''}`;
+      <div class="diario-fin">
+        <button type="button" data-a="diario-hecho" class="btn-hecho btn-diario-hecho${r.hecho ? ' on' : ''}" aria-pressed="${r.hecho ? 'true' : 'false'}">${ICO_HECHO}${r.hecho ? 'Diario hecho' : 'Marcar el diario como hecho'}</button>
+      </div>
+      ${diarioHecho(r) ? '<div class="final">🎉 ¡Muy bien! Que descanses. Mañana, a comerte el sapo y el día 🥳</div>' : ''}`;
     cargarNumerosDiario(); marcarMics(); if (!modoVoz) ponerNotaMic();
   }
   async function cargarDiario() {
@@ -960,6 +972,8 @@ window.CuentaAmable = (() => {
     const marcas = caja.querySelectorAll('input[data-b]');   // si la pregunta 2 está escondida, se conserva lo que hubiera
     const viejas = (diarioDatos.bien || []).filter(k => !BIEN.some(x => x[0] === k));   // las de antes (rutinas) no se borran
     if (marcas.length) diarioDatos.bien = viejas.concat([...marcas].filter(x => x.checked).map(x => x.dataset.b));
+    const din = caja.querySelectorAll('input[data-din]');
+    if (din.length) diarioDatos.dinero = [...din].filter(x => x.checked).map(x => x.dataset.din);
   }
   let diarioPendiente = false;
   function guardarDiarioLuego() {
@@ -977,7 +991,7 @@ window.CuentaAmable = (() => {
     const t = e.target; if (t.matches && t.matches('textarea[data-d="quien_soy"]') && t.value === INICIO_SOY) setTimeout(() => { const n = t.value.length; t.setSelectionRange(n, n); }, 0);
   });
   diaCaja.addEventListener('input', e => { if (e.target.closest('.diario')) { leerFormDiario(); guardarDiarioLuego(); } });
-  diaCaja.addEventListener('change', e => { if (e.target.matches('.diario input[data-b]')) { leerFormDiario(); guardarDiarioLuego(); } });
+  diaCaja.addEventListener('change', e => { if (e.target.matches('.diario input[data-b], .diario input[data-din]')) { leerFormDiario(); guardarDiarioLuego(); } });
 
   // --- Pestaña «Diario» (Gustavo, 8-11-2026): diario de 5 minutos, diarios anteriores y resúmenes solo del diario ---
   const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -991,7 +1005,10 @@ window.CuentaAmable = (() => {
     return p('❤️ Cómo me sentí:', r.animo ? (ANIMOS.find(x => x[0] === r.animo) || [0, ''])[1] : '')
       + p('👍🏽 Qué fue bien:', bien) + p('👎🏽 Qué puede mejorar:', r.mejorar) + p('🔮 Quién soy:', r.quien_soy)
       + p('🔮 Viví alineado:', al + (r.porque ? (al ? ' — ' : '') + r.porque : '')) + p('🙏🏽 Agradezco:', r.agradecer)
-      + p('🧠 Aprendí:', r.aprendido) + p('🐸 Día siguiente:', r.planificado ? 'sapo y 2 estrellas puestos en el calendario' : '') + p('🎯 Tarea más importante para el día siguiente:', r.sapo) + p('🎯 Otras tareas:', r.otras_tareas)
+      + p('🧠 Aprendí:', r.aprendido)
+      + p('💶 Dinero:', [...(r.dinero || []).map(k => (DINERO.find(x => x[0] === k) || [k, k])[1]), r.dinero_otro].filter(Boolean).join(' · '))
+      + p('🐸 Día siguiente:', r.planificado ? 'sapo y 2 estrellas puestos en el calendario' : '') + p('🎯 Tarea más importante para el día siguiente:', r.sapo) + p('🎯 Otras tareas:', r.otras_tareas)
+      + p('✅', r.hecho ? 'Diario marcado como hecho' : '')
       || '<p class="reg-nota">Este día está vacío.</p>';
   }
   let diaLista = [], diaMas = false, dPeriodo = 'semana', dTexto = null, dPidiendo = false;
@@ -1324,7 +1341,7 @@ window.CuentaAmable = (() => {
       if (min < obj - c.recordar || min >= obj) return;
       guardarLS('growpanel.alarma_dia', hoy);
       // Si ya has escrito el diario de hoy, no suena
-      try { const r = await pedir('/diario?fecha=' + hoy); const j = r.ok ? await r.json() : {}; const d = j.respuestas || {}; if (d.animo && (d.sapo || d.planificado)) return; } catch (e) {}
+      try { const r = await pedir('/diario?fecha=' + hoy); const j = r.ok ? await r.json() : {}; const d = j.respuestas || {}; if (diarioHecho(d)) return; } catch (e) {}
       mostrarAlarma(false);
     } finally { revisando = false; }
   }
@@ -1364,6 +1381,11 @@ window.CuentaAmable = (() => {
     }
     else if (accion === 'ia-generar') { generarTextoIA(); return; }
     else if (accion === 'dia-num') { cargarNumerosDiario(true); return; }
+    else if (accion === 'diario-hecho') {
+      leerFormDiario();
+      diarioDatos.hecho = diarioDatos.hecho ? undefined : true;
+      pintarDiario(); guardarDiarioLuego(); return;
+    }
     else if (accion === 'diario-planificado') {
       leerFormDiario();
       diarioDatos.planificado = diarioDatos.planificado ? undefined : true;
