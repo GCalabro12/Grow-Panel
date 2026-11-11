@@ -1330,9 +1330,10 @@ window.CuentaAmable = (() => {
   }
 
   // --- Resumen en texto con IA (día, semana, mes, trimestre, año) ---
-  const PERIODOS_IA = { dia: 'Hoy', semana: 'Semana', mes: 'Mes', trimestre: 'Trimestre', anio: 'Año' };
-  const NOMBRE_PERIODO = { dia: 'de hoy', semana: 'de la semana', mes: 'del mes', trimestre: 'del trimestre', anio: 'del año' };
-  let iaPeriodo = 'dia', iaTexto = null, iaPidiendo = false, iaCreado = null;
+  // 12-11-2026: «Ayer» para oír el resumen del día anterior pasadas las 0:00 (antes de las 12 se abre «Ayer», como el diario)
+  const PERIODOS_IA = { ayer: 'Ayer', dia: 'Hoy', semana: 'Semana', mes: 'Mes', trimestre: 'Trimestre', anio: 'Año' };
+  const NOMBRE_PERIODO = { ayer: 'de ayer', dia: 'de hoy', semana: 'de la semana', mes: 'del mes', trimestre: 'del trimestre', anio: 'del año' };
+  let iaPeriodo = new Date().getHours() < 12 ? 'ayer' : 'dia', iaTexto = null, iaPidiendo = false, iaCreado = null;
   // Días en que «toca» un resumen: domingo (semana), último día del mes, del trimestre y del año
   function periodosQueTocan() {
     const h = new Date(), man = new Date(h); man.setDate(h.getDate() + 1);
@@ -1344,10 +1345,13 @@ window.CuentaAmable = (() => {
     return t;
   }
   // Debajo de las pestañas: de qué día(s) es el resumen y a qué hora se escribió (Gustavo, 11-11-2026)
+  const fechaAyer = () => { const d = new Date(); d.setDate(d.getDate() - 1); return dia(d); };
+  const pedidoIA = p => p === 'ayer' ? { periodo: 'dia', hoy: fechaAyer() } : { periodo: p, hoy: dia(new Date()) };
   function cuandoIA(periodo, creado, conTexto, auto) {
     const h = new Date(), hoy = dia(h), mes = MESES[h.getMonth()];
     let que;
-    if (periodo === 'dia') que = `📅 Resumen de hoy: <b>${esc(fechaLarga(hoy))}</b>`;
+    if (periodo === 'ayer') que = `📅 Resumen de ayer: <b>${esc(fechaLarga(fechaAyer()))}</b>`;
+    else if (periodo === 'dia') que = `📅 Resumen de hoy: <b>${esc(fechaLarga(hoy))}</b>`;
     else if (periodo === 'semana') {
       const d = new Date(h); d.setDate(h.getDate() - 6);
       que = `📅 Resumen de la semana: <b>del ${d.getDate()}${d.getMonth() !== h.getMonth() ? ' de ' + MESES[d.getMonth()] : ''} al ${h.getDate()} de ${mes}</b>`;
@@ -1379,7 +1383,7 @@ window.CuentaAmable = (() => {
   async function cargarTextoIA() {
     iaTexto = null; iaCreado = null; pintarTextoIA('Cargando…');
     try {
-      const r = await pedir(`/resumen-ia?periodo=${iaPeriodo}&hoy=${dia(new Date())}`);
+      const q = pedidoIA(iaPeriodo), r = await pedir(`/resumen-ia?periodo=${q.periodo}&hoy=${q.hoy}`);
       const j = r.ok ? await r.json() : {};
       iaTexto = j.texto || null; iaCreado = j.creado || null;
     } catch (e) {}
@@ -1391,7 +1395,7 @@ window.CuentaAmable = (() => {
     pintarTextoIA('✨ Escribiendo tu resumen ' + NOMBRE_PERIODO[iaPeriodo] + '…');
     try {
       const r = await pedir('/resumen-ia', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ periodo: iaPeriodo, hoy: dia(new Date()), rehacer: !!iaTexto }) });
+        body: JSON.stringify({ ...pedidoIA(iaPeriodo), rehacer: !!iaTexto }) });
       const j = await r.json().catch(() => ({}));
       if (j.texto) { iaTexto = j.texto; iaCreado = j.creado || new Date().toISOString().slice(0, 19).replace('T', ' '); pintarTextoIA(); }
       else pintarTextoIA(j.error || 'No se pudo escribir el resumen. Inténtalo otra vez.');
