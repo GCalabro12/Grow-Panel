@@ -141,6 +141,16 @@ body.visor-abierto{overflow:hidden}
 .reg-logo{width:38px;height:38px;border-radius:10px;background:var(--c,#1f2937);display:inline-flex;align-items:center;justify-content:center;flex:none;overflow:hidden}
 .reg-logo img{width:100%;height:100%;object-fit:cover}
 .reg-app-cab b{display:block}
+.reg-app-cab[data-a="plegar-app"]{cursor:pointer;user-select:none;border-radius:10px}
+.reg-app-cab[data-a="plegar-app"]:focus-visible{outline:2px solid var(--ac,#f59e0b);outline-offset:3px}
+.reg-app-cab .asa-datos{margin-left:auto;flex:none;width:28px;height:30px;display:grid;place-items:center;border:0;padding:0;border-radius:6px;background:transparent;color:var(--mut);cursor:grab;touch-action:none}
+.reg-app-cab .asa-datos:hover,.reg-app-cab .asa-datos:focus-visible{background:var(--fila);color:var(--tx);outline:none}
+.reg-app-cab .asa-datos+.chev{margin-left:0}
+.reg-app.arrastrando{opacity:.55;border-style:dashed}
+.reg-app-cab .chev{margin-left:auto;flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:var(--mut);transition:transform .2s}
+.reg-app-cab:hover .chev{background:var(--fila);color:var(--tx)}
+.reg-app.plegada .chev{transform:rotate(-90deg)}
+.reg-app.plegada .reg-tabla tr:not(:first-child),.reg-app.plegada .reg-avisos{display:none}
 .reg-tabla{width:auto;min-width:min(100%,380px);border-collapse:separate;border-spacing:0 6px;font-size:14px;margin-top:4px}
 .reg-tabla th.th-abrir{text-align:left;padding-left:0}
 .abrir-app{background:#16a34a;color:#fff;border:0;border-radius:999px;padding:7px 14px;font:inherit;font-size:13.5px;font-weight:800;cursor:pointer;white-space:nowrap}
@@ -693,6 +703,9 @@ window.CuentaAmable = (() => {
     const ORDEN = ['amable-meta', 'amable-fit', 'amable-life', 'amable-pc', 'amable-flow'];
     const pos = a => { const i = suOrden.indexOf(a.id); if (i >= 0) return i; const n = ORDEN.indexOf(a.registro); return 100 + (n < 0 ? 99 : n); };
     lista.sort((x, y) => pos(x) - pos(y) || x.nombre.localeCompare(y.nombre));
+    let plegadas = []; try { plegadas = JSON.parse(localStorage.getItem('growpanel.plegadas')) || []; } catch (e) {}
+    const ASA = a => a.id ? `<button type="button" class="asa-datos" data-a="mover-app" title="Arrastra para cambiarla de sitio" aria-label="Mover ${esc(a.nombre)}: arrastra o usa las flechas"><svg viewBox="0 0 24 24" width="14" height="20" fill="currentColor" aria-hidden="true"><circle cx="9" cy="5" r="1.8"/><circle cx="15" cy="5" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="19" r="1.8"/><circle cx="15" cy="19" r="1.8"/></svg></button>` : '';
+    const CHEV = '<span class="chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
     const boton = a => a.id && !a.sinAbrir ? `<button type="button" class="abrir-app" data-a="abrir-app" data-id="${esc(a.id)}">Abrir app</button>` : '';
     const tarjetas = lista.map(a => {
       const datos = porApp[a.registro], t = ultimo[a.registro], c = color(a.color), ac = color(a.acento) || c;
@@ -701,8 +714,9 @@ window.CuentaAmable = (() => {
         ? `<table class="reg-tabla"><tr><th class="th-abrir">${boton(a)}</th><th>Hoy</th><th>7 días</th></tr>${Object.entries(datos).map(([k, d]) =>
             `<tr><td>${esc(nombreDato(k, a.registro))}</td><td>${esc(d.hoyTxt ?? (d.hoy === null ? '—' : num(d.hoy)))}</td><td>${esc(d.semanaTxt ?? num(d.semana))}</td></tr>`).join('')}</table>`
         : `<div class="reg-sin">${boton(a)}<span class="reg-nota" style="margin:0">${fallo ? 'No se han podido leer sus números.' : 'Aún sin números estos 7 días: ábrela una vez.'}</span></div>`;
-      return `<div class="reg-app" data-id="${esc(a.id || '')}" style="${ac ? `--ac:${ac};` : ''}${c ? `--c:${c}` : ''}"><div class="reg-app-cab"><span class="reg-logo">${logo(a)}</span>
-        <span><b>${esc(a.nombre)}</b>${cuando ? `<span class="reg-nota" style="margin:0">${esc(cuando)}</span>` : ''}</span></div>
+      const plegada = datos && a.id && plegadas.includes(a.id);
+      return `<div class="reg-app${plegada ? ' plegada' : ''}" data-id="${esc(a.id || '')}" style="${ac ? `--ac:${ac};` : ''}${c ? `--c:${c}` : ''}"><div class="reg-app-cab"${datos ? ` data-a="plegar-app" role="button" tabindex="0" aria-expanded="${plegada ? 'false' : 'true'}" title="Plegar o desplegar"` : ''}><span class="reg-logo">${logo(a)}</span>
+        <span><b>${esc(a.nombre)}</b>${cuando ? `<span class="reg-nota" style="margin:0">${esc(cuando)}</span>` : ''}</span>${ASA(a)}${datos ? CHEV : ''}</div>
         <div class="reg-avisos"></div>${cuerpo}</div>`;
     }).join('');
     return (fallo ? '<div class="reg-aviso" style="grid-column:1/-1">No se pudieron leer los números de tus apps. Revisa la conexión y pulsa ↻ Actualizar datos.</div>' : '')
@@ -740,6 +754,62 @@ window.CuentaAmable = (() => {
     });
   }
   panelApps().addEventListener('grow-panel-listo', ponerAvisosApps);
+  // Plegar una app pliega las de su misma fila (Gustavo, 11-11-2026): en el móvil cada una va en su fila
+  function plegarApps(caja) {
+    if (!caja) return;
+    const plegar = !caja.classList.contains('plegada'), arriba = caja.offsetTop;
+    const fila = [...datosCaja.querySelectorAll('.reg-app')].filter(x => Math.abs(x.offsetTop - arriba) < 4 && x.querySelector('[data-a="plegar-app"]'));
+    let plegadas = []; try { plegadas = JSON.parse(localStorage.getItem('growpanel.plegadas')) || []; } catch (e) {}
+    fila.forEach(x => {
+      x.classList.toggle('plegada', plegar);
+      const cab = x.querySelector('[data-a="plegar-app"]'); if (cab) cab.setAttribute('aria-expanded', plegar ? 'false' : 'true');
+      const id = x.dataset.id; if (!id) return;
+      plegadas = plegadas.filter(k => k !== id); if (plegar) plegadas.push(id);
+    });
+    try { localStorage.setItem('growpanel.plegadas', JSON.stringify(plegadas)); } catch (e) {}
+  }
+  datosCaja.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-a="plegar-app"]')) { e.preventDefault(); plegarApps(e.target.closest('.reg-app')); }
+    // Con el teclado: flechas sobre los 6 puntitos
+    if (e.target.matches('.asa-datos') && /^Arrow(Up|Down|Left|Right)$/.test(e.key)) {
+      e.preventDefault();
+      const caja = e.target.closest('.reg-app'), antes = /Up|Left/.test(e.key);
+      const otra = antes ? caja.previousElementSibling : caja.nextElementSibling;
+      if (otra && otra.matches('.reg-app')) { if (antes) otra.before(caja); else otra.after(caja); guardarOrdenDatos(); e.target.focus(); }
+    }
+  });
+  // Los 6 puntitos: arrastrar para cambiar el orden (ratón y dedo). Es el mismo orden que el de las tarjetas de antes
+  function guardarOrdenDatos() {
+    const vistas = [...datosCaja.querySelectorAll('.reg-app[data-id]')].map(x => x.dataset.id).filter(Boolean);
+    let antes = []; try { antes = JSON.parse(localStorage.getItem('growpanel.orden')) || []; } catch (e) {}
+    try { localStorage.setItem('growpanel.orden', JSON.stringify(vistas.concat(antes.filter(k => !vistas.includes(k))))); } catch (e) {}
+  }
+  datosCaja.addEventListener('pointerdown', e => {
+    const asa = e.target.closest('.asa-datos'); if (!asa || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    const caja = asa.closest('.reg-app'); if (!caja) return;
+    e.preventDefault();
+    caja.classList.add('arrastrando');
+    // Se escucha en toda la ventana: al cambiar la tarjeta de sitio el navegador suelta la «captura» del puntero
+    let movida = false, ultima = null;
+    const mover = ev => {
+      if (ev.pointerId !== e.pointerId) return;
+      const bajo = document.elementFromPoint(ev.clientX, ev.clientY);
+      const otra = bajo && bajo.closest('#datos-caja .reg-app');
+      if (!otra || otra === caja) { if (!otra) ultima = null; return; }
+      if (otra === ultima) return;   // sin ir y venir entre dos tarjetas de distinto tamaño
+      ultima = otra;
+      const todas = [...caja.parentNode.children];
+      if (todas.indexOf(otra) < todas.indexOf(caja)) otra.before(caja); else otra.after(caja);
+      movida = true;
+    };
+    const soltar = ev => {
+      if (ev.pointerId !== e.pointerId) return;
+      removeEventListener('pointermove', mover); removeEventListener('pointerup', soltar); removeEventListener('pointercancel', soltar);
+      caja.classList.remove('arrastrando');
+      if (movida) { guardarOrdenDatos(); const p = panelApps(); if (p) p.cargar(); }
+    };
+    addEventListener('pointermove', mover); addEventListener('pointerup', soltar); addEventListener('pointercancel', soltar);
+  });
   // «Abrir app»: igual que tocar su tarjeta (se une a tu cuenta y se abre como siempre)
   async function abrirApp(id) {
     const panel = panelApps(), sr = panel && panel.shadowRoot;
@@ -1476,6 +1546,8 @@ window.CuentaAmable = (() => {
     const a = e.target.closest('[data-a]'); if (!a) return;
     const accion = a.dataset.a, caja = e.currentTarget, msg = () => ajCaja.querySelector('#reg-msg');
     if (accion === 'abrir-app') { abrirApp(a.dataset.id); return; }
+    if (accion === 'plegar-app') { plegarApps(a.closest('.reg-app')); return; }
+    if (accion === 'mover-app') return;   // los 6 puntitos: se arrastran (no pliegan)
     if (accion === 'actualizar' && caja === datosCaja) { const p = panelApps(); if (p) p.cargar(); }
     if (accion === 'entrar' || accion === 'cambiar') {
       try { await window.CuentaAmable.entrar(); }
