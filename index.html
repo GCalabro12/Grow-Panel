@@ -166,6 +166,17 @@ body.visor-abierto{overflow:hidden}
 .abrir-app:hover{background:#15803d}
 .reg-sin{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;align-self:start}
 .reg-avisos:empty{margin:0}
+.guia-sync{flex-basis:100%;margin-top:4px}
+.guia-sync summary{cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;color:var(--ac,#7c3aed);padding:6px 0;list-style:none}
+.guia-sync summary::-webkit-details-marker{display:none}
+.guia-sync summary::before{content:"ℹ️";font-size:15px}
+.guia-sync summary:hover{text-decoration:underline}
+.guia-sync-in{background:var(--fila);border-radius:12px;padding:12px 14px;margin-top:6px;font-size:13.5px;line-height:1.5}
+.guia-sync-in ol{margin:0;padding-left:20px}
+.guia-sync-in li{margin:0 0 8px}
+.guia-sync-in p{margin:0 0 10px}
+.guia-sync-in .nota-sync{margin:4px 0 0;color:var(--mut)}
+.guia-sync-in .aviso-sync{color:#b45309;font-weight:600}
 /* Gustavo, 11-11-2026: en cada fila, «Abrir app · Hoy · 7 días» de todas las apps a la misma altura */
 @supports (grid-template-rows:subgrid){#datos-caja .reg-app{display:grid;grid-row:span 3;grid-template-rows:subgrid;row-gap:0;align-content:start}#datos-caja .reg-app>*{align-self:start}}
 .reg-avisos{font-size:13.5px;font-weight:600;color:#b45309;margin:2px 0 6px;line-height:1.4}
@@ -551,7 +562,7 @@ window.CuentaAmable = (() => {
   async function listaApps() {
     try {
       const reg = await (await fetch('apps.json?t=' + Date.now(), { cache: 'no-store' })).json();
-      return (reg.apps || []).map(a => ({ id: a.id, registro: a.registro || '', nombre: a.nombre, url: a.url || '', oculta: !!a.oculta,
+      return (reg.apps || []).map(a => ({ id: a.id, registro: a.registro || '', nombre: a.nombre, url: a.url || '', oculta: !!a.oculta, activo: !!a.registro_activo,
         icono: a.icono || '', color: a.color || '', acento: a.acento || '' }));
     } catch (e) { return []; }
   }
@@ -721,6 +732,26 @@ window.CuentaAmable = (() => {
     let plegadas = []; try { plegadas = JSON.parse(localStorage.getItem('growpanel.plegadas')) || []; } catch (e) {}
     const ASA = a => a.id ? `<button type="button" class="asa-datos" data-a="mover-app" title="Arrastra para cambiarla de sitio" aria-label="Mover ${esc(a.nombre)}: arrastra o usa las flechas"><svg viewBox="0 0 24 24" width="14" height="20" fill="currentColor" aria-hidden="true"><circle cx="9" cy="5" r="1.8"/><circle cx="15" cy="5" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="19" r="1.8"/><circle cx="15" cy="19" r="1.8"/></svg></button>` : '';
     const CHEV = '<span class="chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
+    const QUE_HACER = { 'amable-sleep': 'graba una noche: se envían tus horas de sueño y tus ronquidos',
+      'amable-fit': 'haz una sesión de ejercicio: se envían tus minutos, tu racha y tus sesiones',
+      'amable-flow': 'haz una práctica de presencia: se envían tus minutos y tus prácticas',
+      'amable-pc': 'déjala abierta en el ordenador: se envían tus pasos, tus pausas de la vista y tu concentración',
+      'amable-life': 'marca tareas y hábitos: se envían tus tareas hechas, pendientes y tus hábitos',
+      'amable-meta': 'registra tu meta del día: se envían tus días registrados y tus metas sencillas' };
+    const guia = a => {
+      const n = esc(a.nombre), que = QUE_HACER[a.registro] || 'úsala como siempre: cada vez que cambian tus números, los envía sola';
+      return `<details class="guia-sync"><summary>¿Cómo sincronizar ${n} con Grow Panel?</summary><div class="guia-sync-in">
+        ${a.activo ? '' : `<p class="aviso-sync">⏳ ${n} todavía no envía sus números a Grow Panel: lo estamos preparando. Cuando esté lista, solo tendrás que seguir estos pasos (y si ya los hiciste, no hará falta repetirlos).</p>`}
+        <ol>
+          <li><b>Entra con tu cuenta de Google en Grow Panel.</b> Si arriba del todo sale «Aún no has entrado con una cuenta», pulsa «Entrar con Google». Así ves lo mismo en el móvil y en el PC.</li>
+          <li><b>Pulsa «Abrir app» en esta tarjeta.</b> ${n} se abre con un código para unirse a tu cuenta (vale 15 minutos). Ábrela siempre desde aquí la primera vez.</li>
+          <li><b>Dentro de ${n} saldrá «¿Unir ${n} con Grow Panel?».</b> Pulsa «Sí, unir». Si la app te pide entrar, entra con el mismo Gmail que usas en Grow Panel.</li>
+          <li><b>Úsala como siempre:</b> ${esc(que)}. Solo se envían números, nunca textos, y solo los ves tú.</li>
+          <li><b>Vuelve a Grow Panel y pulsa «↻ Actualizar datos»</b> (arriba, en la franja naranja). Aparecerá su tabla con Hoy y 7 días.</li>
+        </ol>
+        <p class="nota-sync"><b>Si no aparece nada:</b> mira en Ajustes › Tus datos que «Compartir los registros de mis apps» esté activado, vuelve a abrir ${n} desde esta tarjeta y espera un minuto. Si sigue sin salir, escríbenos desde Ajustes › Ayuda y soporte.</p>
+      </div></details>`;
+    };
     const boton = a => a.id && !a.sinAbrir ? `<button type="button" class="abrir-app" data-a="abrir-app" data-id="${esc(a.id)}">Abrir app</button>` : '';
     const tarjetas = lista.map(a => {
       const datos = porApp[a.registro], t = ultimo[a.registro], c = color(a.color), ac = color(a.acento) || c;
@@ -728,7 +759,7 @@ window.CuentaAmable = (() => {
       const cuerpo = datos
         ? `<table class="reg-tabla"><tr><th class="th-abrir">${boton(a)}</th><th>Hoy</th><th>7 días</th></tr>${Object.entries(datos).map(([k, d]) =>
             `<tr><td>${esc(nombreDato(k, a.registro))}</td><td>${esc(d.hoyTxt ?? (d.hoy === null ? '—' : num(d.hoy)))}</td><td>${esc(d.semanaTxt ?? num(d.semana))}</td></tr>`).join('')}</table>`
-        : `<div class="reg-sin">${boton(a)}<span class="reg-nota" style="margin:0">${fallo ? 'No se han podido leer sus números.' : 'Aún sin números estos 7 días: ábrela una vez.'}</span></div>`;
+        : `<div class="reg-sin">${boton(a)}<span class="reg-nota" style="margin:0">${fallo ? 'No se han podido leer sus números.' : 'Aún sin números estos 7 días.'}</span>${fallo || !a.id || a.sinAbrir ? '' : guia(a)}</div>`;
       const plegada = datos && a.id && plegadas.includes(a.id);
       return `<div class="reg-app${plegada ? ' plegada' : ''}" data-id="${esc(a.id || '')}" style="${ac ? `--ac:${ac};` : ''}${c ? `--c:${c}` : ''}"><div class="reg-app-cab"${datos ? ` data-a="plegar-app" role="button" tabindex="0" aria-expanded="${plegada ? 'false' : 'true'}" title="Plegar o desplegar"` : ''}><span class="reg-logo">${logo(a)}</span>
         <b class="reg-nombre">${esc(a.nombre)}</b>${ASA(a)}${datos ? CHEV : ''}${cuando ? `<span class="reg-cuando">${esc(cuando)}</span>` : ''}</div>
