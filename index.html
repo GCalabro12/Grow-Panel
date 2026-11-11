@@ -224,6 +224,10 @@ a.reg-b{text-decoration:none;display:inline-block}
 .dias-sem button.on{background:#f59e0b;border-color:#d97706;color:#1c1300}
 #tarjeta-auto select,#tarjeta-auto input[type=time]{font:inherit;font-size:15px;padding:7px 10px;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx)}
 #tarjeta-auto .fila>span:first-child{min-width:150px}
+.franja-aj{background:var(--bg);border:1px solid var(--ln);border-radius:12px;padding:14px 16px;margin:12px 0 0}
+.franja-aj h4{margin:0 0 12px;font-size:15px;font-weight:800}
+.franja-aj .opcion-aj{margin-top:12px;padding-top:12px;border-top:1px solid var(--ln)}
+.franja-aj .fila{gap:10px 14px}
 .auto-explica{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fef3c7;color:#78350f}
 .alarma-full{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom));background:radial-gradient(circle at 50% 30%,#fcd34d,#f59e0b 45%,#b45309);color:#1c1300;text-align:center;overflow:auto}
 .alarma-full .caja{max-width:440px;width:100%}
@@ -1370,9 +1374,9 @@ window.CuentaAmable = (() => {
     const temaH = `<div class="tarjeta"><h3>🎨 Tema</h3><div class="seg">${[['auto', 'Automático'], ['claro', 'Claro'], ['oscuro', 'Oscuro']]
       .map(([v, n]) => `<button type="button" data-a="tema" data-tema="${v}" class="${v === tema ? 'on' : ''}">${n}</button>`).join('')}</div></div>`;
     const instalada = ['standalone', 'minimal-ui', 'window-controls-overlay', 'fullscreen'].some(m => matchMedia(`(display-mode: ${m})`).matches) || navigator.standalone === true;
-    const inst = `<div class="tarjeta"><h3>Instalar Grow Panel</h3><div class="reg-nota" style="margin-bottom:${!instalada && window.gpAviso ? '10px' : '0'}">${instalada ? 'Ya la tienes instalada: estás usando Grow Panel como app, en su propia ventana.'
-      : window.gpAviso ? 'Ponla en la pantalla de inicio, como una app.' : 'Desde el menú del navegador: «Instalar app» o «Añadir a pantalla de inicio».'}</div>
-      ${!instalada && window.gpAviso ? '<button class="reg-b" data-a="instalar">Instalar</button>' : ''}</div>`;
+    // Si ya la usas como app instalada, no sale nada; si estás en el navegador, sale la primera (Gustavo, 11-11-2026)
+    const inst = instalada ? '' : `<div class="tarjeta"><h3>📲 Instala Grow Panel como app</h3><div class="reg-nota" style="margin-bottom:${window.gpAviso ? '10px' : '0'}">Ahora lo estás usando en el navegador. Instalado se abre en su propia ventana, como una app, y la alarma del diario funciona mejor. ${window.gpAviso ? '' : 'Desde el menú del navegador: «Instalar app» o «Añadir a pantalla de inicio».'}</div>
+      ${window.gpAviso ? '<button class="reg-b" data-a="instalar">Instalar</button>' : ''}</div>`;
     const sop = `Hola, os escribo por Grow Panel (${V}). Me pasa esto: `;
     const ayuda = `<div class="tarjeta"><h3>Ayuda y soporte</h3><div class="reg-nota">¿Algo no funciona o tienes una duda? Escríbenos y te ayudamos.</div>
       <div class="fila"><a class="reg-b" href="mailto:info@practicaintegral.club?subject=${encodeURIComponent('Grow Panel · Ayuda')}&body=${encodeURIComponent(sop)}">Email</a>
@@ -1385,7 +1389,7 @@ window.CuentaAmable = (() => {
       <div class="reg-nota">Tus apps nunca mandan textos: solo números (pasos, minutos, tareas…). Tu diario de 5 minutos lo escribes tú en Grow Panel. Todo solo lo ves tú, y «Borrar mis datos» lo borra todo. Vale para todas tus apps Amable, en el móvil y en el PC.</div>
       <div class="reg-nota" id="reg-msg"></div>${borrarHTML()}${clavePanel(clave)}</details>`;
     // (6-11-2026, Gustavo: sin hora de cierre ni aviso diario: el resumen está siempre al día con «Actualizar datos»)
-    ajCaja.innerHTML = temaH + cuenta + autoHTML() + inst + ayuda + datos
+    ajCaja.innerHTML = inst + temaH + cuenta + autoHTML() + ayuda + datos
       + `<div class="reg-nota" style="text-align:center">Grow Panel ${esc(V)}</div>`;
     refrescarHora(ajCaja, hora).then(() => pintarAuto());
     pintarAvisoPush();
@@ -1406,23 +1410,33 @@ window.CuentaAmable = (() => {
     const c = leerAuto();
     let abierta = true; try { abierta = localStorage.getItem('growpanel.sec.aj-auto') !== '0'; } catch (e) {}
     return `<details class="tarjeta plegable" id="tarjeta-auto" data-sec="aj-auto"${abierta ? ' open' : ''}><summary><h3>⏰ Resumen automático y recordatorio</h3></summary>
-      <label class="interruptor"><input type="checkbox" id="auto-on" role="switch"${c.auto ? ' checked' : ''}><b>Que la IA me escriba sola el resumen del día</b></label>
-      <div class="reg-nota" style="margin:6px 0 0">No es tu diario (ese lo escribes tú en «Mi diario»). Es el resumen de «Resumen IA»: la IA lo escribe con los números de tus apps y lo que pusiste en tu diario.</div>
-      <div class="auto-cuerpo"${c.auto ? '' : ' hidden'}>
-        <div class="reg-nota" style="margin:12px 0 6px">¿Qué días?</div>
-        <div class="dias-sem">${DIAS_CORTOS.map(([v, n, l]) => `<button type="button" data-a="auto-dia" data-d="${v}" title="${l}" aria-pressed="${c.dias.includes(v)}" class="${c.dias.includes(v) ? 'on' : ''}">${n}</button>`).join('')}</div>
-        <div class="fila" style="margin-top:12px"><span>¿A qué hora?</span><input type="time" id="auto-hora" value="${esc(c.hora)}" aria-label="Hora del resumen automático"></div>
-        <div class="fila" style="margin-top:10px"><span>📓 Recordarme el diario</span><select id="auto-recordar" aria-label="Cuándo recordarte el diario">${RECORDAR.map(([v, n]) => `<option value="${v}"${v === c.recordar ? ' selected' : ''}>${n}</option>`).join('')}</select></div>
-        <div class="auto-explica reg-nota">${esc(textoAuto(c))}</div>
+      <section class="franja-aj">
+        <h4>✨ Resumen IA del día</h4>
+        <label class="interruptor"><input type="checkbox" id="auto-on" role="switch"${c.auto ? ' checked' : ''}><b>Que la IA me escriba sola el resumen del día</b></label>
+        <div class="reg-nota" style="margin:0">No es tu diario (ese lo escribes tú en «Mi diario»). Es el resumen de «Resumen IA»: la IA lo escribe con los números de tus apps y lo que pusiste en tu diario.</div>
+        <div class="auto-cuerpo"${c.auto ? '' : ' hidden'}>
+          <div class="opcion-aj"><div class="reg-nota" style="margin:0 0 8px">¿Qué días?</div>
+            <div class="dias-sem">${DIAS_CORTOS.map(([v, n, l]) => `<button type="button" data-a="auto-dia" data-d="${v}" title="${l}" aria-pressed="${c.dias.includes(v)}" class="${c.dias.includes(v) ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+          <div class="opcion-aj fila"><span>¿A qué hora?</span><input type="time" id="auto-hora" value="${esc(c.hora)}" aria-label="Hora del resumen automático"></div>
+        </div>
+      </section>
+      <section class="franja-aj auto-cuerpo"${c.auto ? '' : ' hidden'}>
+        <h4>📓 Recordatorio del diario</h4>
+        <div class="fila"><span>Recordármelo</span><select id="auto-recordar" aria-label="Cuándo recordarte el diario">${RECORDAR.map(([v, n]) => `<option value="${v}"${v === c.recordar ? ' selected' : ''}>${n}</option>`).join('')}</select></div>
         <div class="recordar-cuerpo"${c.recordar ? '' : ' hidden'}>
-          <label class="interruptor" style="margin-top:12px"><input type="checkbox" id="alarma-aqui" role="switch"${alarmaAqui() ? ' checked' : ''}><b>Alarma a pantalla completa, con sonido, en este aparato</b></label>
-          <div class="reg-nota">Suena mientras Grow Panel esté abierto, aunque esté detrás de otras ventanas.</div>
-          <label class="interruptor" style="margin-top:8px"><input type="checkbox" id="aviso-push" role="switch"><b>Avisarme también con Grow Panel cerrado</b></label>
-          <div class="reg-nota">Te llega un aviso al móvil o al PC. Al tocarlo se abre Grow Panel con la alarma. Se activa en cada aparato.</div>
-          <div class="fila"><button class="reg-b" data-a="probar-alarma">🔔 Probar la alarma</button><button class="reg-b" data-a="probar-aviso">📲 Probar el aviso con Grow Panel cerrado</button></div>
+          <div class="opcion-aj">
+            <label class="interruptor" style="margin:0 0 4px"><input type="checkbox" id="alarma-aqui" role="switch"${alarmaAqui() ? ' checked' : ''}><b>Alarma a pantalla completa, con sonido, en este aparato</b></label>
+            <div class="reg-nota" style="margin:0">Suena mientras Grow Panel esté abierto, aunque esté detrás de otras ventanas.</div>
+          </div>
+          <div class="opcion-aj">
+            <label class="interruptor" style="margin:0 0 4px"><input type="checkbox" id="aviso-push" role="switch"><b>Avisarme también con Grow Panel cerrado</b></label>
+            <div class="reg-nota" style="margin:0">Te llega un aviso al móvil o al PC. Al tocarlo se abre Grow Panel con la alarma. Se activa en cada aparato.</div>
+          </div>
+          <div class="opcion-aj fila"><button class="reg-b" data-a="probar-alarma">🔔 Probar la alarma</button><button class="reg-b" data-a="probar-aviso">📲 Probar el aviso con Grow Panel cerrado</button></div>
           <div class="reg-nota aviso-msg" style="margin:6px 0 0"></div>
         </div>
-      </div>
+      </section>
+      <div class="auto-explica reg-nota auto-cuerpo"${c.auto ? '' : ' hidden'}>${esc(textoAuto(c))}</div>
       <div class="reg-nota auto-msg" style="margin:8px 0 0"></div></details>`;
   }
   // Pone en la tarjeta lo que hay guardado en internet (si no lo estás tocando)
@@ -1430,7 +1444,7 @@ window.CuentaAmable = (() => {
     const tj = ajCaja.querySelector('#tarjeta-auto'); if (!tj || tj.contains(document.activeElement) && document.activeElement.tagName !== 'BUTTON') return;
     const c = leerAuto();
     tj.querySelector('#auto-on').checked = c.auto;
-    tj.querySelector('.auto-cuerpo').hidden = !c.auto;
+    tj.querySelectorAll('.auto-cuerpo').forEach(x => { x.hidden = !c.auto; });
     tj.querySelectorAll('[data-a="auto-dia"]').forEach(b => { const on = c.dias.includes(b.dataset.d); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
     tj.querySelector('#auto-hora').value = c.hora;
     tj.querySelector('#auto-recordar').value = String(c.recordar);
