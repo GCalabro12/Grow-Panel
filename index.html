@@ -913,8 +913,13 @@ window.CuentaAmable = (() => {
           <div class="ia-cuando"></div>
           <div class="ia-caja vacia">Cargando…</div>
           <div class="fila"><button class="reg-b" data-a="ia-leer">🔊 Escuchar</button></div>
-          <div class="reg-nota" style="margin-top:8px">La IA de Google lee tus números y tu diario de 5 minutos solo para escribirte cómo te ha ido.</div></div></details>`;
+          <div class="reg-nota" style="margin-top:8px">La IA de Google lee tus números y tu diario de 5 minutos solo para escribirte cómo te ha ido.</div></div></details>`
+      + `<details class="sec" data-sec="hist"${abierta('hist') ? ' open' : ''}><summary>📚 Resúmenes anteriores</summary><div class="sec-cuerpo">
+          <div class="seg periodos">${Object.entries(PERIODOS_HIST).map(([p, n]) => `<button type="button" data-a="hist-periodo" data-p="${p}" class="${p === histPeriodo ? 'on' : ''}">${n}</button>`).join('')}</div>
+          <div class="hist-lista"><div class="reg-nota">Cargando…</div></div>
+          <div class="reg-nota" style="margin-top:8px">Se guardan los que se han escrito: los del día (solos o al terminar tu diario) y los que pides con «Generar con IA».</div></div></details>`;
     cargarTextoIA();
+    cargarHistorial();
   }
 
   // --- Diario de 5 minutos (las preguntas del journal de Gustavo en Notion) ---
@@ -1404,6 +1409,54 @@ window.CuentaAmable = (() => {
     } catch (e) { pintarTextoIA('No se pudo escribir el resumen: revisa la conexión.'); }
     iaPidiendo = false;
   }
+  // --- Histórico: los últimos 30 días, 30 semanas y 12 meses ---
+  const PERIODOS_HIST = { dia: 'Días (30)', semana: 'Semanas (30)', mes: 'Meses (12)' };
+  let histPeriodo = 'dia', histLista = [];
+  function etiquetaHist(periodo, clave) {
+    if (periodo === 'dia') return fechaLarga(clave);
+    if (periodo === 'semana') {
+      const fin = new Date(clave + 'T12:00:00'), ini = new Date(fin); ini.setDate(fin.getDate() - 6);
+      return `Semana del ${DIAS_SEM[ini.getDay()]} ${ini.getDate()}${ini.getMonth() !== fin.getMonth() ? ' de ' + MESES[ini.getMonth()] : ''} al ${DIAS_SEM[fin.getDay()]} ${fin.getDate()} de ${MESES[fin.getMonth()]}${fin.getFullYear() !== new Date().getFullYear() ? ' de ' + fin.getFullYear() : ''}`;
+    }
+    const [y, m] = clave.split('-').map(Number), s = MESES[(m || 1) - 1] + ' de ' + y;
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+  const escritoEl = creado => {
+    const c = creado ? new Date(String(creado).replace(' ', 'T') + 'Z') : null; if (!c || isNaN(c)) return '';
+    return 'Escrito el ' + fechaLarga(dia(c)).toLowerCase() + ' a las ' + String(c.getHours()).padStart(2, '0') + ':' + String(c.getMinutes()).padStart(2, '0');
+  };
+  async function cargarHistorial() {
+    const caja = resCaja.querySelector('.hist-lista'); if (!caja) return;
+    caja.innerHTML = '<div class="reg-nota">Cargando…</div>';
+    const per = histPeriodo;
+    try {
+      const r = await pedir('/resumen-ia/lista?periodo=' + per);
+      if (r.status === 404) { caja.innerHTML = '<div class="reg-nota">Muy pronto: falta poner al día el servidor.</div>'; return; }
+      const j = r.ok ? await r.json() : null; if (!j) throw new Error(r.status);
+      if (per !== histPeriodo) return;
+      histLista = j.resumenes || [];
+      caja.innerHTML = histLista.length
+        ? histLista.map((x, i) => `<details class="dia-ent"><summary>${esc(etiquetaHist(per, x.clave))}</summary>
+            <div class="cuerpo"><div class="reg-nota" style="margin:0 0 6px">${esc(escritoEl(x.creado))}</div>
+            <div style="white-space:pre-wrap">${esc(x.texto).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</div>
+            <button class="reg-b" data-a="hist-leer" data-i="${i}" style="margin-top:8px">🔊 Escuchar</button></div></details>`).join('')
+        : `<div class="reg-nota">Todavía no hay resúmenes ${per === 'dia' ? 'de días' : per === 'semana' ? 'de semanas' : 'de meses'} guardados.</div>`;
+    } catch (e) { caja.innerHTML = '<div class="reg-aviso">No se pudieron leer tus resúmenes anteriores. Revisa la conexión.</div>'; }
+  }
+  function leerHistorial(b) {
+    const x = histLista[Number(b.dataset.i)]; if (!x || !('speechSynthesis' in window)) return;
+    const sonando = b.classList.contains('sonando');
+    try { speechSynthesis.cancel(); } catch (e) {}
+    resCaja.querySelectorAll('[data-a="hist-leer"].sonando, [data-a="ia-leer"]').forEach(y => { y.classList.remove('sonando'); y.textContent = '🔊 Escuchar'; });
+    if (sonando) return;
+    const limpio = x.texto.replace(/\*\*/g, '').replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu, '').replace(/\n{2,}/g, '.\n');
+    const u = new SpeechSynthesisUtterance(limpio); u.lang = 'es-ES'; u.rate = 1;
+    const voces = speechSynthesis.getVoices().filter(v => /^es(-|_)ES/i.test(v.lang));
+    u.voice = voces.find(v => /Helena|Elvira|Google/i.test(v.name)) || voces[0] || null;
+    u.onend = () => { b.classList.remove('sonando'); b.textContent = '🔊 Escuchar'; };
+    speechSynthesis.speak(u);
+    b.classList.add('sonando'); b.textContent = '⏹ Parar';
+  }
   // Leer en voz alta (voz del aparato, en español)
   function pararLectura() { try { speechSynthesis.cancel(); } catch (e) {} const b = resCaja.querySelector('[data-a="ia-leer"]'); if (b) b.textContent = '🔊 Escuchar'; }
   function leerTextoIA() {
@@ -1650,6 +1703,12 @@ window.CuentaAmable = (() => {
       cargarTextoIA(); return;
     }
     else if (accion === 'ia-generar') { generarTextoIA(); return; }
+    else if (accion === 'hist-periodo') {
+      histPeriodo = a.dataset.p;
+      caja.querySelectorAll('[data-a="hist-periodo"]').forEach(x => x.classList.toggle('on', x === a));
+      cargarHistorial(); return;
+    }
+    else if (accion === 'hist-leer') { leerHistorial(a); return; }
     else if (accion === 'dia-num') { cargarNumerosDiario(true); return; }
     else if (accion === 'diario-hecho') {
       leerFormDiario();
