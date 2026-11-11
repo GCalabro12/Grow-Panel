@@ -534,6 +534,11 @@ window.CuentaAmable = (() => {
     racha: 'días de racha', semana: 'sesiones esta semana', acciones_pendientes: 'acciones pendientes',
     minutos_presencia: 'minutos de presencia', practicas_hoy: 'prácticas hoy', racha_dias: 'días de racha', practicas_semana: 'prácticas esta semana',
     dias_registrados: 'días registrados con tu meta', registrado_hoy: 'registrado hoy', compromiso_semana: 'compromiso semanal', metas_sencillas_hoy: 'metas sencillas de hoy', metas_sencillas_hechas: 'metas sencillas hechas', ultima_sesion: 'última sesión hecha' };
+  // «7 días» (regla para todas las apps, también las nuevas; ver Registro diario/LEEME.md):
+  //  · MEDIA de los días con dato si el dato es un «nivel» del día: horas_…, puntuacion…, porcentaje_…, media_…, nota_…, peso…, animo…
+  //  · ÚLTIMO valor si ya es un total o un estado (NO_SUMAR: racha, semana…)
+  //  · SUMA en el resto (cantidades que se acumulan: pasos, minutos, sesiones, tareas…)
+  const MEDIA = /^(horas_.*|puntuacion.*|porcentaje_.*|media_.*|nota_.*|peso.*|animo.*)$/;
   // Datos que ya son un total o un estado (racha, semana…): en «7 días» se muestra el último valor, no la suma
   const NO_SUMAR = /^(ultima_sesion|racha|racha_dias|semana|practicas_semana|dias_registrados|compromiso_semana|acciones_pendientes|.*_total|areas_.*)$/;
   // Nombres propios de cada app (más claros) y siempre con mayúscula inicial
@@ -541,7 +546,9 @@ window.CuentaAmable = (() => {
     'amable-fit:semana': 'sesiones esta semana', 'amable-life:pasos': 'pasos', 'amable-pc:pasos': 'pasos',
     'amable-flow:minutos_presencia': 'minutos de presencia', 'amable-life:eventos_hoy': 'eventos de hoy',
     'amable-life:horas_agenda_hoy': 'horas en agenda', 'amable-life:eventos_hechos': 'eventos hechos',
-    'amable-life:tareas_pendientes': 'tareas pendientes', 'amable-life:tareas_hechas': 'tareas realizadas', 'amable-life:habitos_hechos': 'hábitos realizados', 'amable-life:areas_accion': 'áreas que piden acción' };
+    'amable-life:tareas_pendientes': 'tareas pendientes', 'amable-life:tareas_hechas': 'tareas realizadas', 'amable-life:habitos_hechos': 'hábitos realizados', 'amable-life:areas_accion': 'áreas que piden acción',
+    'amable-sleep:horas_sueno': 'horas de sueño', 'amable-sleep:puntuacion': 'puntuación de la noche (0-100)',
+    'amable-sleep:minutos_ronquido': 'minutos roncando', 'amable-sleep:ronquidos': 'grabaciones de ronquido' };
   const nombreDato = (k, app) => { const n = NOMBRES_APP[app + ':' + k] || NOMBRES[k] || k.replace(/_/g, ' '); return n.charAt(0).toUpperCase() + n.slice(1); };
   const num = v => Number(v).toLocaleString('es-ES', { maximumFractionDigits: 1 });
   let estado = { modo: '', mostrar: false };
@@ -691,8 +698,9 @@ window.CuentaAmable = (() => {
     filas.forEach(f => {
       const t = Date.parse((f.enviado || '').replace(' ', 'T') + 'Z');
       if (t && !(ultimo[f.app] >= t)) ultimo[f.app] = t;
-      const a = porApp[f.app] = porApp[f.app] || {}, d = a[f.dato] = a[f.dato] || { hoy: null, semana: 0 };
+      const a = porApp[f.app] = porApp[f.app] || {}, d = a[f.dato] = a[f.dato] || { hoy: null, semana: 0, n: 0 };
       if (f.fecha === hoyTxt) d.hoy = f.valor;
+      d.n++;
       if (NO_SUMAR.test(f.dato)) d.semana = Number(f.valor) || 0;   // filas ordenadas por fecha: queda el último
       else d.semana += Number(f.valor) || 0;
     });
@@ -714,6 +722,8 @@ window.CuentaAmable = (() => {
         const r = a.registrado_hoy, n = Number(r.semana) || 0;
         a.registrado_hoy = { hoyTxt: r.hoy === null ? '—' : (Number(r.hoy) > 0 ? 'Sí' : 'No'), semanaTxt: n + (n === 1 ? ' día' : ' días') };
       }
+      // 12-11-2026 (Gustavo, para todas las apps): los datos que son un «nivel» del día van en MEDIA de los días con dato
+      Object.entries(a).forEach(([k, d]) => { if (MEDIA.test(k) && d && d.n && d.semanaTxt === undefined) d.semanaTxt = num(d.semana / d.n) + ' (media)'; });
       // Amable Fit: la última sesión hecha es un número de sesión
       if (a.ultima_sesion) { const u = a.ultima_sesion; a.ultima_sesion = { hoyTxt: u.hoy === null ? '—' : 'Sesión ' + num(u.hoy), semanaTxt: u.semana ? 'Sesión ' + num(u.semana) : '—' }; }
     });
@@ -732,7 +742,7 @@ window.CuentaAmable = (() => {
     let plegadas = []; try { plegadas = JSON.parse(localStorage.getItem('growpanel.plegadas')) || []; } catch (e) {}
     const ASA = a => a.id ? `<button type="button" class="asa-datos" data-a="mover-app" title="Arrastra para cambiarla de sitio" aria-label="Mover ${esc(a.nombre)}: arrastra o usa las flechas"><svg viewBox="0 0 24 24" width="14" height="20" fill="currentColor" aria-hidden="true"><circle cx="9" cy="5" r="1.8"/><circle cx="15" cy="5" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="19" r="1.8"/><circle cx="15" cy="19" r="1.8"/></svg></button>` : '';
     const CHEV = '<span class="chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
-    const QUE_HACER = { 'amable-sleep': 'graba una noche: se envían tus horas de sueño y tus ronquidos',
+    const QUE_HACER = { 'amable-sleep': 'graba una noche: se envían tus horas de sueño, tu puntuación y tus ronquidos',
       'amable-fit': 'haz una sesión de ejercicio: se envían tus minutos, tu racha y tus sesiones',
       'amable-flow': 'haz una práctica de presencia: se envían tus minutos y tus prácticas',
       'amable-pc': 'déjala abierta en el ordenador: se envían tus pasos, tus pausas de la vista y tu concentración',
