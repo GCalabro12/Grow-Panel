@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.76';
+  const VERSION = 'v1.77';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -144,9 +144,10 @@ a.app:hover{border-color:var(--c)}
     tareas_hechas: 'tareas realizadas', tareas_pendientes: 'tareas pendientes', habitos_hechos: 'hábitos realizados', areas_accion: 'áreas que piden acción', tareas_total: 'tareas en total', bloques_con_tareas: 'bloques con tareas', bloques_total: 'bloques',
     sesiones: 'sesiones hoy', minutos: 'minutos hoy', racha: 'días de racha', semana: 'esta semana', acciones_pendientes: 'acciones pendientes',
     minutos_presencia: 'min de presencia', practicas_hoy: 'prácticas hoy', racha_dias: 'días de racha', practicas_semana: 'prácticas esta semana',
-    dias_registrados: 'días registrados', registrado_hoy: 'registrado hoy', compromiso_semana: 'compromiso semanal', metas_sencillas_hoy: 'metas sencillas hoy', metas_sencillas_hechas: 'metas sencillas hechas' };
+    dias_registrados: 'días registrados', registrado_hoy: 'registrado hoy', compromiso_semana: 'compromiso semanal', metas_sencillas_hoy: 'metas sencillas hoy', metas_sencillas_hechas: 'metas sencillas hechas', ultima_sesion: 'última sesión hecha' };
   // Orden de las cifras en la tarjeta (Gustavo, 7-11-2026). Life: pendientes, realizadas, hábitos y áreas
-  const ORDEN_CIFRAS = { 'amable-life': ['tareas_pendientes', 'tareas_hechas', 'habitos_hechos', 'areas_accion'] };
+  // Fit (11-11-2026): primero la última sesión hecha, con su número
+  const ORDEN_CIFRAS = { 'amable-life': ['tareas_pendientes', 'tareas_hechas', 'habitos_hechos', 'areas_accion'], 'amable-fit': ['ultima_sesion', 'minutos', 'racha', 'semana', 'sesiones'] };
   const ORDEN_ETIQUETAS = { 'equilibra': [/pendiente/i, /realizad|hech/i, /h[áa]bito/i, /[áa]rea/i] };
   function ordenarCifras(cifras, reglas) {
     if (!reglas || !Array.isArray(cifras)) return cifras;
@@ -184,7 +185,7 @@ a.app:hover{border-color:var(--c)}
         return (a < 0 ? 99 : a) - (b < 0 ? 99 : b) || x[1] - y[1];
       }).map(x => x[0]);
       res[app] = { ficha: 1, estado: 'ok', mensaje: '', diaDatos: v.fecha,
-        cifras: claves.slice(0, 4).map(k => [k, d[k]]).map(([k, n]) => ({ valor: fmt(n), etiqueta: (app === 'amable-fit' && k === 'minutos' ? 'min de ejercicio hoy' : NOMBRES_DATO[k]) || k.replace(/_/g, ' ') })),
+        cifras: claves.slice(0, app === 'amable-fit' ? 5 : 4).map(k => [k, d[k]]).map(([k, n]) => ({ valor: k === 'ultima_sesion' ? 'Sesión ' + fmt(n) : fmt(n), etiqueta: (app === 'amable-fit' && k === 'minutos' ? 'min de ejercicio hoy' : NOMBRES_DATO[k]) || k.replace(/_/g, ' ') })),
         actualizado: (v.enviado || v.fecha).replace(' ', 'T') + (v.enviado ? 'Z' : 'T20:00:00'), frecuencia_horas: 48, delRegistro: true };
     });
     return res;
