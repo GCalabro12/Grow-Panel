@@ -1400,13 +1400,14 @@ window.CuentaAmable = (() => {
     if (!c.auto) return 'Apagado: el resumen solo se escribe cuando pulses «Generar con IA» en «Resumen IA».';
     if (!c.dias) return 'Elige al menos un día.';
     const dias = c.dias.length === 7 ? 'Todos los días' : 'Los ' + DIAS_CORTOS.filter(d => c.dias.includes(d[0])).map(d => d[2]).join(', ').replace(/, ([^,]*)$/, ' y $1');
-    return `${dias}${c.recordar ? `, a las ${menosMin(c.hora, c.recordar)} suena la alarma para que escribas tu diario de 5 minutos, y` : ','} a las ${c.hora} Grow Panel recoge los datos de tus apps y te escribe el resumen del día. Lo verás en «Resumen IA».`;
+    return `${dias}${c.recordar ? `, a las ${menosMin(c.hora, c.recordar)} suena la alarma para que escribas tu diario de 5 minutos, y` : ','} a las ${c.hora} la IA lee los números de tus apps y tu diario y te escribe el resumen del día. Lo verás en «Resumen IA».`;
   }
   function autoHTML() {
     const c = leerAuto();
     let abierta = true; try { abierta = localStorage.getItem('growpanel.sec.aj-auto') !== '0'; } catch (e) {}
     return `<details class="tarjeta plegable" id="tarjeta-auto" data-sec="aj-auto"${abierta ? ' open' : ''}><summary><h3>⏰ Resumen automático y recordatorio</h3></summary>
-      <label class="interruptor"><input type="checkbox" id="auto-on" role="switch"${c.auto ? ' checked' : ''}><b>Escribirme el resumen del día yo solo</b></label>
+      <label class="interruptor"><input type="checkbox" id="auto-on" role="switch"${c.auto ? ' checked' : ''}><b>Que la IA me escriba sola el resumen del día</b></label>
+      <div class="reg-nota" style="margin:6px 0 0">No es tu diario (ese lo escribes tú en «Mi diario»). Es el resumen de «Resumen IA»: la IA lo escribe con los números de tus apps y lo que pusiste en tu diario.</div>
       <div class="auto-cuerpo"${c.auto ? '' : ' hidden'}>
         <div class="reg-nota" style="margin:12px 0 6px">¿Qué días?</div>
         <div class="dias-sem">${DIAS_CORTOS.map(([v, n, l]) => `<button type="button" data-a="auto-dia" data-d="${v}" title="${l}" aria-pressed="${c.dias.includes(v)}" class="${c.dias.includes(v) ? 'on' : ''}">${n}</button>`).join('')}</div>
