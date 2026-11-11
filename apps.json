@@ -86,6 +86,15 @@
       "registro": "amable-life",
       "acento": "#ca7d27",
       "registro_activo": true
+    },
+    {
+      "id": "amable-sleep",
+      "nombre": "Amable Sleep",
+      "url": "https://gcalabro12.github.io/Sleep-Amable/",
+      "icono": "https://gcalabro12.github.io/Sleep-Amable/icon-192.png",
+      "color": "#0B1020",
+      "registro": "amable-sleep",
+      "acento": "#8b7cf6"
     }
   ]
 }

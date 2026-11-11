@@ -715,7 +715,7 @@ window.CuentaAmable = (() => {
     Object.keys(porApp).forEach(k => { if (!lista.some(a => a.registro === k)) { const a = apps.find(x => x.registro === k); lista.push(a ? { ...a, sinAbrir: a.oculta } : { id: '', registro: k, nombre: k, sinAbrir: true }); } });
     // Orden: el que dejaste arrastrando las tarjetas; si no, Meta, Fit, Life, PC, Flow (y después las demás, por nombre)
     let suOrden = []; try { suOrden = JSON.parse(localStorage.getItem('growpanel.orden')) || []; } catch (e) {}
-    const ORDEN = ['amable-meta', 'amable-fit', 'amable-life', 'amable-pc', 'amable-flow'];
+    const ORDEN = ['amable-meta', 'amable-fit', 'amable-life', 'amable-pc', 'amable-flow', 'amable-sleep'];
     const pos = a => { const i = suOrden.indexOf(a.id); if (i >= 0) return i; const n = ORDEN.indexOf(a.registro); return 100 + (n < 0 ? 99 : n); };
     lista.sort((x, y) => pos(x) - pos(y) || x.nombre.localeCompare(y.nombre));
     let plegadas = []; try { plegadas = JSON.parse(localStorage.getItem('growpanel.plegadas')) || []; } catch (e) {}
