@@ -101,9 +101,10 @@ body.visor-abierto{overflow:hidden}
 .diario .mic.grabando{background:#dc2626;border-color:#dc2626;color:#fff;animation:micLatido 1.2s infinite}
 @keyframes micLatido{50%{box-shadow:0 0 0 6px rgba(220,38,38,.25)}}
 .diario .preg-fila{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:6px 14px}
-.diario .dia-num{font-weight:500;font-size:13px;text-align:right;margin-left:auto;line-height:1.45}
+.diario .preg2{font-weight:800;font-size:14.5px;margin:0 0 4px}
+.diario .dia-num-fila{font-weight:400;font-size:13.5px;line-height:1.7;margin:0 0 8px}
 .diario .dia-num b{font-weight:800}
-.diario .dia-num .num-act{font-size:12px;color:var(--mut);display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px;margin-top:3px}
+.diario .dia-num .num-act{font-size:12.5px;color:var(--mut);margin:0 6px 0 2px}
 .diario .num-rec{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
 .diario textarea{width:100%;min-height:56px;resize:vertical;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);padding:10px 12px;font:inherit;font-size:14.5px;line-height:1.5}
 .diario .opciones{display:flex;flex-wrap:wrap;gap:8px}
@@ -971,17 +972,17 @@ window.CuentaAmable = (() => {
       const r = await pedir('/registro?fecha=' + f + '&app=amable-life'); if (!r.ok) throw new Error(r.status);
       const filas = (await r.json()).filas || [], v = {}; let ult = 0;
       filas.forEach(x => { v[x.dato] = x.valor; const ms = Date.parse((x.enviado || '').replace(' ', 'T') + 'Z'); if (ms > ult) ult = ms; });
-      if (!filas.length) html = `<div>Amable Life no ha dejado números de este día.</div><div class="num-act">${boton}</div>`;
+      if (!filas.length) html = `Amable Life no ha dejado números de este día. ${boton}`;
       else {
         const n = x => `<b>${Number(x) || 0}</b>`, partes = [n(v.tareas_hechas) + ' tareas completadas'];
         if (v.tareas_saltadas !== undefined) partes.push(n(v.tareas_saltadas) + ' saltadas');
         partes.push(n(v.habitos_hechos) + ' hábitos hechos');
         const d = new Date(ult), dos = x => String(x).padStart(2, '0');
         const cuando = ult ? `Actualizado hasta el ${dos(d.getDate())}/${dos(d.getMonth() + 1)} a las ${dos(d.getHours())}:${dos(d.getMinutes())}` : '';
-        html = `<div>${partes.join(' · ')}</div><div class="num-act"><span>${cuando}</span>${boton}</div>`;
+        html = `${partes.join(' · ')}${cuando ? ` · <span class="num-act">${cuando}</span>` : ' '}${boton}`;
       }
       numCache[f] = html;
-    } catch (e) { html = `<div class="reg-nota">No se pudieron leer los números de Amable Life.</div><div class="num-act">${boton}</div>`; }
+    } catch (e) { html = `<span class="num-act">No se pudieron leer los números de Amable Life.</span>${boton}`; }
     if (diaCaja.querySelector('.dia-num') === caja) caja.innerHTML = html;
   }
   function pintarDiario(anterior) {
@@ -993,10 +994,11 @@ window.CuentaAmable = (() => {
       <div class="preg">1. ❤️ ¿Cómo te sentiste, con el día ya terminado?</div>
       <div class="ayuda">Tus números del día los tienes en la pestaña «Datos apps».</div>
       <div class="opciones">${ANIMOS.map(([v, n]) => `<button type="button" data-a="diario-animo" data-v="${v}" class="${r.animo === v ? 'on' : ''}">${n}</button>`).join('')}</div>
-      <div class="preg preg-fila"><span>2. 👍🏽 ¿Qué fue bien?</span>${r.animo >= 3 ? '<div class="dia-num"></div>' : ''}</div>
+      <div class="preg">2. 👍🏽 ¿Qué fue bien?</div>
       ${r.animo === 1 || r.animo === 2   // Gustavo, 9-11-2026: con «Muy mal» o «Mal» no se pregunta qué fue bien
         ? '<div class="ayuda">No hace falta responder: hoy marcaste que te sentiste mal.</div>'
-        : '<div class="ayuda">¿Qué te ayudó a sentirte así? Marca las que quieras. Tus tareas y hábitos ya se guardan solos desde tus apps.</div>'
+        : '<div class="preg2">¿Qué te ayudó a sentirte así?</div>'
+          + '<div class="dia-num-fila">Estas son las tareas del día: <span class="dia-num"></span></div>'
           + '<div class="chips">' + BIEN.map(([k, n]) => `<label><input type="checkbox" data-b="${k}"${bien.includes(k) ? ' checked' : ''}>${n}</label>`).join('') + '</div>'
           + area('bien_otro', 'Otra cosa que fue bien…')}
       <div class="preg">3. 👎🏽 ¿Qué no ha ido tan bien y puede mejorar?</div>
