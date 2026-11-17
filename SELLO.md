@@ -2,7 +2,7 @@
 
 Cada app lleva **dos botones separados**, uno al lado del otro (si no caben, el segundo baja debajo):
 
-1. **by Práctica Integral**: punto verde, enlaza a https://practicaintegral.club
+1. **by Práctica Integral**: muñequito negro con la D azul del logotipo de Práctica Integral en lugar del punto (desde el 18-11-2026; antes era un punto verde), enlaza a https://practicaintegral.club
 2. **with Grow Panel**: mini flor de Grow Panel en lugar del punto, enlaza a https://practicaintegral.club/grow-panel/
 
 Los dos se abren en una pestaña nueva. Los colores de borde y de texto se adaptan a cada app.
@@ -18,7 +18,8 @@ Los dos se abren en una pestaña nueva. Los colores de borde y de texto se adapt
 .sellos{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
 .pi-seal,.gp-seal{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.3px;
   line-height:16px;white-space:nowrap;color:#94A3B8;border:1px solid #334155;border-radius:999px;padding:6px 12px;text-decoration:none}
-.pi-seal::before{content:"";width:7px;height:7px;border-radius:50%;background:#4ADE80}
+.pi-seal::before{content:"";width:18px;height:16px;flex:none;border-radius:4px;
+  background:#fff url(https://gcalabro12.github.io/Grow-Panel/logo-pi-sello.png) no-repeat center/contain}
 .gp-seal svg{width:14px;height:14px;flex:none}
 .pi-seal:hover{border-color:#4ADE80}
 .gp-seal:hover{border-color:#8b5cf6}
@@ -26,5 +27,7 @@ Los dos se abren en una pestaña nueva. Los colores de borde y de texto se adapt
 
 Logo oficial de Grow Panel: `logo/grow-panel-logo.svg` (fondo claro) y `logo/grow-panel-logo-oscuro.svg` (fondo oscuro).
 Publicados en https://gcalabro12.github.io/Grow-Panel/logo.svg y https://gcalabro12.github.io/Grow-Panel/logo-oscuro.svg.
+
+Logo del sello «by Práctica Integral»: `logo-pi-sello.png` (muñequito negro + D azul, fondo transparente), publicado en https://gcalabro12.github.io/Grow-Panel/logo-pi-sello.png. En apps de fondo oscuro lleva el fondito blanco (`background:#fff`) para que el muñequito negro se vea; en apps de fondo claro se puede quitar ese blanco (`background-color:transparent`).
 
 Notas de las apps que ya lo llevan: `line-height` fija la altura (16px → 30 px; Calistenia usó 15px y Lety Videz 14px para igualar su sello anterior). `white-space:nowrap` evita que el texto se parta en varias líneas en pantallas estrechas.
