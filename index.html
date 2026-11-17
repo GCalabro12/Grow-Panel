@@ -587,7 +587,7 @@ window.CuentaAmable = (() => {
     'amable-fit:semana': 'sesiones esta semana', 'amable-life:pasos': 'pasos', 'amable-pc:pasos': 'pasos',
     'amable-flow:minutos_presencia': 'minutos de presencia', 'amable-life:eventos_hoy': 'eventos de hoy',
     'amable-life:horas_agenda_hoy': 'horas en agenda', 'amable-life:eventos_hechos': 'eventos hechos',
-    'amable-life:tareas_pendientes': 'tareas pendientes de hoy', 'amable-life:tareas_fijas_pendientes': 'tareas fijas pendientes', 'amable-life:tareas_flexibles_pendientes': 'tareas flexibles pendientes', 'amable-life:tareas_hechas': 'tareas realizadas', 'amable-life:habitos_hechos': 'hábitos realizados', 'amable-life:areas_accion': 'áreas que piden acción',
+    'amable-life:tareas_pendientes': 'tareas pendientes de hoy', 'amable-life:tarea_focus': 'en Focus', 'amable-life:tareas_fijas_pendientes': 'tareas fijas pendientes', 'amable-life:tareas_flexibles_pendientes': 'tareas flexibles pendientes', 'amable-life:tareas_hechas': 'tareas realizadas', 'amable-life:habitos_hechos': 'hábitos realizados', 'amable-life:areas_accion': 'áreas que piden acción',
     'amable-sleep:horas_sueno': 'horas de sueño', 'amable-sleep:puntuacion': 'puntuación de la noche (0-100)',
     'amable-sleep:minutos_ronquido': 'minutos roncando', 'amable-sleep:ronquidos': 'grabaciones de ronquido' };
   const nombreDato = (k, app) => { const n = NOMBRES_APP[app + ':' + k] || NOMBRES[k] || k.replace(/_/g, ' '); return n.charAt(0).toUpperCase() + n.slice(1); };
@@ -740,7 +740,7 @@ window.CuentaAmable = (() => {
       const t = Date.parse((f.enviado || '').replace(' ', 'T') + 'Z');
       if (t && !(ultimo[f.app] >= t)) ultimo[f.app] = t;
       const a = porApp[f.app] = porApp[f.app] || {}, d = a[f.dato] = a[f.dato] || { hoy: null, semana: 0, n: 0 };
-      if (f.fecha === hoyTxt) d.hoy = f.valor;
+      if (f.fecha === hoyTxt) { d.hoy = f.valor; if (typeof f.valor === 'string') d.hoyTxt = f.valor; }   // tarea_focus es texto
       d.n++;
       d.ult = Number(f.valor) || 0; d.ultFecha = f.fecha;   // filas ordenadas por fecha: queda la última
       if (NO_SUMAR.test(f.dato)) d.semana = Number(f.valor) || 0;   // filas ordenadas por fecha: queda el último
@@ -817,7 +817,11 @@ window.CuentaAmable = (() => {
         case 'amable-pc': return datos.pasos ? `Pasos hoy <b>${hoyV('pasos')}</b> · 7 días <b>${semV('pasos')}</b>` : '';
         case 'amable-flow': return datos.minutos_presencia ? `Práctica hoy <b>${hoyV('minutos_presencia')}</b> min · 7 días <b>${semV('minutos_presencia')}</b> min` : '';
         case 'amable-sleep': return datos.horas_sueno ? `Anoche <b>${ultV('horas_sueno')} h</b>${datos.horas_sueno.ultFecha ? ` (${ddmmTxt(datos.horas_sueno.ultFecha)})` : ''} · media 7 días <b>${datos.horas_sueno.n ? num(datos.horas_sueno.semana / datos.horas_sueno.n) : '—'}</b>` : '';
-        case 'amable-life': return datos.tareas_pendientes ? `Pendientes hoy <b>${hoyV('tareas_pendientes')}</b> (fijas <b>${hoyV('tareas_fijas_pendientes')}</b> · flexibles <b>${hoyV('tareas_flexibles_pendientes')}</b>)` : '';
+        case 'amable-life': {
+          const foco = datos.tarea_focus && datos.tarea_focus.hoyTxt ? `En Focus: <b>${esc(datos.tarea_focus.hoyTxt)}</b>` : '';
+          const pend = datos.tareas_pendientes ? `Pendientes hoy <b>${hoyV('tareas_pendientes')}</b> (fijas <b>${hoyV('tareas_fijas_pendientes')}</b> · flexibles <b>${hoyV('tareas_flexibles_pendientes')}</b>)` : '';
+          return [foco, pend].filter(Boolean).join(' · ');
+        }
         case 'amable-fit': {
           const u = datos.ultima_sesion;
           if (u) return `Sesión <b>${ultV('ultima_sesion')}</b> · última el <b>${ddmmTxt(u.ultFecha)}</b>`;
