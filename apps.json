@@ -85,7 +85,10 @@
       "color": "#140f26",
       "registro": "amable-life",
       "acento": "#ca7d27",
-      "registro_activo": true
+      "registro_activo": true,
+      "urls_viejas": [
+        "https://gcalabro12.github.io/Equilibra/"
+      ]
     },
     {
       "id": "amable-sleep",

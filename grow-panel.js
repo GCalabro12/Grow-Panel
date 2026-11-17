@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v1.96';
+  const VERSION = 'v1.97';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -287,7 +287,9 @@ a.app:hover{border-color:var(--c)}
         const locales = appsLocales();
         const todas = (reg.apps || []).map(a => {
           const l = locales[a.id];
-          return l && urlSegura(l.url) && !a.externa ? Object.assign({}, a, { url: l.url }) : a;
+          // 17-11-2026: una dirección apuntada que ya no existe (p. ej. Amable Life en /Equilibra/, 404) no manda sobre apps.json
+          const vieja = l && Array.isArray(a.urls_viejas) && a.urls_viejas.some(v => String(l.url || '').startsWith(v));
+          return l && !vieja && urlSegura(l.url) && !a.externa ? Object.assign({}, a, { url: l.url }) : a;
         });
         for (const [id, a] of Object.entries(locales)) {
           if (!todas.some(x => x.id === id) && urlSegura(a.url)) todas.push({ id, nombre: a.nombre, url: a.url });
