@@ -78,7 +78,7 @@
   if (mk) {
     // La app expone window.growPanelSesion() → su «Bearer» ('meta.<…>', 'pc.<…>' o el token de Firebase), o null si aún no hay
     // sesión; y lanza el evento 'growpanel-sesion' al entrar. Se reintenta cada 5 s durante 60 s.
-    const codigo = mk[2], REGISTRO = 'https://registro-diario.proud-hill-016b.workers.dev';
+    const codigo = mk[2], REGISTRO = 'https://grow-panel-api.proud-hill-016b.workers.dev';
     let hecho = false, intentos = 0, ocupado = false;
     const intentar = async () => {
       if (hecho || ocupado || typeof window.growPanelSesion !== 'function') return;
