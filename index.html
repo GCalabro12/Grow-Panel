@@ -244,11 +244,11 @@ code{font-size:13px}
 .pie{text-align:center;margin-top:28px}
 .sellos{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
 .pi-seal,.gp-seal{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.3px;color:var(--mut);border:1px solid var(--ln);border-radius:999px;padding:6px 12px;text-decoration:none}
-.pi-seal::before{content:"";width:7px;height:7px;border-radius:50%;background:#22c55e}
+.pi-seal::before{content:"";width:18px;height:16px;background:url(logo-pi-sello.png) no-repeat center/contain}   /* muñequito + D azul (prueba, 17-11-2026) */
 .gp-seal svg{width:14px;height:14px;flex:none}
 .gp-seal:hover{color:var(--tx);border-color:#8b5cf6}
 .pi-seal:hover{color:var(--tx);border-color:#22c55e}
-@media (prefers-color-scheme:dark){.pi-seal::before{background:#4ADE80}.pi-seal:hover{border-color:#4ADE80}}
+@media (prefers-color-scheme:dark){.pi-seal::before{background-color:#fff;border-radius:4px}.pi-seal:hover{border-color:#4ADE80}}
 .vista[hidden]{display:none}
 .vista-tit{font-size:22px;font-weight:800;margin:0 0 12px}
 .tarjeta{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:14px 16px;margin-bottom:12px;font-size:14px;line-height:1.45}
