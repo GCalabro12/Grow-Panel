@@ -88,6 +88,29 @@ body.visor-abierto{overflow:hidden}
 .diario textarea{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20d%3D%22M30%201C21%203%2012%2010%207%2020c3-2%206-3%209-4-2%201-4%203-5%205%206-3%2012-9%2015-14%201-2%203-4%204-6z%22%20fill%3D%22%238a5a2b%22%20stroke%3D%22%233b2410%22%20stroke-width%3D%221.1%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M27%204C20%2010%2013%2017%207%2024%22%20fill%3D%22none%22%20stroke%3D%22%23f3e2b8%22%20stroke-width%3D%22.9%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M8%2023%203%2029%22%20stroke%3D%22%232b1a0b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M3%2029%201.6%2030.6%22%20stroke%3D%22%23111%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E") 1 31,text;background:rgba(255,253,244,.85)}
 .diario .querido{font-family:"Dancing Script","Segoe Script","Brush Script MT",cursive;font-size:34px;font-weight:700;color:#5b3a12;line-height:1.1;margin:0 0 8px;transform:rotate(-1.5deg);transform-origin:left}
 .diario .preg{margin:18px 0 6px;font-weight:800;font-size:15px}
+/* Plan semana (Gustavo, 17-11-2026): mismos huecos con micrófono que el diario, pero sobre fondo normal y con títulos que se pliegan */
+.diario.plan{--tx:inherit;--mut:inherit;--card:inherit;--bg:inherit;--ln:inherit;background:none;box-shadow:none;padding:0;border-radius:0;margin:0;cursor:auto;position:static}
+.diario.plan::before{display:none}
+.diario.plan textarea{cursor:text;background:var(--bg);overflow:hidden}
+.plan .franja-res h2{display:inline-flex;align-items:center;gap:10px}
+.plan .franja-res h2 svg{flex:none}
+.plan-intro{font-size:14px;line-height:1.5;margin:0 0 12px;color:var(--tx)}
+.plan-sem{display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:10px;border:1px solid var(--ln);border-radius:14px;background:var(--card)}
+.plan-sem button{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--ln);background:var(--bg);color:var(--tx);font-size:20px;line-height:1;cursor:pointer}
+.plan-sem .plan-sem-t{flex:1;text-align:center;min-width:0}
+.plan-sem .plan-sem-t b{display:block;font-size:15px}
+.plan-sem .plan-sem-t span{display:block;font-size:12.5px;color:var(--mut)}
+.plan-sem .plan-hoy{width:auto;height:auto;border-radius:999px;padding:5px 10px;font-size:12.5px;margin-top:4px}
+.plan .sec.sub{margin:10px 0 0;background:var(--bg)}
+.plan .sec summary h3{margin:0;font-size:15.5px}
+.plan .sec .sec-cuerpo>.plan-q:first-child .preg2{margin-top:6px}
+.plan-q{margin:16px 0 4px}
+.plan-q .preg2{font-weight:800;font-size:14.5px;margin:0 0 3px}
+.plan-pasos{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}
+.plan-pasos .reg-b,.plan-pasos a.reg-b{text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.plan-msg{min-height:18px;margin:8px 0 0}
+.plan-fin{display:flex;justify-content:center;margin:20px 0 6px;padding-top:16px;border-top:1px solid var(--ln)}
+.plan-ant .dia-ent .cuerpo p{margin:7px 0}
 .diario .preg~.preg{margin-top:34px}
 .diario .preg~.preg::before{content:"";display:block;width:62%;max-width:420px;height:14px;margin:0 auto 26px;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20300%2016%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M4%209.5c18-2.6%2034%201.6%2052-.4%2020-2.2%2037-3%2057-.6%2021%202.4%2040%201.2%2061-.9%2019-1.9%2038-.4%2057%201%2019%201.3%2039-1.4%2061-2.4%203-.1%204.5.4%204.5.4%22%20fill%3D%22none%22%20stroke%3D%22%236b4a1f%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-opacity%3D%22.62%22%2F%3E%3Cpath%20d%3D%22M60%2010.6c26-1.2%2052%20.2%2080-.5%22%20fill%3D%22none%22%20stroke%3D%22%236b4a1f%22%20stroke-width%3D%22.8%22%20stroke-linecap%3D%22round%22%20stroke-opacity%3D%22.35%22%2F%3E%3C%2Fsvg%3E") center/100% 100% no-repeat}
 .diario .preg:first-child,.diario .querido+.preg{margin-top:4px}
@@ -321,6 +344,9 @@ body.embed .top,body.embed .guia,body.embed details,body.embed .pie,body.embed .
   <section class="vista" id="v-diario" hidden>
     <div id="dia-caja"></div>
   </section>
+  <section class="vista" id="v-plan" hidden>
+    <div id="plan-caja"></div>
+  </section>
   <section class="vista" id="v-resumen" hidden>
     <div id="reg-caja"></div>
   </section>
@@ -346,6 +372,7 @@ body.embed .top,body.embed .guia,body.embed details,body.embed .pie,body.embed .
 <nav class="abajo" aria-label="Secciones de Grow Panel"><div class="abajo-in">
   <button type="button" data-v="apps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Datos apps</button>
   <button type="button" data-v="diario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3"/><path d="M9 7.5h6M9 11h4"/></svg>Mi diario</button>
+  <button type="button" data-v="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M7.5 14h1M11.5 14h1M15.5 14h1M7.5 17.5h1M11.5 17.5h1"/></svg>Plan semana</button>
   <button type="button" data-v="resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><rect x="5" y="11" width="3" height="6" rx="1"/><rect x="10.5" y="6" width="3" height="11" rx="1"/><rect x="16" y="13" width="3" height="4" rx="1"/></svg>Resumen IA</button>
   <button type="button" data-v="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ajustes</button>
 </div></nav>
@@ -522,6 +549,7 @@ window.CuentaAmable = (() => {
   const resCaja = document.getElementById('reg-caja'), ajCaja = document.getElementById('aj-caja');
   const vRes = document.getElementById('v-resumen'), vAj = document.getElementById('v-ajustes');
   const vDia = document.getElementById('v-diario'), diaCaja = document.getElementById('dia-caja');
+  const vPlan = document.getElementById('v-plan'), planCaja = document.getElementById('plan-caja');
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const leerClave = () => { try { const k = localStorage.getItem('growpanel.clave'); return CLAVE_OK.test(k || '') ? k : null; } catch (e) { return null; } };
   const guardarClave = k => { try { localStorage.setItem('growpanel.clave', k); return true; } catch (e) { return false; } };
@@ -956,13 +984,15 @@ window.CuentaAmable = (() => {
     + (modoVoz ? `<button type="button" class="mic" data-mic="${k}" aria-label="Dictar con la voz" title="Dictar con la voz">${MIC_SVG}</button>` : '') + '</div>';
   let rec = null, recK = null, grab = null;
   const pensando = new Set();
+  // La voz (dictado y grabación) vale para los huecos del diario y los del plan semana
+  const vozCaja = { querySelector: s => diaCaja.querySelector(s) || planCaja.querySelector(s), querySelectorAll: s => [...diaCaja.querySelectorAll(s), ...planCaja.querySelectorAll(s)] };
   // Para la autoactualización: no recargar si estás dictando, si la IA está escribiendo tu voz o si falta guardar el diario
-  window.gpOcupado = () => !!(rec || grab || pensando.size || diarioPendiente);
+  window.gpOcupado = () => !!(rec || grab || pensando.size || diarioPendiente || planPendiente);
   // Los avisos del micrófono salen debajo del hueco donde dictas (antes iban al final del diario y no se veían)
   let ultK = null;
   function avisoVoz(txt, k, no) {
     k = k || ultK; if (!k) return;
-    const ta = diaCaja.querySelector(`textarea[data-d="${k}"]`), campo = ta && ta.closest('.campo'); if (!campo) return;
+    const ta = vozCaja.querySelector(`textarea[data-d="${k}"]`), campo = ta && ta.closest('.campo'); if (!campo) return;
     let n = campo.nextElementSibling;
     if (!n || !n.classList.contains('mic-nota')) { n = document.createElement('div'); n.className = 'mic-nota'; campo.after(n); }
     n.textContent = txt || ''; n.hidden = !txt; n.classList.toggle('no', !!no);
@@ -971,12 +1001,12 @@ window.CuentaAmable = (() => {
   let micMotivo = '';
   function micNoActivo(motivo, k) {
     modoVoz = ''; micMotivo = motivo;
-    diaCaja.querySelectorAll('.mic').forEach(b => b.remove());
+    vozCaja.querySelectorAll('.mic').forEach(b => b.remove());
     if (k) avisoVoz(`El micrófono no está activo en este ${APARATO}: ${motivo}`, k, true);
   }
   // Si se quitaron antes de pintar, se avisa una vez debajo del primer hueco de texto
   function ponerNotaMic() {
-    const ta = micMotivo && diaCaja.querySelector('.diario .campo textarea');
+    const ta = micMotivo && vozCaja.querySelector('.diario .campo textarea');
     if (ta) avisoVoz(`El micrófono no está activo en este ${APARATO}: ${micMotivo}`, ta.dataset.d, true);
   }
   // Antes de enseñarlos: si el navegador tiene el micrófono bloqueado o no hay ninguno conectado, ni aparecen
@@ -992,14 +1022,14 @@ window.CuentaAmable = (() => {
       }
     } catch (e) {}
   })();
-  const marcarMics = () => diaCaja.querySelectorAll('.mic').forEach(m => {
+  const marcarMics = () => vozCaja.querySelectorAll('.mic').forEach(m => {
     const k = m.dataset.mic;
     m.classList.toggle('grabando', (!!rec && k === recK) || (!!grab && k === grab.k));
     m.classList.toggle('pensando', pensando.has(k));
   });
   function ponerTexto(k, txt) {
     txt = String(txt || '').trim(); if (!txt) return;
-    const ta = diaCaja.querySelector(`textarea[data-d="${k}"]`); if (!ta) return;
+    const ta = vozCaja.querySelector(`textarea[data-d="${k}"]`); if (!ta) return;
     const antes = ta.value;
     if (antes.trim() && !/[.!?…]\s*$/.test(antes)) txt = txt.charAt(0).toLowerCase() + txt.slice(1);   // sigue la frase («Soy una persona que …»)
     ta.value = antes + (antes && !/\s$/.test(antes) ? ' ' : '') + txt;
@@ -1080,7 +1110,7 @@ window.CuentaAmable = (() => {
     } catch (e) { avisoVoz('No se pudo pasar tu voz a texto. Inténtalo otra vez.', k); }
     finally { clearTimeout(paciencia); pensando.delete(k); marcarMics(); }
   }
-  diaCaja.addEventListener('click', e => {
+  [diaCaja, planCaja].forEach(cj => cj.addEventListener('click', e => {
     const b = e.target.closest('.mic'); if (!b || !modoVoz) return;
     const k = b.dataset.mic; ultK = k;
     if (pensando.has(k)) return;
@@ -1090,7 +1120,7 @@ window.CuentaAmable = (() => {
     marcarMics();
     if (activo === k) return;   // segundo toque en el mismo: solo para
     if (modoVoz === 'directo') dictadoDirecto(k); else empezarGrabacion(k);
-  });
+  }));
 
   // Números de Amable Life del día, a la derecha de «¿Qué fue bien?» (Gustavo, 9-11-2026)
   const numCache = {};
@@ -1167,6 +1197,7 @@ window.CuentaAmable = (() => {
       </div>
       ${diarioHecho(r) ? '<div class="final">🎉 ¡Muy bien! Que descanses. Mañana, a comerte el sapo y el día 🥳</div>' : ''}`;
     cargarNumerosDiario(); marcarMics(); if (!modoVoz) ponerNotaMic();
+    requestAnimationFrame(() => crecerTodo(caja));
   }
   async function cargarDiario() {
     const caja = diaCaja.querySelector('.diario'); if (!caja) return;
@@ -1217,6 +1248,9 @@ window.CuentaAmable = (() => {
   diaCaja.addEventListener('focusin', e => {
     const t = e.target; if (t.matches && t.matches('textarea[data-d="quien_soy"]') && t.value === INICIO_SOY) setTimeout(() => { const n = t.value.length; t.setSelectionRange(n, n); }, 0);
   });
+  const crecer = ta => { ta.style.height = 'auto'; if (ta.scrollHeight) ta.style.height = Math.max(56, ta.scrollHeight + 2) + 'px'; };
+  const crecerTodo = raiz => raiz.querySelectorAll('textarea').forEach(crecer);
+  diaCaja.addEventListener('input', e => { if (e.target.matches('textarea')) crecer(e.target); });
   diaCaja.addEventListener('input', e => { if (e.target.closest('.diario')) { leerFormDiario(); guardarDiarioLuego(); } });
   diaCaja.addEventListener('change', e => { if (e.target.matches('.diario input[data-b], .diario input[data-din]')) { leerFormDiario(); guardarDiarioLuego(); } });
 
@@ -1332,6 +1366,201 @@ window.CuentaAmable = (() => {
     u.onend = () => { if (b) b.textContent = '🔊 Escuchar'; };
     speechSynthesis.speak(u);
     if (b) b.textContent = '⏹ Parar';
+  }
+
+
+  // --- Plan semana (Gustavo, 17-11-2026): la revisión semanal de los domingos (30 min) de su Notion «Planificar semana» ---
+  // Tres pasos: 1. Cerrar frentes abiertos · 2. Revisar lo que ha pasado y aprender · 3. Planificar la siguiente semana.
+  // Cada pregunta se contesta con texto o con el micrófono, el hueco crece al escribir y los títulos se pliegan.
+  const PLAN_LOGO = '<svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true"><rect x="5" y="9" width="54" height="50" rx="10" fill="#fff" stroke="#1c1300" stroke-width="3"/>'
+    + '<path d="M5 25v-6a10 10 0 0 1 10-10h34a10 10 0 0 1 10 10v6z" fill="#0f766e" stroke="#1c1300" stroke-width="3" stroke-linejoin="round"/>'
+    + '<path d="M19 4v10M45 4v10" stroke="#1c1300" stroke-width="4" stroke-linecap="round"/>'
+    + '<g fill="#d1d5db"><rect x="13" y="32" width="8" height="8" rx="2"/><rect x="24" y="32" width="8" height="8" rx="2"/><rect x="35" y="32" width="8" height="8" rx="2"/><rect x="46" y="32" width="6" height="8" rx="2"/>'
+    + '<rect x="13" y="44" width="8" height="8" rx="2"/><rect x="24" y="44" width="8" height="8" rx="2"/></g>'
+    + '<rect x="35" y="44" width="8" height="8" rx="2" fill="#f59e0b" stroke="#1c1300" stroke-width="1.6"/><path d="M37 48.2l1.6 1.6 2.6-3" stroke="#1c1300" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const PLAN_PROMPT = 'Quiero que analices mi diario de los últimos días y me ayudes a entenderla, aprender de ella y aprovecharla.\n\nPara ello, sigue esta estructura:\n\n'
+    + '1. RESUMEN GENERAL\nHazme un resumen breve (máximo 5 frases) que describa el tono general de la semana, los hechos más importantes y las emociones dominantes. Usa un tono humano y directo, como si me conocieras desde hace tiempo.\n\n'
+    + '2. PATRONES Y PISTAS\n2.1 ¿Qué logros (grandes o pequeños) puedes reconocerme? Apúntalos.\n2.2 Enumera los 5 patrones más relevantes que detectes (comportamientos, emociones, repeticiones, decisiones, contradicciones…). ¿Dónde ha habido más resistencia, frustración o decepción? Por cada patrón, indica: qué lo causa o lo alimenta, qué consecuencias tiene y si es algo a mantener o a cambiar.\n\n'
+    + '3. ACCIONES CONCRETAS\nPropón 3 acciones específicas y medibles que pueda aplicar la próxima semana. Evita obviedades: deben ser decisiones reales (cosas que cambiarían mi forma de trabajar, pensar o priorizar).\n\n'
+    + '4. HISTORIAS Y CONTENIDO POTENCIAL\nIdentifica 3 ideas o historias potentes que podrían convertirse en contenido para mi comunidad. Pueden ser aprendizajes, contradicciones, errores o descubrimientos personales. Formúlalas como titulares o ganchos iniciales, en tono narrativo, tipo: «Esta semana descubrí que cuando intento ser más productivo… me vuelvo menos libre.»\n\n'
+    + '5. APRENDIZAJE CLAVE\nCondensa el aprendizaje más importante de la semana en una sola frase poderosa, tipo insight. (Ejemplo: «Ser constante no es hacerlo cada día, sino volver cada vez que me pierdo.»)\n\n'
+    + '6. EVALUACIÓN GLOBAL\nPor último, puntúa la semana del 0 al 10 según equilibrio, energía y avance. Explícame brevemente por qué le das esa nota y qué haría falta para subir un punto más la próxima.\n\n'
+    + 'Te pego aquí abajo los días del diario a analizar:\n\n';
+  const Q = (k, t, ayuda, ph) => ({ k, t, ayuda, ph });
+  const PLAN_PASOS = [
+    { id: 'p1', t: '1. Cerrar frentes abiertos',
+      intro: 'Liberar la cabeza y recoger todo lo que se pueda escapar, en tu cabeza y en tus bandejas de entrada. Es mantenimiento puro: no es sexy, pero es de lo que se compone la vida 🌱. Recuerda: estás revisando, no ejecutando.',
+      qs: [Q('espacio', 'Procesar tu espacio de trabajo', 'Mantenimiento en tu escritorio, tus bandejas de entrada (digital y físico) y la carpeta de Descargas del PC. No lo hagas ahora: apunta qué hay que ordenar.', 'Qué hay que ordenar…'),
+        Q('pendientes', 'Revisa las tareas sin terminar', '¿Te ha quedado algo a medias? ¿Alguna cosa en espera o pendiente? Decide si la pospones, la delegas o la eliminas. No la hagas ahora.', 'Lo que quedó a medias y qué decides…'),
+        Q('ideas', 'Procesa notas e ideas', 'A lo largo de la semana habrás capturado pensamientos, referencias, materiales, artículos por leer o ideas. Cierra las pestañas del navegador y pásalas a marcadores. Cuida tu jardincito 🌱', 'Ideas y referencias que quieres guardar…')] },
+    { id: 'p2', t: '2. Revisar lo que ha pasado y aprender',
+      intro: 'Aquí echas la vista atrás y reflexionas sobre lo que ha pasado: por qué y cómo te afecta, y cómo reaccionas tú a eso.',
+      subs: [
+        { id: 'p2a', t: '2.1 Análisis de tu semana con tus diarios', analisis: true,
+          intro: 'Haz el análisis de tus diarios cada domingo, a modo de cierre de semana. Puedes pedir el resumen IA de Grow Panel o copiar el prompt con tus diarios de la semana y pegarlo en tu IA (por ejemplo, Gemini).',
+          qs: [Q('logros', '¿Qué logros, grandes o pequeños, puedes reconocerte?', 'Apúntalos.', 'Mis logros de la semana…'),
+            Q('resistencia', '¿Dónde ha habido más resistencia, frustración o decepción?', '', 'Dónde me costó…'),
+            Q('patrones', 'Los patrones más relevantes (hasta 5)', 'Comportamientos, emociones, repeticiones, decisiones, contradicciones… Por cada patrón: qué lo causa o lo alimenta, qué consecuencias tiene y si es algo a mantener o a cambiar.', 'Patrón 1: …'),
+            Q('acciones', '3 acciones concretas para la próxima semana', 'Específicas y medibles, que cambien tu forma de trabajar, pensar o priorizar. Evita obviedades.', 'Acción 1: …'),
+            Q('historias', '3 historias o ideas para tu comunidad', 'Aprendizajes, contradicciones, errores o descubrimientos personales, escritos como titulares o ganchos. Por ejemplo: «Esta semana descubrí que cuando intento ser más productivo… me vuelvo menos libre».', 'Titular 1: …'),
+            Q('aprendizaje', 'El aprendizaje clave de la semana', 'En una sola frase poderosa, tipo insight. Por ejemplo: «Ser constante no es hacerlo cada día, sino volver cada vez que me pierdo».', 'Mi aprendizaje clave…')],
+          nota: true },
+        { id: 'p2b', t: '2.2 Estado de tus áreas', life: true,
+          intro: 'Revisa el estado de tu sistema de gestión semanal de las áreas de tu vida.',
+          qs: [Q('areas', '¿Cómo están tus áreas? ¿Cuál necesita más atención esta semana?', '', 'Estado de mis áreas…')] },
+        { id: 'p2c', t: '2.3 Reflexión de la semana',
+          intro: 'La retrospección es importante, pero es en la reflexión donde ganamos músculo mental: nos replanteamos marcos de referencia y somos conscientes de los patrones, influencias externas e internas que modelan nuestras decisiones y formas de actuar.',
+          qs: [Q('atascos', '¿Sientes que te atascas en lo mismo todas las semanas?', '', 'Me atasco en…'),
+            Q('energia', '¿Notas el impacto que tienen ciertas actividades en tu energía?', '', 'Lo que me da o me quita energía…'),
+            Q('compone', '¿Ves que hay ciertas acciones que componen más que las demás?', '', 'Las acciones que más suman…')] }] },
+    { id: 'p3', t: '3. Planificar la siguiente semana',
+      intro: 'Si has hecho bien lo anterior, este paso es el más satisfactorio: tienes mucha más claridad que cuando empezaste. Conecta lo que has visto con lo que viene, para que tu agenda de tareas y tu calendario estén alineados con lo que realmente importa, y puedas pasar el resto de la semana sabiendo que todo lo que depende de ti está en orden.',
+      qs: [Q('exito', 'Decide tus WINS: ¿qué haría que la semana fuera un éxito?', '', 'Lo que haría que la semana fuera un éxito…'),
+        Q('win1', 'Win 1', 'Las 3 cosas clave que tienes que sacar sí o sí para que eso pase.', 'La primera cosa clave…'),
+        Q('win2', 'Win 2', '', 'La segunda…'),
+        Q('win3', 'Win 3', '', 'La tercera…'),
+        Q('calendario', 'Revisa tu calendario', '¿Tienes reuniones o compromisos importantes que sean inamovibles? ¿Tienes suficiente espacio en la semana para hacer tu mejor trabajo, el que mueve de verdad la aguja?', 'Compromisos inamovibles y espacio para mi mejor trabajo…'),
+        Q('preparar', 'Prepara lo necesario', 'Si ya tienes una idea de cómo pinta la semana: ¿qué puedes dejar listo de antemano para facilitarte las cosas? ¿Tienes todo preparado para esas reuniones?', 'Lo que dejo listo de antemano…')],
+      life: true }];
+  const PLAN_ROT = {};   // título de cada pregunta, para «Planes anteriores»
+  (function () { const ver = ps => ps.forEach(s => { (s.qs || []).forEach(q => { PLAN_ROT[q.k] = q.t; }); if (s.subs) ver(s.subs); }); ver(PLAN_PASOS); PLAN_ROT.nota_porque = 'Por qué le das esa nota y qué haría falta para subir un punto más'; })();
+  let planDatos = {}, planDomingo = '', planT = null, planPendiente = false, planHechoAlCargar = false, planLista = [];
+  const domingoDe = (f) => { const d = f ? new Date(f + 'T12:00:00') : new Date(); d.setDate(d.getDate() - d.getDay()); return dia(d); };
+  const sumarDias = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return dia(d); };
+  const textoSemana = (dom) => {
+    const lun = sumarDias(dom, 1), fin = sumarDias(dom, 7), a = new Date(lun + 'T12:00:00'), b = new Date(fin + 'T12:00:00');
+    return `Planificas la semana del lunes ${a.getDate()}${a.getMonth() !== b.getMonth() ? ' de ' + MESES[a.getMonth()] : ''} al domingo ${b.getDate()} de ${MESES[b.getMonth()]}`;
+  };
+  const areaPlan = (k, ph) => `<div class="campo"><textarea data-d="p_${k}" placeholder="${esc(ph || '')}">${esc(planDatos[k] || '')}</textarea>`
+    + (modoVoz ? `<button type="button" class="mic" data-mic="p_${k}" aria-label="Dictar con la voz" title="Dictar con la voz">${MIC_SVG}</button>` : '') + '</div>';
+  const preguntaPlan = q => `<div class="plan-q"><div class="preg2">${q.t}</div>${q.ayuda ? `<div class="ayuda">${q.ayuda}</div>` : ''}${areaPlan(q.k, q.ph)}</div>`;
+  const abiertaPlan = id => { try { return localStorage.getItem('growpanel.sec.plan-' + id) !== '0'; } catch (e) { return true; } };
+  const botonesLife = `<div class="plan-pasos"><a class="btn-life" href="${LIFE_URL}" target="_blank" rel="noopener">${ICO_CAL_LINEA}Abrir Amable Life</a></div>`;
+  function bloquePlan(s, sub) {
+    let h = `<details class="sec${sub ? ' sub' : ''}" data-sec="plan-${s.id}"${abiertaPlan(s.id) ? ' open' : ''}><summary>${s.t}</summary><div class="sec-cuerpo">`;
+    if (s.intro) h += `<div class="plan-intro">${s.intro}</div>`;
+    if (s.analisis) h += `<div class="plan-pasos"><button type="button" class="reg-b google" data-a="plan-resumen">✨ Ver el resumen IA de mi semana</button>`
+      + `<button type="button" class="reg-b" data-a="plan-prompt">📋 Copiar el prompt con mis diarios</button></div><div class="reg-nota plan-aviso" hidden></div>`;
+    h += (s.qs || []).map(preguntaPlan).join('');
+    if (s.nota) h += `<div class="plan-q"><div class="preg2">Puntúa la semana del 0 al 10</div><div class="ayuda">Según equilibrio, energía y avance.</div>`
+      + `<div class="opciones">${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<button type="button" data-a="plan-nota" data-n="${n}" class="${planDatos.nota === n ? 'on' : ''}" aria-pressed="${planDatos.nota === n}">${n}</button>`).join('')}</div></div>`
+      + preguntaPlan(Q('nota_porque', '¿Por qué le das esa nota y qué haría falta para subir un punto más la próxima semana?', '', 'Por qué esa nota y qué subiría un punto…'));
+    if (s.life) h += botonesLife;
+    if (s.subs) h += s.subs.map(x => bloquePlan(x, true)).join('');
+    return h + '</div></details>';
+  }
+  function pintarPlan() {
+    const caja = planCaja.querySelector('.plan-form'); if (!caja) return;
+    caja.innerHTML = PLAN_PASOS.map(s => bloquePlan(s, false)).join('')
+      + `<div class="plan-fin"><button type="button" data-a="plan-hecho" class="btn-hecho btn-diario-hecho${planDatos.hecho ? ' on' : ''}" aria-pressed="${planDatos.hecho ? 'true' : 'false'}">${ICO_HECHO}${planDatos.hecho ? 'Plan hecho' : 'Marcar el plan como hecho'}</button></div>`
+      + `<div class="final" ${planDatos.hecho ? '' : 'hidden'}>🎉 ¡Plan de la semana hecho! Ya sabes a qué vas a dedicar tu tiempo 🥳</div>`
+      + '<div class="reg-nota plan-msg"></div>';
+    marcarMics(); if (!modoVoz) ponerNotaMic();
+    requestAnimationFrame(() => crecerTodo(caja));
+  }
+  function cabeceraPlan() {
+    const hoyDom = domingoDe(), esHoy = planDomingo === hoyDom;
+    planCaja.innerHTML = `<div class="franja-res"><h2>${PLAN_LOGO}Plan semana</h2></div>`
+      + `<div class="plan-intro">La revisión semanal de los domingos, 30 minutos: es el 20 % que te da el 80 % de tu éxito. En vez de reaccionar a lo que pasa, decides cómo y a qué vas a dedicar tu tiempo de trabajo. Se guarda sola mientras escribes y solo la ves tú.</div>`
+      + `<div class="plan-sem"><button type="button" data-a="plan-sem" data-d="-7" aria-label="Semana anterior">‹</button>`
+      + `<div class="plan-sem-t"><b>Revisión del ${esc(fechaLarga(planDomingo).toLowerCase())}</b><span>${esc(textoSemana(planDomingo))}</span>`
+      + `${esHoy ? '' : '<button type="button" class="plan-hoy" data-a="plan-sem" data-d="hoy">Volver a la de esta semana</button>'}</div>`
+      + `<button type="button" data-a="plan-sem" data-d="7" aria-label="Semana siguiente">›</button></div>`
+      + '<div class="diario plan plan-form"><div class="reg-nota">Cargando…</div></div>'
+      + `<details class="sec plan-ant" data-sec="plan-ant"${abiertaPlan('ant') ? ' open' : ''}><summary>📚 Planes anteriores</summary><div class="sec-cuerpo"><div class="plan-lista"><div class="reg-nota">Cargando…</div></div></div></details>`;
+  }
+  async function cargarPlan() {
+    const dom = planDomingo; planDatos = {};
+    try {
+      const r = await pedir('/plan?semana=' + dom);
+      if (dom !== planDomingo) return;
+      const j = r.ok ? await r.json() : {};
+      planDatos = j.respuestas || {};
+      planHechoAlCargar = !!planDatos.hecho;
+      pintarPlan();
+    } catch (e) { const c = planCaja.querySelector('.plan-form'); if (c) c.innerHTML = '<div class="reg-aviso">No se pudo abrir tu plan. Revisa la conexión.</div>'; }
+  }
+  function leerFormPlan() {
+    const caja = planCaja.querySelector('.plan-form'); if (!caja) return;
+    caja.querySelectorAll('textarea[data-d^="p_"]').forEach(x => { planDatos[x.dataset.d.slice(2)] = x.value; });
+  }
+  async function enviarPlan(dom, datos) {
+    const m = planCaja.querySelector('.plan-msg');
+    try {
+      const r = await pedir('/plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ semana: dom, respuestas: datos }) });
+      if (m && dom === planDomingo) m.textContent = r.ok ? '✓ Guardado' : 'No se pudo guardar. Revisa la conexión.';
+      return r.ok;
+    } catch (e) { if (m && dom === planDomingo) m.textContent = 'No se pudo guardar. Revisa la conexión.'; return false; }
+  }
+  function guardarPlanLuego() {
+    const m = planCaja.querySelector('.plan-msg'); if (m) m.textContent = 'Guardando…';
+    clearTimeout(planT); planPendiente = true;
+    const dom = planDomingo, datos = planDatos;
+    planT = setTimeout(async () => { await enviarPlan(dom, datos); planPendiente = false; cargarListaPlan(); }, 1200);
+  }
+  async function vaciarPlanPendiente() {   // antes de cambiar de semana, lo que falte se guarda ya
+    if (!planPendiente) return;
+    clearTimeout(planT); planPendiente = false; leerFormPlan(); await enviarPlan(planDomingo, planDatos);
+  }
+  planCaja.addEventListener('input', e => {
+    if (e.target.matches('textarea')) crecer(e.target);
+    if (e.target.closest('.plan-form')) { leerFormPlan(); guardarPlanLuego(); }
+  });
+  // Al abrir un título plegado, los huecos de dentro se ajustan a lo escrito
+  planCaja.addEventListener('toggle', e => { if (e.target.open) crecerTodo(e.target); }, true);
+  const fechaCortaPlan = dom => `${fechaLarga(dom).toLowerCase()}`;
+  function planLeible(r) {
+    const partes = [], f = k => r[k] ? `<p><b>${esc(PLAN_ROT[k])}</b> ${esc(r[k]).replace(/\n/g, '<br>')}</p>` : '';
+    Object.keys(PLAN_ROT).forEach(k => {
+      if (k === 'nota_porque') return;
+      partes.push(f(k));
+      if (k === 'aprendizaje') { if (Number.isInteger(r.nota)) partes.push(`<p><b>Nota de la semana:</b> ${r.nota} / 10</p>`); partes.push(f('nota_porque')); }
+    });
+    if (r.hecho) partes.push('<p>✅ Plan marcado como hecho</p>');
+    return partes.join('') || '<p class="reg-nota">Este plan está vacío.</p>';
+  }
+  async function cargarListaPlan() {
+    const caja = planCaja.querySelector('.plan-lista'); if (!caja) return;
+    try {
+      const r = await pedir('/plan/lista?n=12');
+      if (r.status === 404) { caja.innerHTML = '<div class="reg-nota">Muy pronto: falta poner al día el servidor.</div>'; return; }
+      const j = r.ok ? await r.json() : null; if (!j) throw new Error(r.status);
+      planLista = (j.planes || []).filter(x => Object.keys(x.respuestas || {}).length);
+      caja.innerHTML = planLista.length
+        ? planLista.map(x => `<details class="dia-ent"><summary>Revisión del ${esc(fechaCortaPlan(x.semana))}${x.respuestas.hecho ? '<span class="animo">✅ Hecho</span>' : ''}${Number.isInteger(x.respuestas.nota) ? `<span class="animo">${x.respuestas.nota}/10</span>` : ''}</summary>`
+          + `<div class="cuerpo">${planLeible(x.respuestas)}<button class="reg-b" data-a="plan-editar" data-s="${esc(x.semana)}">✏️ Editar este plan</button></div></details>`).join('')
+        : '<div class="reg-nota">Todavía no hay planes guardados. El primero lo escribes arriba.</div>';
+    } catch (e) { caja.innerHTML = '<div class="reg-aviso">No se pudieron leer tus planes anteriores. Revisa la conexión.</div>'; }
+  }
+  async function pintarPlanVista() {
+    if (!planDomingo) planDomingo = domingoDe();
+    if (!planCaja.querySelector('.plan-form')) cabeceraPlan();
+    if (!planCaja.querySelector('.plan-form textarea')) { cargarPlan(); cargarListaPlan(); }
+  }
+  async function cambiarSemana(nueva) {
+    await vaciarPlanPendiente();
+    planDomingo = nueva; cabeceraPlan(); cargarPlan(); cargarListaPlan(); window.scrollTo(0, 0);
+  }
+  // Prompt para otra IA con los diarios de la semana (domingo −6 … domingo)
+  async function copiarPrompt(boton) {
+    const av = planCaja.querySelector('.plan-aviso'), dom = planDomingo;
+    const di = (msg) => { if (av) { av.hidden = !msg; av.textContent = msg; } };
+    di('Preparando el prompt con tus diarios…');
+    let texto = PLAN_PROMPT, hay = 0;
+    try {
+      const r = await pedir('/diario/lista?n=7&antes=' + sumarDias(dom, 1));
+      const j = r.ok ? await r.json() : { dias: [] };
+      const desde = sumarDias(dom, -6);
+      const dias = (j.dias || []).filter(d => d.fecha >= desde && d.fecha <= dom).reverse();
+      dias.forEach(d => {
+        const tmp = document.createElement('div'); tmp.innerHTML = diarioLeible(d.respuestas || {});
+        const cuerpo = [...tmp.querySelectorAll('p')].map(x => x.textContent.trim()).filter(Boolean).join('\n');
+        if (cuerpo && !/Este día está vacío/.test(cuerpo)) { texto += `— ${fechaLarga(d.fecha)} —\n${cuerpo}\n\n`; hay++; }
+      });
+    } catch (e) {}
+    if (!hay) texto += '(No he encontrado diarios de esta semana en Grow Panel: pégalos aquí.)\n';
+    try { await navigator.clipboard.writeText(texto); di(`✓ Copiado (${hay} ${hay === 1 ? 'día' : 'días'} de diario). Pégalo en Gemini o en tu IA.`); }
+    catch (e) { const ta = document.createElement('textarea'); ta.value = texto; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (x) {} ta.remove(); di(ok ? `✓ Copiado (${hay} días de diario). Pégalo en Gemini o en tu IA.` : 'No se pudo copiar solo. Prueba otra vez.'); }
   }
 
   // --- Resumen en texto con IA (día, semana, mes, trimestre, año) ---
@@ -1473,7 +1702,7 @@ window.CuentaAmable = (() => {
     if (b) b.textContent = '⏹ Parar';
   }
   // Recordar qué secciones tienes abiertas
-  [resCaja, diaCaja, ajCaja].forEach(c => c.addEventListener('toggle', e => {
+  [resCaja, diaCaja, planCaja, ajCaja].forEach(c => c.addEventListener('toggle', e => {
     const d = e.target; if (!d.matches || !d.matches('details[data-sec]')) return;
     try { localStorage.setItem('growpanel.sec.' + d.dataset.sec, d.open ? '1' : '0'); } catch (err) {}
   }, true));
@@ -1682,6 +1911,7 @@ window.CuentaAmable = (() => {
     if (!vApps.hidden) pintarDatos();
     if (!vRes.hidden) pintarResumen();
     if (!vDia.hidden) pintarDiarioVista();
+    if (!vPlan.hidden) pintarPlanVista();
     if (!vAj.hidden) pintarAjustes();
   }
 
@@ -1689,6 +1919,22 @@ window.CuentaAmable = (() => {
     const a = e.target.closest('[data-a]'); if (!a) return;
     const accion = a.dataset.a, caja = e.currentTarget, msg = () => ajCaja.querySelector('#reg-msg');
     if (accion === 'abrir-app') { abrirApp(a.dataset.id); return; }
+    if (accion === 'plan-sem') { cambiarSemana(a.dataset.d === 'hoy' ? domingoDe() : sumarDias(planDomingo, Number(a.dataset.d))); return; }
+    if (accion === 'plan-editar') { cambiarSemana(a.dataset.s); return; }
+    if (accion === 'plan-nota') {
+      leerFormPlan(); const n = Number(a.dataset.n); planDatos.nota = planDatos.nota === n ? undefined : n;
+      caja.querySelectorAll('[data-a="plan-nota"]').forEach(b => { const on = Number(b.dataset.n) === planDatos.nota; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+      guardarPlanLuego(); return;
+    }
+    if (accion === 'plan-hecho') {
+      leerFormPlan(); planDatos.hecho = planDatos.hecho ? undefined : true;
+      a.classList.toggle('on', !!planDatos.hecho); a.setAttribute('aria-pressed', !!planDatos.hecho);
+      a.innerHTML = ICO_HECHO + (planDatos.hecho ? 'Plan hecho' : 'Marcar el plan como hecho');
+      const fin = caja.querySelector('.final'); if (fin) fin.hidden = !planDatos.hecho;
+      guardarPlanLuego(); return;
+    }
+    if (accion === 'plan-resumen') { iaPeriodo = 'semana'; location.hash = '#resumen'; window.scrollTo(0, 0); return; }
+    if (accion === 'plan-prompt') { copiarPrompt(a); return; }
     if (accion === 'plegar-app') { plegarApps(a.closest('.reg-app')); return; }
     if (accion === 'mover-app') return;   // los 6 puntitos: se arrastran (no pliegan)
     if (accion === 'actualizar' && caja === datosCaja) { const p = panelApps(); if (p) p.cargar(); }
@@ -1823,6 +2069,7 @@ window.CuentaAmable = (() => {
   resCaja.addEventListener('click', alClic);
   datosCaja.addEventListener('click', alClic);
   diaCaja.addEventListener('click', alClic);
+  planCaja.addEventListener('click', alClic);
   ajCaja.addEventListener('click', alClic);
   ajCaja.addEventListener('change', async e => {
     if (e.target.id === 'aviso-push') {
@@ -1965,7 +2212,7 @@ bInst.addEventListener('click', async () => { if (!aviso) return; aviso.prompt()
 addEventListener('appinstalled', () => { bInst.hidden = true; });
 
 (() => {
-  const VISTAS = ['apps', 'diario', 'resumen', 'ajustes'], botones = document.querySelectorAll('.abajo button');
+  const VISTAS = ['apps', 'diario', 'plan', 'resumen', 'ajustes'], botones = document.querySelectorAll('.abajo button');
   function mostrar() {
     if (location.hash === '#alarma-diario') { history.replaceState(null, '', '#diario'); setTimeout(() => window.GrowPanelAlarma && window.GrowPanelAlarma(false), 300); }
     const v = VISTAS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'apps';
