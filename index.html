@@ -556,7 +556,7 @@ window.CuentaAmable = (() => {
 // La clave solo vive en este navegador (localStorage «growpanel.clave»); en el servidor solo se guarda su huella.
 // Con la Cuenta Amable (Google) todo va a la cuenta: lo mismo en el móvil y en el PC.
 (() => {
-  const REGISTRO = 'https://registro-diario.proud-hill-016b.workers.dev';
+  const REGISTRO = 'https://grow-panel-api.proud-hill-016b.workers.dev';
   const CLAVE_OK = /^[A-Za-z0-9_-]{32,128}$/;
   const HORA_OK = /^([01]\d|2[0-3]):[0-5]\d$/;
   const resCaja = document.getElementById('reg-caja'), ajCaja = document.getElementById('aj-caja');
@@ -655,7 +655,7 @@ window.CuentaAmable = (() => {
   const zonaHoraria = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid'; } catch (e) { return 'Europe/Madrid'; } };
 
   // --- Aviso del resumen del día en este aparato (Web Push) ---
-  const VAPID_PUBLICA = 'BFoTFyAgZUsoq5axe9tteEKQQLS7o-9L37QoZRlxafSuM_-jlQLq2OmZTFGdE5IeKiX25_ttV3S3JEgSLFPfG2M';
+  const VAPID_PUBLICA = 'BOGS6m88_BuE2wxTQjhlWh_nUjYuH_AWNj83iWRVn0znH_p0Yys87QZ34NawNSQ1ELWDvJ-CwbqYD3JBeHdMK-g';
   const pushPosible = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   async function suscripcion() {
     if (!pushPosible()) return null;
