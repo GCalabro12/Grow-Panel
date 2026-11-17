@@ -168,21 +168,17 @@ body.visor-abierto{overflow:hidden}
 .reg-logo{width:38px;height:38px;border-radius:10px;background:var(--c,#1f2937);display:inline-flex;align-items:center;justify-content:center;flex:none;overflow:hidden}
 .reg-logo img{width:100%;height:100%;object-fit:cover}
 .reg-app-cab b{display:block}
-.reg-app-cab{display:grid;grid-template-columns:auto 1fr auto auto;column-gap:12px;row-gap:2px;align-items:center}
 .reg-app-cab .reg-nombre{font-size:18px;font-weight:800;line-height:1.2;min-width:0}
-.reg-app-cab .reg-cuando{grid-column:2/-1;margin:0;font-size:12.5px;color:var(--mut);line-height:1.4}
 .reg-app-cab[data-a="plegar-app"]{cursor:pointer;user-select:none;border-radius:10px}
 .reg-app-cab[data-a="plegar-app"]:focus-visible{outline:2px solid var(--ac,#f59e0b);outline-offset:3px}
-.reg-app-cab .asa-datos{grid-column:3;flex:none;width:28px;height:30px;display:grid;place-items:center;border:0;padding:0;border-radius:6px;background:transparent;color:var(--mut);cursor:grab;touch-action:none}
+.reg-app-cab .asa-datos{flex:none;width:28px;height:30px;display:grid;place-items:center;border:0;padding:0;border-radius:6px;background:transparent;color:var(--mut);cursor:grab;touch-action:none}
 .reg-app-cab .asa-datos:hover,.reg-app-cab .asa-datos:focus-visible{background:var(--fila);color:var(--tx);outline:none}
 .reg-app-cab .asa-datos+.chev{margin-left:0}
-.reg-app-cab .chev{grid-column:4}
 .reg-app.arrastrando{opacity:.55;border-style:dashed}
 .reg-app-cab .chev{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:var(--mut);transition:transform .2s}
 .reg-app-cab:hover .chev{background:var(--fila);color:var(--tx)}
 .reg-app.plegada .chev{transform:rotate(-90deg)}
-.reg-app.plegada .reg-tabla tr:not(:first-child){display:none}
-.reg-app.plegada .reg-avisos{height:0;margin:0;overflow:hidden}
+.reg-app.plegada .reg-det{display:none}
 .reg-tabla{width:auto;min-width:min(100%,380px);border-collapse:separate;border-spacing:0 6px;font-size:14px;margin-top:4px}
 .reg-tabla th.th-abrir{text-align:left;padding-left:0}
 .abrir-app{background:#16a34a;color:#fff;border:0;border-radius:999px;padding:7px 14px;font:inherit;font-size:13.5px;font-weight:800;cursor:pointer;white-space:nowrap}
@@ -201,12 +197,28 @@ body.visor-abierto{overflow:hidden}
 .guia-sync-in .nota-sync{margin:4px 0 0;color:var(--mut)}
 .guia-sync-in .aviso-sync{color:#b45309;font-weight:600}
 /* Gustavo, 11-11-2026: en cada fila, «Abrir app · Hoy · 7 días» de todas las apps a la misma altura */
-@supports (grid-template-rows:subgrid){#datos-caja .reg-app{display:grid;grid-row:span 3;grid-template-rows:subgrid;row-gap:0;align-content:start}#datos-caja .reg-app>*{align-self:start}}
+@supports (grid-template-rows:subgrid){#datos-caja .reg-app{display:grid;grid-row:span 5;grid-template-rows:subgrid;row-gap:0;align-content:start}#datos-caja .reg-app>*{align-self:start}}
 .reg-avisos{font-size:13.5px;font-weight:600;color:#b45309;margin:2px 0 6px;line-height:1.4}
 .reg-tabla th{font-size:13px;font-weight:800;color:var(--tx);text-align:center;padding:0 10px 2px;white-space:nowrap}
 .reg-tabla td{background:var(--fila);color:var(--tx);font-weight:400;padding:10px 14px}
 .reg-tabla td:first-child{border-radius:10px 0 0 10px;padding-right:24px}
 .reg-tabla td:last-child{border-radius:0 10px 10px 0}
+/* Datos apps (Gustavo, 17-11-2026): plegada por defecto; «Abrir app» junto al nombre en pantalla ancha; un dato clave a la vista */
+.reg-app{container-type:inline-size}
+.reg-app-cab .reg-nombre{flex:1;min-width:0}
+.reg-app-cab .acc{display:flex;align-items:center;gap:2px;flex:none}
+.reg-app-cab .abrir-wide{display:none;flex:none}
+.reg-cuando{font-size:12.5px;color:var(--mut);line-height:1.4;margin:0 0 6px}
+.reg-linea{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--tx);margin:0 0 6px}
+.reg-linea .rl-txt{flex:1 1 180px;min-width:0;line-height:1.4}
+.reg-linea .rl-txt b{font-weight:800;font-variant-numeric:tabular-nums}
+.reg-linea .abrir-narrow{flex:none}
+.reg-det:empty{display:none}
+@container (min-width: 360px){
+  .reg-app-cab .abrir-wide{display:inline-flex}
+  .reg-linea .abrir-narrow{display:none}
+  .reg-linea .rl-txt{flex:1 1 auto}
+}
 .reg-tabla td+td{text-align:center;font-size:15px;font-variant-numeric:tabular-nums;width:1%;white-space:nowrap;padding-left:12px;padding-right:12px}
 .reg-aviso{font-size:13px;margin:8px 0;padding:8px;border-radius:8px;background:var(--bg)}
 .reg-cuenta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--ln)}
@@ -729,6 +741,7 @@ window.CuentaAmable = (() => {
       const a = porApp[f.app] = porApp[f.app] || {}, d = a[f.dato] = a[f.dato] || { hoy: null, semana: 0, n: 0 };
       if (f.fecha === hoyTxt) d.hoy = f.valor;
       d.n++;
+      d.ult = Number(f.valor) || 0; d.ultFecha = f.fecha;   // filas ordenadas por fecha: queda la última
       if (NO_SUMAR.test(f.dato)) d.semana = Number(f.valor) || 0;   // filas ordenadas por fecha: queda el último
       else d.semana += Number(f.valor) || 0;
     });
@@ -753,7 +766,7 @@ window.CuentaAmable = (() => {
       // 12-11-2026 (Gustavo, para todas las apps): los datos que son un «nivel» del día van en MEDIA de los días con dato
       Object.entries(a).forEach(([k, d]) => { if (MEDIA.test(k) && d && d.n && d.semanaTxt === undefined) d.semanaTxt = num(d.semana / d.n) + ' (media)'; });
       // Amable Fit: la última sesión hecha es un número de sesión
-      if (a.ultima_sesion) { const u = a.ultima_sesion; a.ultima_sesion = { hoyTxt: u.hoy === null ? '—' : 'Sesión ' + num(u.hoy), semanaTxt: u.semana ? 'Sesión ' + num(u.semana) : '—' }; }
+      if (a.ultima_sesion) { const u = a.ultima_sesion; a.ultima_sesion = Object.assign({}, u, { hoyTxt: u.hoy === null ? '—' : 'Sesión ' + num(u.hoy), semanaTxt: u.semana ? 'Sesión ' + num(u.semana) : '—' }); }
     });
     const hace = t => { const m = Math.round((Date.now() - t) / 60000); if (m < 2) return 'ahora'; if (m < 60) return `hace ${m} min`;
       const h = Math.round(m / 60); if (h < 24) return `hace ${h} h`; const d = Math.round(h / 24); return d === 1 ? 'ayer' : `hace ${d} días`; };
@@ -767,7 +780,7 @@ window.CuentaAmable = (() => {
     const ORDEN = ['amable-meta', 'amable-fit', 'amable-life', 'amable-pc', 'amable-flow', 'amable-sleep'];
     const pos = a => { const i = suOrden.indexOf(a.id); if (i >= 0) return i; const n = ORDEN.indexOf(a.registro); return 100 + (n < 0 ? 99 : n); };
     lista.sort((x, y) => pos(x) - pos(y) || x.nombre.localeCompare(y.nombre));
-    let plegadas = []; try { plegadas = JSON.parse(localStorage.getItem('growpanel.plegadas')) || []; } catch (e) {}
+    let desplegadas = []; try { desplegadas = JSON.parse(localStorage.getItem('growpanel.desplegadas')) || []; } catch (e) {}
     const ASA = a => a.id ? `<button type="button" class="asa-datos" data-a="mover-app" title="Arrastra para cambiarla de sitio" aria-label="Mover ${esc(a.nombre)}: arrastra o usa las flechas"><svg viewBox="0 0 24 24" width="14" height="20" fill="currentColor" aria-hidden="true"><circle cx="9" cy="5" r="1.8"/><circle cx="15" cy="5" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="19" r="1.8"/><circle cx="15" cy="19" r="1.8"/></svg></button>` : '';
     const CHEV = '<span class="chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
     const QUE_HACER = { 'amable-sleep': 'graba una noche: se envían tus horas de sueño, tu puntuación y tus ronquidos',
@@ -790,18 +803,55 @@ window.CuentaAmable = (() => {
         <p class="nota-sync"><b>Si no aparece nada:</b> mira en Ajustes › Tus datos que «Compartir los registros de mis apps» esté activado, vuelve a abrir ${n} desde esta tarjeta y espera un minuto. Si sigue sin salir, escríbenos desde Ajustes › Ayuda y soporte.</p>
       </div></details>`;
     };
-    const boton = a => a.id && !a.sinAbrir ? `<button type="button" class="abrir-app" data-a="abrir-app" data-id="${esc(a.id)}">Abrir app</button>` : '';
+    const botonW = a => a.id && !a.sinAbrir ? `<button type="button" class="abrir-app abrir-wide" data-a="abrir-app" data-id="${esc(a.id)}">Abrir app</button>` : '';
+    const botonN = a => a.id && !a.sinAbrir ? `<button type="button" class="abrir-app abrir-narrow" data-a="abrir-app" data-id="${esc(a.id)}">Abrir app</button>` : '';
+    const ddmmTxt = f => f ? f.slice(8, 10) + '/' + f.slice(5, 7) : '';
+    // El dato más significativo de cada app (Gustavo, 17-11-2026): pasos, práctica, horas de sueño, tareas, sesiones, meta
+    const lineaApp = (a, datos) => {
+      if (!datos) return '';
+      const hoyV = k => datos[k] ? (datos[k].hoyTxt ?? (datos[k].hoy === null || datos[k].hoy === undefined ? '—' : num(datos[k].hoy))) : '—';
+      const semV = k => datos[k] ? (datos[k].semanaTxt ?? num(datos[k].semana)) : '—';
+      const ultV = k => datos[k] && datos[k].ult !== undefined ? num(datos[k].ult) : '—';
+      switch (a.registro) {
+        case 'amable-pc': return datos.pasos ? `Pasos hoy <b>${hoyV('pasos')}</b> · 7 días <b>${semV('pasos')}</b>` : '';
+        case 'amable-flow': return datos.minutos_presencia ? `Práctica hoy <b>${hoyV('minutos_presencia')}</b> min · 7 días <b>${semV('minutos_presencia')}</b> min` : '';
+        case 'amable-sleep': return datos.horas_sueno ? `Anoche <b>${ultV('horas_sueno')} h</b>${datos.horas_sueno.ultFecha ? ` (${ddmmTxt(datos.horas_sueno.ultFecha)})` : ''} · media 7 días <b>${datos.horas_sueno.n ? num(datos.horas_sueno.semana / datos.horas_sueno.n) : '—'}</b>` : '';
+        case 'amable-life': return (datos.tareas_pendientes || datos.tareas_hechas) ? `Pendientes <b>${hoyV('tareas_pendientes')}</b> · Realizadas hoy <b>${hoyV('tareas_hechas')}</b>` : '';
+        case 'amable-fit': {
+          const u = datos.ultima_sesion;
+          if (u) return `Sesión <b>${ultV('ultima_sesion')}</b> · última el <b>${ddmmTxt(u.ultFecha)}</b>`;
+          return datos.minutos ? `Hoy <b>${hoyV('minutos')}</b> min de ejercicio` : '';
+        }
+        case 'amable-meta': {
+          const c = datos.compromiso_semana ? ultV('compromiso_semana') : null;
+          const m = datos.metas_sencillas_hechas ? hoyV('metas_sencillas_hechas') : null;
+          if (c === null && m === null) return '';
+          return `Compromiso semanal <b>${c ?? '—'}</b>${m !== null ? ` · metas sencillas hoy <b>${m}</b>` : ''}`;
+        }
+        default: {
+          const k = Object.keys(datos)[0];
+          return k ? `${esc(nombreDato(k, a.registro))} hoy <b>${hoyV(k)}</b>` : '';
+        }
+      }
+    };
     const tarjetas = lista.map(a => {
       const datos = porApp[a.registro], t = ultimo[a.registro], c = color(a.color), ac = color(a.acento) || c;
       const cuando = t ? `actualizado ${hace(t)}${Date.now() - t > 30 * 60000 ? ' (no hay datos nuevos desde esa hora)' : ''}` : '';
-      const cuerpo = datos
-        ? `<table class="reg-tabla"><tr><th class="th-abrir">${boton(a)}</th><th>Hoy</th><th>7 días</th></tr>${Object.entries(datos).map(([k, d]) =>
+      const abierta = !!datos && !!a.id && desplegadas.includes(a.id);   // plegada por defecto
+      const plegada = !!datos && !abierta;
+      const linea = lineaApp(a, datos);
+      const txtLinea = fallo ? 'No se han podido leer sus números.' : (linea || 'Aún sin números estos 7 días.');
+      const det = datos
+        ? `<table class="reg-tabla"><tr><th></th><th>Hoy</th><th>7 días</th></tr>${Object.entries(datos).map(([k, d]) =>
             `<tr><td>${esc(nombreDato(k, a.registro))}</td><td>${esc(d.hoyTxt ?? (d.hoy === null ? '—' : num(d.hoy)))}</td><td>${esc(d.semanaTxt ?? num(d.semana))}</td></tr>`).join('')}</table>`
-        : `<div class="reg-sin">${boton(a)}<span class="reg-nota" style="margin:0">${fallo ? 'No se han podido leer sus números.' : 'Aún sin números estos 7 días.'}</span>${fallo || !a.id || a.sinAbrir ? '' : guia(a)}</div>`;
-      const plegada = datos && a.id && plegadas.includes(a.id);
-      return `<div class="reg-app${plegada ? ' plegada' : ''}" data-id="${esc(a.id || '')}" style="${ac ? `--ac:${ac};` : ''}${c ? `--c:${c}` : ''}"><div class="reg-app-cab"${datos ? ` data-a="plegar-app" role="button" tabindex="0" aria-expanded="${plegada ? 'false' : 'true'}" title="Plegar o desplegar"` : ''}><span class="reg-logo">${logo(a)}</span>
-        <b class="reg-nombre">${esc(a.nombre)}</b>${ASA(a)}${datos ? CHEV : ''}${cuando ? `<span class="reg-cuando">${esc(cuando)}</span>` : ''}</div>
-        <div class="reg-avisos"></div>${cuerpo}</div>`;
+        : (fallo || !a.id || a.sinAbrir ? '' : guia(a));
+      const attrsCab = datos ? ` data-a="plegar-app" role="button" tabindex="0" aria-expanded="${abierta ? 'true' : 'false'}" title="Desplegar o plegar"` : '';
+      return `<div class="reg-app${plegada ? ' plegada' : ''}" data-id="${esc(a.id || '')}" style="${ac ? `--ac:${ac};` : ''}${c ? `--c:${c}` : ''}">`
+        + `<div class="reg-app-cab"${attrsCab}><span class="reg-logo">${logo(a)}</span><b class="reg-nombre">${esc(a.nombre)}</b>${botonW(a)}<span class="acc">${ASA(a)}${datos ? CHEV : ''}</span></div>`
+        + `<div class="reg-cuando">${esc(cuando)}</div>`
+        + `<div class="reg-linea">${botonN(a)}<span class="rl-txt">${fallo || !linea ? esc(txtLinea) : linea}</span></div>`
+        + `<div class="reg-avisos"></div>`
+        + `<div class="reg-det">${det}</div></div>`;
     }).join('');
     return (fallo ? '<div class="reg-aviso" style="grid-column:1/-1">No se pudieron leer los números de tus apps. Revisa la conexión y pulsa ↻ Actualizar datos.</div>' : '')
       + (tarjetas || '<div class="reg-aviso">Todavía no hay apps.</div>');
@@ -841,16 +891,16 @@ window.CuentaAmable = (() => {
   // Plegar una app pliega las de su misma fila (Gustavo, 11-11-2026): en el móvil cada una va en su fila
   function plegarApps(caja) {
     if (!caja) return;
-    const plegar = !caja.classList.contains('plegada'), arriba = caja.offsetTop;
+    const abrir = caja.classList.contains('plegada'), arriba = caja.offsetTop;   // si está plegada, se despliega
     const fila = [...datosCaja.querySelectorAll('.reg-app')].filter(x => Math.abs(x.offsetTop - arriba) < 4 && x.querySelector('[data-a="plegar-app"]'));
-    let plegadas = []; try { plegadas = JSON.parse(localStorage.getItem('growpanel.plegadas')) || []; } catch (e) {}
+    let desp = []; try { desp = JSON.parse(localStorage.getItem('growpanel.desplegadas')) || []; } catch (e) {}
     fila.forEach(x => {
-      x.classList.toggle('plegada', plegar);
-      const cab = x.querySelector('[data-a="plegar-app"]'); if (cab) cab.setAttribute('aria-expanded', plegar ? 'false' : 'true');
+      x.classList.toggle('plegada', !abrir);
+      const cab = x.querySelector('[data-a="plegar-app"]'); if (cab) cab.setAttribute('aria-expanded', abrir ? 'true' : 'false');
       const id = x.dataset.id; if (!id) return;
-      plegadas = plegadas.filter(k => k !== id); if (plegar) plegadas.push(id);
+      desp = desp.filter(k => k !== id); if (abrir) desp.push(id);
     });
-    try { localStorage.setItem('growpanel.plegadas', JSON.stringify(plegadas)); } catch (e) {}
+    try { localStorage.setItem('growpanel.desplegadas', JSON.stringify(desp)); } catch (e) {}
   }
   datosCaja.addEventListener('keydown', e => {
     if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-a="plegar-app"]')) { e.preventDefault(); plegarApps(e.target.closest('.reg-app')); }
