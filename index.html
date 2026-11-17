@@ -94,6 +94,7 @@ body.visor-abierto{overflow:hidden}
 .diario.plan textarea{cursor:text;background:var(--bg);overflow:hidden}
 .plan .franja-res h2{display:inline-flex;align-items:center;gap:10px}
 .plan .franja-res h2 svg{flex:none}
+.plan-modos{margin:0 0 12px}
 .plan-intro{font-size:14px;line-height:1.5;margin:0 0 12px;color:var(--tx)}
 .plan-sem{display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:10px;border:1px solid var(--ln);border-radius:14px;background:var(--card)}
 .plan-sem button{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--ln);background:var(--bg);color:var(--tx);font-size:20px;line-height:1;cursor:pointer}
@@ -384,7 +385,7 @@ body.embed .top,body.embed .guia,body.embed details,body.embed .pie,body.embed .
 <nav class="abajo" aria-label="Secciones de Grow Panel"><div class="abajo-in">
   <button type="button" data-v="apps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Datos apps</button>
   <button type="button" data-v="diario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3"/><path d="M9 7.5h6M9 11h4"/></svg>Mi diario</button>
-  <button type="button" data-v="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M7.5 14h1M11.5 14h1M15.5 14h1M7.5 17.5h1M11.5 17.5h1"/></svg>Plan semana</button>
+  <button type="button" data-v="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M7.5 14h1M11.5 14h1M15.5 14h1M7.5 17.5h1M11.5 17.5h1"/></svg>Planes</button>
   <button type="button" data-v="resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><rect x="5" y="11" width="3" height="6" rx="1"/><rect x="10.5" y="6" width="3" height="11" rx="1"/><rect x="16" y="13" width="3" height="4" rx="1"/></svg>Resumen IA</button>
   <button type="button" data-v="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ajustes</button>
 </div></nav>
@@ -1472,8 +1473,57 @@ window.CuentaAmable = (() => {
         Q('calendario', 'Revisa tu calendario', '¿Tienes reuniones o compromisos importantes que sean inamovibles? ¿Tienes suficiente espacio en la semana para hacer tu mejor trabajo, el que mueve de verdad la aguja?', 'Compromisos inamovibles y espacio para mi mejor trabajo…'),
         Q('preparar', 'Prepara lo necesario', 'Si ya tienes una idea de cómo pinta la semana: ¿qué puedes dejar listo de antemano para facilitarte las cosas? ¿Tienes todo preparado para esas reuniones?', 'Lo que dejo listo de antemano…')],
       life: true }];
+  // Plan trimestre (Gustavo, 17-11-2026): «Auditoría estratégica trimestral» de su Notion «Planificar trimestre natural»
+  // y la «Rev. trimestral» de su página GTD. 4 horas, mejor un viernes o sábado al final del trimestre.
+  const PLAN_ESTADOS = [['verde', '🟢 Nominal'], ['amarillo', '🟡 Desviación'], ['rojo', '🔴 Crítico']];
+  const PLAN_TRIM = [
+    { id: 't0', t: 'Estado del trimestre',
+      intro: 'Mientras que la revisión semanal se enfoca en que el sistema funcione, la trimestral se enfoca en que el sistema vaya en la dirección correcta. Bloquea 4 horas en tu calendario, preferiblemente un viernes o un sábado al final del trimestre, para completarla sin interrupciones.',
+      estado: true,
+      qs: [Q('resumen_ejec', 'Resumen ejecutivo', 'El rendimiento del trimestre en una frase.', 'El trimestre en una frase…')], life: true },
+    { id: 't1', t: '1. Auditoría de alineación estratégica',
+      intro: 'En lugar de mirar tareas, miras las áreas de tu vida.',
+      qs: [Q('pertinencia', 'Análisis de pertinencia', '¿Siguen siendo estas áreas las prioridades de tu vida? ¿Hay alguna que deba eliminar o una nueva que deba construir?', 'Mis áreas y lo que cambio…'),
+        Q('objetivo', 'Objetivo estratégico', '¿El objetivo que te marcaste sigue siendo el correcto, o el mercado o tu situación han cambiado?', 'Mi objetivo estratégico ahora…'),
+        Q('valores', 'Tus valores', 'Se revisan y se recuerdan cada trimestre. ¿Los has vivido estos tres meses?', 'Cómo he vivido mis valores…'),
+        Q('propositos', 'Propósitos y objetivos de vida', 'Solo en el primer trimestre del año: repásalos.', 'Mis propósitos y objetivos de vida…'),
+        Q('anuales', 'Objetivos del año', 'Repásalos cada trimestre: ¿siguen siendo necesarios y vas en plazo?', 'Mis objetivos anuales y cómo van…')] },
+    { id: 't2', t: '2. Retrospectiva y análisis de resultados',
+      intro: 'Análisis objetivo de los últimos 90 días: no miras el dato de una semana, sino la gráfica de los últimos tres meses.',
+      iaTrim: true,
+      qs: [Q('logrado', '¿He cumplido el objetivo del trimestre?', 'Lo logrado frente a lo planificado en los últimos 90 días.', 'Lo que logré y lo que no…'),
+        Q('kpis', 'Rendimiento de tus metas cuantitativas', 'Los números de los tres meses (por ejemplo, de dinero) frente al objetivo, no solo los de una semana.', 'Mis números del trimestre…'),
+        Q('cuellos', 'Cuellos de botella', '¿Qué proceso o recurso limitó el crecimiento este trimestre?', 'Lo que limitó el crecimiento…'),
+        Q('fallos', 'Fallas de sistema', '¿Hubo algún semáforo rojo recurrente? ¿Por qué el procedimiento no lo previno? ¿Fue un fallo del proceso o una causa externa?', 'Lo que falló y por qué…'),
+        Q('victorias', 'Victorias por diseño', '¿Qué sistema funcionó tan bien que no requirió tu intervención?', 'Lo que funcionó solo…'),
+        Q('roi', 'Retorno de inversión', '¿El tiempo invertido en cada área justifica los resultados obtenidos?', 'Si el tiempo invertido compensa…')] },
+    { id: 't3', t: '3. Auditoría de sistemas y procedimientos',
+      intro: 'Fase de refactorización: igual que una máquina necesita un mantenimiento profundo cada cierto tiempo, tus procedimientos de trabajo pueden quedar obsoletos.',
+      qs: [Q('simplificar', 'Simplificar', '¿Qué pasos de tus procedimientos puedes eliminar porque no aportan valor?', 'Pasos que elimino…'),
+        Q('automatizar', 'Automatizar', '¿Hay nuevas herramientas (IA, automatizaciones) que puedan sustituir pasos manuales de tus procedimientos?', 'Pasos que automatizo y con qué…'),
+        Q('delegar', 'Delegar o externalizar', '¿Qué flujo puedes delegar o externalizar?', 'Lo que delego…'),
+        Q('nuevos_sistemas', 'Arquitectura de áreas', '¿Hace falta crear un sistema o área nueva para el próximo trimestre? ¿Alguna debe ponerse en pausa o desmantelarse?', 'Lo que creo, pauso o quito…')] },
+    { id: 't4', t: '4. Salud personal y energía',
+      intro: 'Evaluación de cómo te encuentras.',
+      qs: [Q('pq', 'Puntuación de Inteligencia Positiva (PQ)', 'El dato actual frente al anterior.', 'Mi PQ ahora y el anterior…'),
+        Q('energia_t', 'Balance de energía', '¿Qué área me drena y cuál me da energía? ¿En cuál actúo como «ingeniero» y en cuál como «componente» (trabajador manual)?', 'Lo que me drena y lo que me da energía…'),
+        Q('mantenimiento', 'Mantenimiento preventivo', 'Ajuste de tus microrrutinas de salud, sueño y desarrollo personal.', 'Lo que ajusto en mis rutinas…')] },
+    { id: 't5', t: '5. Hoja de ruta del próximo trimestre (Big Rocks)',
+      intro: 'Defines los 2 o 3 proyectos grandes que requieren un esfuerzo extra: los que mueven la aguja en las próximas 12 semanas. Primero las rocas, luego las piedras y por último la arena: si empiezas llenando el frasco con arena, ya no caben las rocas.',
+      qs: [Q('tema', 'El tema del trimestre', 'Un marco que te ayude a elegir en qué tiene más sentido enfocarte según la idea central de los próximos tres meses.', 'El tema del próximo trimestre…'),
+        Q('rock1', 'Hito 1 (Big Rock)', '¿Qué cambio estructural quieres haber terminado en 90 días? La descripción del objetivo y la fecha.', 'Hito 1 y su fecha…'),
+        Q('rock2', 'Hito 2 (Big Rock)', '', 'Hito 2 y su fecha…'),
+        Q('rock3', 'Hito 3 (Big Rock)', '', 'Hito 3 y su fecha…'),
+        Q('directriz', 'Directriz para el próximo trimestre', 'Tu mantra, por ejemplo «Simplificar para escalar» o «Delegación total de operaciones».', 'Mi directriz…')],
+      life: true }];
+  const esTrim = k => /-T[1-4]$/.test(k || '');
+  const trimActual = () => { const d = new Date(); return d.getFullYear() + '-T' + (Math.floor(d.getMonth() / 3) + 1); };
+  const moverTrim = (k, n) => { const y = Number(k.slice(0, 4)), q = Number(k.slice(-1)), i = y * 4 + (q - 1) + n; return Math.floor(i / 4) + '-T' + ((i % 4) + 1); };
+  const textoTrim = k => { const y = k.slice(0, 4), q = Number(k.slice(-1)); return `De ${MESES[(q - 1) * 3]} a ${MESES[(q - 1) * 3 + 2]} de ${y}`; };
   const PLAN_ROT = {};   // título de cada pregunta, para «Planes anteriores»
   (function () { const ver = ps => ps.forEach(s => { (s.qs || []).forEach(q => { PLAN_ROT[q.k] = q.t; }); if (s.subs) ver(s.subs); }); ver(PLAN_PASOS); PLAN_ROT.nota_porque = 'Por qué le das esa nota y qué haría falta para subir un punto más'; })();
+  const PLAN_ROT_T = {};
+  (function () { PLAN_TRIM.forEach(s => (s.qs || []).forEach(q => { PLAN_ROT_T[q.k] = q.t; })); })();
   let planDatos = {}, planDomingo = '', planT = null, planPendiente = false, planHechoAlCargar = false, planLista = [];
   const domingoDe = (f) => { const d = f ? new Date(f + 'T12:00:00') : new Date(); d.setDate(d.getDate() - d.getDay()); return dia(d); };
   const sumarDias = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return dia(d); };
@@ -1491,6 +1541,8 @@ window.CuentaAmable = (() => {
     if (s.intro) h += `<div class="plan-intro">${s.intro}</div>`;
     if (s.analisis) h += `<div class="plan-pasos"><button type="button" class="reg-b google" data-a="plan-resumen">✨ Ver el resumen IA de mi semana</button>`
       + `<button type="button" class="reg-b" data-a="plan-prompt">📋 Copiar el prompt con mis diarios</button></div><div class="reg-nota plan-aviso" hidden></div>`;
+    if (s.estado) h += `<div class="plan-q"><div class="preg2">Estado global del sistema</div><div class="opciones">${PLAN_ESTADOS.map(([k, n]) => `<button type="button" data-a="plan-estado" data-e="${k}" class="${planDatos.estado === k ? 'on' : ''}" aria-pressed="${planDatos.estado === k}">${n}</button>`).join('')}</div></div>`;
+    if (s.iaTrim) h += `<div class="plan-pasos"><button type="button" class="reg-b google" data-a="plan-resumen" data-p="trimestre">✨ Ver el resumen IA de mi trimestre</button></div>`;
     h += (s.qs || []).map(preguntaPlan).join('');
     if (s.nota) h += `<div class="plan-q"><div class="preg2">Puntúa la semana del 0 al 10</div><div class="ayuda">Según equilibrio, energía y avance.</div>`
       + `<div class="opciones">${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<button type="button" data-a="plan-nota" data-n="${n}" class="${planDatos.nota === n ? 'on' : ''}" aria-pressed="${planDatos.nota === n}">${n}</button>`).join('')}</div></div>`
@@ -1501,21 +1553,29 @@ window.CuentaAmable = (() => {
   }
   function pintarPlan() {
     const caja = planCaja.querySelector('.plan-form'); if (!caja) return;
-    caja.innerHTML = PLAN_PASOS.map(s => bloquePlan(s, false)).join('')
+    const trim = esTrim(planDomingo);
+    caja.innerHTML = (trim ? PLAN_TRIM : PLAN_PASOS).map(s => bloquePlan(s, false)).join('')
       + `<div class="plan-fin"><button type="button" data-a="plan-hecho" class="btn-hecho btn-diario-hecho${planDatos.hecho ? ' on' : ''}" aria-pressed="${planDatos.hecho ? 'true' : 'false'}">${ICO_HECHO}${planDatos.hecho ? 'Plan hecho' : 'Marcar el plan como hecho'}</button></div>`
-      + `<div class="final" ${planDatos.hecho ? '' : 'hidden'}>🎉 ¡Plan de la semana hecho! Ya sabes a qué vas a dedicar tu tiempo 🥳</div>`
+      + `<div class="final" ${planDatos.hecho ? '' : 'hidden'}>${trim ? '🎉 ¡Plan del trimestre hecho! Ya sabes hacia dónde va tu sistema 🥳' : '🎉 ¡Plan de la semana hecho! Ya sabes a qué vas a dedicar tu tiempo 🥳'}</div>`
       + '<div class="reg-nota plan-msg"></div>';
     marcarMics(); if (!modoVoz) ponerNotaMic();
     requestAnimationFrame(() => crecerTodo(caja));
   }
   function cabeceraPlan() {
-    const hoyDom = domingoDe(), esHoy = planDomingo === hoyDom;
-    planCaja.innerHTML = `<div class="franja-res"><h2>${PLAN_LOGO}Plan semana</h2></div>`
-      + `<div class="plan-intro">La revisión semanal de los domingos, 30 minutos: es el 20 % que te da el 80 % de tu éxito. En vez de reaccionar a lo que pasa, decides cómo y a qué vas a dedicar tu tiempo de trabajo. Se guarda sola mientras escribes y solo la ves tú.</div>`
-      + `<div class="plan-sem"><button type="button" data-a="plan-sem" data-d="-7" aria-label="Semana anterior">‹</button>`
-      + `<div class="plan-sem-t"><b>Revisión del ${esc(fechaLarga(planDomingo).toLowerCase())}</b><span>${esc(textoSemana(planDomingo))}</span>`
-      + `${esHoy ? '' : '<button type="button" class="plan-hoy" data-a="plan-sem" data-d="hoy">Volver a la de esta semana</button>'}</div>`
-      + `<button type="button" data-a="plan-sem" data-d="7" aria-label="Semana siguiente">›</button></div>`
+    const trim = esTrim(planDomingo), esHoy = planDomingo === (trim ? trimActual() : domingoDe());
+    const intro = trim
+      ? 'La revisión trimestral, unas 4 horas al final del trimestre. Mientras que la semanal se enfoca en que el sistema funcione, la trimestral se enfoca en que el sistema vaya en la dirección correcta. Se guarda sola mientras escribes y solo la ves tú.'
+      : 'La revisión semanal de los domingos, 30 minutos: es el 20 % que te da el 80 % de tu éxito. En vez de reaccionar a lo que pasa, decides cómo y a qué vas a dedicar tu tiempo de trabajo. Se guarda sola mientras escribes y solo la ves tú.';
+    const sel = trim
+      ? `<b>Trimestre ${esc(planDomingo.slice(-1))} de ${esc(planDomingo.slice(0, 4))}</b><span>${esc(textoTrim(planDomingo))}</span>`
+      : `<b>Revisión del ${esc(fechaLarga(planDomingo).toLowerCase())}</b><span>${esc(textoSemana(planDomingo))}</span>`;
+    planCaja.innerHTML = `<div class="franja-res"><h2>${PLAN_LOGO}${trim ? 'Plan trimestre' : 'Plan semana'}</h2></div>`
+      + `<div class="seg plan-modos"><button type="button" data-a="plan-modo" data-m="semana" class="${trim ? '' : 'on'}">Semana</button><button type="button" data-a="plan-modo" data-m="trimestre" class="${trim ? 'on' : ''}">Trimestre</button></div>`
+      + `<div class="plan-intro">${intro}</div>`
+      + `<div class="plan-sem"><button type="button" data-a="plan-sem" data-d="-${trim ? 1 : 7}" aria-label="${trim ? 'Trimestre anterior' : 'Semana anterior'}">‹</button>`
+      + `<div class="plan-sem-t">${sel}`
+      + `${esHoy ? '' : `<button type="button" class="plan-hoy" data-a="plan-sem" data-d="hoy">${trim ? 'Volver al trimestre actual' : 'Volver a la de esta semana'}</button>`}</div>`
+      + `<button type="button" data-a="plan-sem" data-d="${trim ? 1 : 7}" aria-label="${trim ? 'Trimestre siguiente' : 'Semana siguiente'}">›</button></div>`
       + '<div class="diario plan plan-form"><div class="reg-nota">Cargando…</div></div>'
       + `<details class="sec plan-ant" data-sec="plan-ant"${abiertaPlan('ant') ? ' open' : ''}><summary>📚 Planes anteriores</summary><div class="sec-cuerpo"><div class="plan-lista"><div class="reg-nota">Cargando…</div></div></div></details>`;
   }
@@ -1559,27 +1619,31 @@ window.CuentaAmable = (() => {
   // Al abrir un título plegado, los huecos de dentro se ajustan a lo escrito
   planCaja.addEventListener('toggle', e => { if (e.target.open) crecerTodo(e.target); }, true);
   const fechaCortaPlan = dom => `${fechaLarga(dom).toLowerCase()}`;
-  function planLeible(r) {
-    const partes = [], f = k => r[k] ? `<p><b>${esc(PLAN_ROT[k])}</b> ${esc(r[k]).replace(/\n/g, '<br>')}</p>` : '';
-    Object.keys(PLAN_ROT).forEach(k => {
+  function planLeible(r, trim) {
+    const rot = trim ? PLAN_ROT_T : PLAN_ROT, partes = [], f = k => r[k] ? `<p><b>${esc(rot[k])}</b> ${esc(r[k]).replace(/\n/g, '<br>')}</p>` : '';
+    if (trim && r.estado) partes.push(`<p><b>Estado global del sistema:</b> ${esc((PLAN_ESTADOS.find(x => x[0] === r.estado) || [0, r.estado])[1])}</p>`);
+    Object.keys(rot).forEach(k => {
       if (k === 'nota_porque') return;
       partes.push(f(k));
-      if (k === 'aprendizaje') { if (Number.isInteger(r.nota)) partes.push(`<p><b>Nota de la semana:</b> ${r.nota} / 10</p>`); partes.push(f('nota_porque')); }
+      if (!trim && k === 'aprendizaje') { if (Number.isInteger(r.nota)) partes.push(`<p><b>Nota de la semana:</b> ${r.nota} / 10</p>`); partes.push(f('nota_porque')); }
     });
     if (r.hecho) partes.push('<p>✅ Plan marcado como hecho</p>');
     return partes.join('') || '<p class="reg-nota">Este plan está vacío.</p>';
   }
   async function cargarListaPlan() {
     const caja = planCaja.querySelector('.plan-lista'); if (!caja) return;
+    const trim = esTrim(planDomingo);
     try {
-      const r = await pedir('/plan/lista?n=12');
+      const r = await pedir('/plan/lista?n=' + (trim ? 12 : 12) + (trim ? '&tipo=trimestre' : ''));
       if (r.status === 404) { caja.innerHTML = '<div class="reg-nota">Muy pronto: falta poner al día el servidor.</div>'; return; }
       const j = r.ok ? await r.json() : null; if (!j) throw new Error(r.status);
-      planLista = (j.planes || []).filter(x => Object.keys(x.respuestas || {}).length);
+      if (trim !== esTrim(planDomingo)) return;
+      planLista = (j.planes || []).filter(x => esTrim(x.semana) === trim && Object.keys(x.respuestas || {}).length);
+      const etiqueta = k => esTrim(k) ? `Trimestre ${k.slice(-1)} de ${k.slice(0, 4)} · ${textoTrim(k).toLowerCase()}` : `Revisión del ${fechaCortaPlan(k)}`;
       caja.innerHTML = planLista.length
-        ? planLista.map(x => `<details class="dia-ent"><summary>Revisión del ${esc(fechaCortaPlan(x.semana))}${x.respuestas.hecho ? '<span class="animo">✅ Hecho</span>' : ''}${Number.isInteger(x.respuestas.nota) ? `<span class="animo">${x.respuestas.nota}/10</span>` : ''}</summary>`
-          + `<div class="cuerpo">${planLeible(x.respuestas)}<button class="reg-b" data-a="plan-editar" data-s="${esc(x.semana)}">✏️ Editar este plan</button></div></details>`).join('')
-        : '<div class="reg-nota">Todavía no hay planes guardados. El primero lo escribes arriba.</div>';
+        ? planLista.map(x => `<details class="dia-ent"><summary>${esc(etiqueta(x.semana))}${x.respuestas.hecho ? '<span class="animo">✅ Hecho</span>' : ''}${!trim && Number.isInteger(x.respuestas.nota) ? `<span class="animo">${x.respuestas.nota}/10</span>` : ''}</summary>`
+          + `<div class="cuerpo">${planLeible(x.respuestas, trim)}<button class="reg-b" data-a="plan-editar" data-s="${esc(x.semana)}">✏️ Editar este plan</button></div></details>`).join('')
+        : `<div class="reg-nota">Todavía no hay ${trim ? 'trimestres' : 'planes'} guardados. El primero lo escribes arriba.</div>`;
     } catch (e) { caja.innerHTML = '<div class="reg-aviso">No se pudieron leer tus planes anteriores. Revisa la conexión.</div>'; }
   }
   async function pintarPlanVista() {
@@ -1969,7 +2033,13 @@ window.CuentaAmable = (() => {
     const a = e.target.closest('[data-a]'); if (!a) return;
     const accion = a.dataset.a, caja = e.currentTarget, msg = () => ajCaja.querySelector('#reg-msg');
     if (accion === 'abrir-app') { abrirApp(a.dataset.id); return; }
-    if (accion === 'plan-sem') { cambiarSemana(a.dataset.d === 'hoy' ? domingoDe() : sumarDias(planDomingo, Number(a.dataset.d))); return; }
+    if (accion === 'plan-sem') { cambiarSemana(a.dataset.d === 'hoy' ? (esTrim(planDomingo) ? trimActual() : domingoDe()) : (esTrim(planDomingo) ? moverTrim(planDomingo, Number(a.dataset.d)) : sumarDias(planDomingo, Number(a.dataset.d)))); return; }
+    if (accion === 'plan-modo') { if ((a.dataset.m === 'trimestre') !== esTrim(planDomingo)) cambiarSemana(a.dataset.m === 'trimestre' ? trimActual() : domingoDe()); return; }
+    if (accion === 'plan-estado') {
+      leerFormPlan(); const e = a.dataset.e; planDatos.estado = planDatos.estado === e ? undefined : e;
+      caja.querySelectorAll('[data-a="plan-estado"]').forEach(b => { const on = b.dataset.e === planDatos.estado; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+      guardarPlanLuego(); return;
+    }
     if (accion === 'plan-editar') { cambiarSemana(a.dataset.s); return; }
     if (accion === 'plan-nota') {
       leerFormPlan(); const n = Number(a.dataset.n); planDatos.nota = planDatos.nota === n ? undefined : n;
@@ -1983,7 +2053,7 @@ window.CuentaAmable = (() => {
       const fin = caja.querySelector('.final'); if (fin) fin.hidden = !planDatos.hecho;
       guardarPlanLuego(); return;
     }
-    if (accion === 'plan-resumen') { iaPeriodo = 'semana'; location.hash = '#resumen'; window.scrollTo(0, 0); return; }
+    if (accion === 'plan-resumen') { iaPeriodo = a.dataset.p || 'semana'; location.hash = '#resumen'; window.scrollTo(0, 0); return; }
     if (accion === 'plan-prompt') { copiarPrompt(a); return; }
     if (accion === 'plegar-app') { plegarApps(a.closest('.reg-app')); return; }
     if (accion === 'mover-app') return;   // los 6 puntitos: se arrastran (no pliegan)
