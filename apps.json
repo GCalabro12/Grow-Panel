@@ -34,12 +34,16 @@
     {
       "id": "calistenia",
       "nombre": "Amable Fit: Calistenia",
-      "url": "https://app-unbreakable.web.app/",
+      "url": "https://amable-fit.pages.dev/",
       "color": "#0f172a",
       "registro": "amable-fit",
       "acento": "#dbaf25",
       "registro_activo": true,
-      "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-fit.png"
+      "icono": "https://gcalabro12.github.io/Grow-Panel/iconos/amable-fit.png",
+      "urls_viejas": [
+        "https://app-unbreakable.web.app",
+        "https://app-unbreakable.pages.dev"
+      ]
     },
     {
       "id": "metas-amables",
