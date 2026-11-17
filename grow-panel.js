@@ -16,7 +16,7 @@
    ↑ ↓ del teclado) se cambia el orden. Se guarda en este navegador (localStorage «growpanel.orden»).
 */
 (() => {
-  const VERSION = 'v2.04';
+  const VERSION = 'v2.05';
   const BASE = new URL('.', document.currentScript ? document.currentScript.src : location.href).href;
   const ESTADOS = {
     ok: 'Todo bien', aviso: 'Con avisos', error: 'Con errores', pausa: 'En pausa', mudo: 'Sin noticias'
@@ -144,13 +144,13 @@ a.app:hover{border-color:var(--c)}
   // Registro diario → ficha: si la página da window.GrowPanelRegistro(), sus números (de internet, iguales en el móvil
   // y en el PC) sirven de resumen cuando son más recientes que lo que la app dejó en este navegador.
   const NOMBRES_DATO = { pasos: 'pasos', pausas_vista: 'pausas de la vista', minutos_concentracion: 'min de concentración',
-    tareas_hechas: 'tareas realizadas', tareas_pendientes: 'tareas pendientes', habitos_hechos: 'hábitos realizados', areas_accion: 'áreas que piden acción', tareas_total: 'tareas en total', bloques_con_tareas: 'bloques con tareas', bloques_total: 'bloques',
+    tareas_hechas: 'tareas realizadas', tareas_pendientes: 'tareas pendientes de hoy', tareas_fijas_pendientes: 'tareas fijas pendientes', tareas_flexibles_pendientes: 'tareas flexibles pendientes', habitos_hechos: 'hábitos realizados', areas_accion: 'áreas que piden acción', tareas_total: 'tareas en total', bloques_con_tareas: 'bloques con tareas', bloques_total: 'bloques',
     sesiones: 'sesiones hoy', minutos: 'minutos hoy', racha: 'días de racha', semana: 'esta semana', acciones_pendientes: 'acciones pendientes',
     minutos_presencia: 'min de presencia', practicas_hoy: 'prácticas hoy', racha_dias: 'días de racha', practicas_semana: 'prácticas esta semana',
     dias_registrados: 'días registrados', registrado_hoy: 'registrado hoy', compromiso_semana: 'compromiso semanal', metas_sencillas_hoy: 'metas sencillas hoy', metas_sencillas_hechas: 'metas sencillas hechas', ultima_sesion: 'última sesión hecha' };
   // Orden de las cifras en la tarjeta (Gustavo, 7-11-2026). Life: pendientes, realizadas, hábitos y áreas
   // Fit (11-11-2026): primero la última sesión hecha, con su número
-  const ORDEN_CIFRAS = { 'amable-life': ['tareas_pendientes', 'tareas_hechas', 'habitos_hechos', 'areas_accion'], 'amable-fit': ['ultima_sesion', 'minutos', 'racha', 'semana', 'sesiones'] };
+  const ORDEN_CIFRAS = { 'amable-life': ['tareas_pendientes', 'tareas_fijas_pendientes', 'tareas_flexibles_pendientes', 'habitos_hechos', 'areas_accion'], 'amable-fit': ['ultima_sesion', 'minutos', 'racha', 'semana', 'sesiones'] };
   const ORDEN_ETIQUETAS = { 'equilibra': [/pendiente/i, /realizad|hech/i, /h[áa]bito/i, /[áa]rea/i] };
   function ordenarCifras(cifras, reglas) {
     if (!reglas || !Array.isArray(cifras)) return cifras;
