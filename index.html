@@ -164,6 +164,15 @@ body.visor-abierto{overflow:hidden}
 .diario .num-rec{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
 .diario textarea{width:100%;min-height:56px;resize:vertical;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);padding:10px 12px;font:inherit;font-size:14.5px;line-height:1.5}
 .diario .opciones{display:flex;flex-wrap:wrap;gap:8px}
+.valor-chip{display:inline-flex;align-items:center;gap:6px;font:inherit;font-weight:800;padding:3px 10px;border:1.5px dashed #8b5cf6;border-radius:999px;background:#ede9fe;color:#5b21b6;cursor:pointer;vertical-align:middle}
+.valor-chip svg{width:15px;height:15px;flex:none}
+.valor-chip:hover{background:#ddd6fe}
+.valor-chip.desc{font-weight:600;font-size:14px;margin:2px 0 4px}
+.valor-chip.vacio{font-style:italic;font-weight:600;opacity:.85}
+.valor-in{font:inherit;font-weight:700;padding:4px 10px;border:1.5px solid #8b5cf6;border-radius:999px;background:var(--bg);color:var(--tx);min-width:180px;max-width:100%}
+.valor-in.desc{font-weight:500;font-size:14px;width:min(420px,100%)}
+.valor-sub{margin-top:2px}
+@media (prefers-color-scheme:dark){.valor-chip{background:#2e1065;color:#ddd6fe}.valor-chip:hover{background:#3b0764}}
 .conex-fila{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 8px}
 .conex-col{flex:1 1 150px;min-width:0;display:flex;flex-direction:column;gap:6px}
 .conex-col input{font:inherit;font-size:14px;padding:9px 10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx)}
@@ -684,7 +693,8 @@ window.CuentaAmable = (() => {
     try {
       const r = await pedir('/ajustes');
       if (r.ok) { const j = await r.json(); if (HORA_OK.test(j.hora_resumen || '')) guardarHoraLocal(j.hora_resumen); if (typeof j.compartir === 'boolean') guardarCompartirLocal(j.compartir);
-        if (typeof j.resumen_auto === 'boolean') guardarAutoLocal({ auto: j.resumen_auto, dias: String(j.resumen_dias ?? '0123456'), recordar: Number(j.recordar) || 0 }); }
+        if (typeof j.resumen_auto === 'boolean') guardarAutoLocal({ auto: j.resumen_auto, dias: String(j.resumen_dias ?? '0123456'), recordar: Number(j.recordar) || 0 });
+        if (typeof j.valor === 'string' && (j.valor !== valorPrac.v || (j.valor_desc || '') !== valorPrac.d)) { valorPrac = { v: j.valor, d: j.valor_desc || '' }; guardarValorLocal(); if (typeof pintarValor === 'function') pintarValor(); } }
     } catch (e) {}
     return leerHora();
   }
@@ -1065,6 +1075,12 @@ window.CuentaAmable = (() => {
   const CONEX_P = [['pareja', 'mi pareja'], ['hijos', 'mis hijos'], ['padre', 'mi padre'], ['hermano', 'mi hermano'], ['amigo', 'un amigo'], ['conocido', 'un conocido'], ['otro', 'Otra persona (escríbela)…']];
   const conexTxt = x => ((x.a === 'otro' ? x.at || '' : (CONEX_A.find(y => y[0] === x.a) || [0, ''])[1]) + ' ' + (x.p === 'otro' ? x.pt || '' : (CONEX_P.find(y => y[0] === x.p) || [0, ''])[1])).trim();
   let conexUlt = { a: 'hable', p: 'pareja' };
+  // Valor en práctica (Gustavo, 18-11-2026): el valor que trabaja este trimestre y su descripción; editables con el lápiz, guardados en /ajustes
+  const VALOR_LS = 'gp-valor-practica';
+  let valorPrac = (() => { try { const j = JSON.parse(localStorage.getItem(VALOR_LS) || '{}'); return { v: String(j.v || ''), d: String(j.d || '') }; } catch (e) { return { v: '', d: '' }; } })();
+  function guardarValorLocal() { try { localStorage.setItem(VALOR_LS, JSON.stringify(valorPrac)); } catch (e) {} }
+  const ICO_LAPIZ = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  const chipValor = (c, txt, vacio) => `<button type="button" class="valor-chip${c === 'd' ? ' desc' : ''}${txt ? '' : ' vacio'}" data-a="valor-edit" data-c="${c}" title="Toca para cambiarlo">${esc(txt || vacio)}${ICO_LAPIZ}</button>`;
   // «¿Quién soy?» ya empieza escrito con «Soy una persona que » (Gustavo, 8-11-2026): solo hay que seguir la frase
   const INICIO_SOY = 'Soy una persona que ';
   // Micrófono para dictar en cada hueco de texto (Gustavo, 9-11-2026): icono de línea, nunca emoji.
@@ -1267,8 +1283,10 @@ window.CuentaAmable = (() => {
           + area('bien_otro', 'Otra cosa que fue bien…')}
       <div class="preg">3. 👎🏽 ¿Qué no ha ido tan bien y puede mejorar?</div>
       ${area('mejorar')}
-      <div class="preg">4. 🔮 Valor que estoy trabajando: la conexión</div>
-      <div class="ayuda">Hacerme cercano a las personas. ¿Has hecho algo hoy?</div>
+      <div class="preg valor-preg">4. 🔮 Valor en práctica: <span class="valor-v">${chipValor('v', valorPrac.v, 'Define tu valor')}</span></div>
+      <div class="ayuda valor-sub">Valor que estás trabajando este trimestre. Puede coincidir o no con tu meta.</div>
+      <div class="valor-d">${chipValor('d', valorPrac.d, 'Describe tu valor')}</div>
+      <div class="ayuda">¿Has hecho algo hoy por tu valor en práctica?</div>
       <div class="conex-fila"><span class="conex-col"><select class="conex-a" aria-label="Qué hiciste" onchange="this.nextElementSibling.hidden=this.value!=='otro'">${CONEX_A.map(([k, n]) => `<option value="${k}"${conexUlt.a === k ? ' selected' : ''}>${n}</option>`).join('')}</select><input class="conex-a-txt" maxlength="60" placeholder="Qué hiciste…"${conexUlt.a === 'otro' ? '' : ' hidden'}></span>
         <span class="conex-col"><select class="conex-p" aria-label="Con quién" onchange="this.nextElementSibling.hidden=this.value!=='otro'">${CONEX_P.map(([k, n]) => `<option value="${k}"${conexUlt.p === k ? ' selected' : ''}>${n}</option>`).join('')}</select><input class="conex-p-txt" maxlength="60" placeholder="Con quién…"${conexUlt.p === 'otro' ? '' : ' hidden'}></span>
         <button type="button" class="conex-add" data-a="conex-add">Añadir 1</button></div>
@@ -1333,6 +1351,29 @@ window.CuentaAmable = (() => {
       else { resumenPedido[fecha] = false; if (m()) m().textContent = 'No se pudo escribir el resumen ahora. Lo puedes pedir en «Resumen IA».'; }
     } catch (e) { resumenPedido[fecha] = false; }
   }
+  function pintarValor() {
+    document.querySelectorAll('.valor-v').forEach(x => { x.innerHTML = chipValor('v', valorPrac.v, 'Define tu valor'); });
+    document.querySelectorAll('.valor-d').forEach(x => { x.innerHTML = chipValor('d', valorPrac.d, 'Describe tu valor'); });
+  }
+  function editarValor(btn) {
+    const c = btn.dataset.c, inp = document.createElement('input');
+    inp.className = 'valor-in' + (c === 'd' ? ' desc' : ''); inp.maxLength = c === 'd' ? 120 : 60;
+    inp.value = c === 'd' ? valorPrac.d : valorPrac.v; inp.placeholder = c === 'd' ? 'Describe tu valor…' : 'Define tu valor…';
+    btn.replaceWith(inp); inp.focus(); inp.select();
+    let hecho = false;
+    const fin = async guardar => {
+      if (hecho) return; hecho = true;
+      const nuevo = inp.value.trim();
+      if (guardar && nuevo !== (c === 'd' ? valorPrac.d : valorPrac.v)) {
+        if (c === 'd') valorPrac.d = nuevo; else valorPrac.v = nuevo;
+        guardarValorLocal();
+        pedir('/ajustes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(c === 'd' ? { valor_desc: nuevo } : { valor: nuevo }) }).catch(() => {});
+      }
+      pintarValor();
+    };
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fin(true); } else if (e.key === 'Escape') fin(false); });
+    inp.addEventListener('blur', () => fin(true));
+  }
   function guardarDiarioLuego() {
     const m = diaCaja.querySelector('.diario-msg'); if (m) m.textContent = 'Guardando…';
     clearTimeout(diarioT); diarioPendiente = true;
@@ -1351,7 +1392,7 @@ window.CuentaAmable = (() => {
   const crecer = ta => { ta.style.height = 'auto'; if (ta.scrollHeight) ta.style.height = Math.max(56, ta.scrollHeight + 2) + 'px'; };
   const crecerTodo = raiz => raiz.querySelectorAll('textarea').forEach(crecer);
   diaCaja.addEventListener('input', e => { if (e.target.matches('textarea')) crecer(e.target); });
-  diaCaja.addEventListener('input', e => { if (e.target.closest('.diario')) { leerFormDiario(); guardarDiarioLuego(); } });
+  diaCaja.addEventListener('input', e => { if (e.target.closest('.diario') && !e.target.matches('.valor-in')) { leerFormDiario(); guardarDiarioLuego(); } });
   diaCaja.addEventListener('change', e => { if (e.target.matches('.diario input[data-b], .diario input[data-din]')) { leerFormDiario(); guardarDiarioLuego(); } });
 
   // --- Pestaña «Diario» (Gustavo, 8-11-2026): diario de 5 minutos, diarios anteriores y resúmenes solo del diario ---
@@ -1365,7 +1406,7 @@ window.CuentaAmable = (() => {
     const al = r.alineado ? (ALINEADO.find(x => x[0] === r.alineado) || [0, ''])[1] : '';
     return p('❤️ Cómo me sentí:', r.animo ? (ANIMOS.find(x => x[0] === r.animo) || [0, ''])[1] : '')
       + p('👍🏽 Qué fue bien:', bien) + p('👎🏽 Qué puede mejorar:', r.mejorar) + p('🔮 Quién soy:', r.quien_soy)
-      + p('🔮 Viví alineado:', al + (r.porque ? (al ? ' — ' : '') + r.porque : '')) + p('🤝 Conexión:', (r.conexion || []).map(conexTxt).join(' · ')) + p('🙏🏽 Agradezco:', r.agradecer)
+      + p('🔮 Viví alineado:', al + (r.porque ? (al ? ' — ' : '') + r.porque : '')) + p('🔮 ' + (r.valor || 'Conexión') + ':', (r.conexion || []).map(conexTxt).join(' · ')) + p('🙏🏽 Agradezco:', r.agradecer)
       + p('🧠 Aprendí:', r.aprendido)
       + p('💶 Dinero:', [...(r.dinero || []).map(k => (DINERO.find(x => x[0] === k) || [k, k])[1]), r.dinero_otro].filter(Boolean).join(' · '))
       + p('🐸 Día siguiente:', r.planificado ? 'sapo y 2 estrellas puestos en el calendario' : '') + p('🎯 Tarea más importante para el día siguiente:', r.sapo) + p('🎯 Otras tareas:', r.otras_tareas)
@@ -2165,6 +2206,7 @@ window.CuentaAmable = (() => {
     }
     else if (accion === 'dia-generar') { generarDiarioIA(); return; }
     else if (accion === 'dia-leer') { leerDiarioIA(); return; }
+    else if (accion === 'valor-edit') { editarValor(a); return; }
     else if (accion === 'conex-add' || accion === 'conex-del') {
       leerFormDiario();
       const lista = Array.isArray(diarioDatos.conexion) ? diarioDatos.conexion.slice() : [];
@@ -2178,7 +2220,9 @@ window.CuentaAmable = (() => {
         if (lista.length < 30) lista.push(x);
       }
       else lista.splice(Number(a.dataset.i), 1);
-      diarioDatos.conexion = lista; pintarDiario(); guardarDiarioLuego(); return;
+      diarioDatos.conexion = lista;
+      if (valorPrac.v) diarioDatos.valor = valorPrac.v; if (valorPrac.d) diarioDatos.valor_desc = valorPrac.d;
+      pintarDiario(); guardarDiarioLuego(); return;
     }
     else if (accion === 'diario-animo' || accion === 'diario-alineado') {
       leerFormDiario();
