@@ -106,12 +106,12 @@ body.visor-abierto{overflow:hidden}
 .plan-modos2 button.on{background:#f59e0b;border-color:#f59e0b;color:#1c1300}
 .plan-modos2 button.on span{color:#3d2a00}
 .plan-sem .plan-sem-t b.naranja{color:#d97706}
-/* Fondo de cada plan (Gustavo, 18-11-2026): diario amarillo, semana azul, trimestre violeta; títulos 1, 2, 3 en mayúsculas y naranja */
-:root{--plan-sem:#e3eefc;--plan-sem-ac:#2563eb;--plan-tri:#ece4fb;--plan-tri-ac:#7c3aed}
-@media (prefers-color-scheme:dark){:root{--plan-sem:#13243f;--plan-sem-ac:#60a5fa;--plan-tri:#251b3d;--plan-tri-ac:#a78bfa}}
+/* Fondo de cada plan (Gustavo, 18-11-2026): diario amarillo, semana verde, trimestre azul, con la intensidad del amarillo del diario; títulos 1, 2, 3 en mayúsculas y naranja */
+:root{--plan-sem:#c4ecbd;--plan-sem-g:linear-gradient(180deg,#d9f5d4 0,#c4ecbd 55%,#acdfa3 100%);--plan-sem-ac:#16a34a;--plan-tri:#c2dbfa;--plan-tri-g:linear-gradient(180deg,#d8e8fd 0,#c2dbfa 55%,#a8c9f5 100%);--plan-tri-ac:#2563eb}
+@media (prefers-color-scheme:dark){:root{--plan-sem:#173d22;--plan-sem-g:linear-gradient(180deg,#1b4527 0,#173d22 100%);--plan-sem-ac:#4ade80;--plan-tri:#16305a;--plan-tri-g:linear-gradient(180deg,#1a3866 0,#16305a 100%);--plan-tri-ac:#60a5fa}}
 .diario.plan.plan-form{padding:12px 12px 4px;border-radius:16px;margin:0 0 14px}
-.diario.plan.plan-form.p-sem{background:var(--plan-sem)}
-.diario.plan.plan-form.p-tri{background:var(--plan-tri)}
+.diario.plan.plan-form.p-sem{background:var(--plan-sem-g)}
+.diario.plan.plan-form.p-tri{background:var(--plan-tri-g)}
 .plan-form>details.sec>summary{text-transform:uppercase;letter-spacing:.3px;color:#d97706}
 .plan-form>details.sec>summary::after{border-color:var(--tx)}
 .plan-modos2 button[data-m="semana"]{background:var(--plan-sem);border:2px solid transparent}
