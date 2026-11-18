@@ -127,6 +127,10 @@ body.visor-abierto{overflow:hidden}
 .plan-sem .plan-sem-t{flex:1;text-align:center;min-width:0}
 .plan-sem .plan-sem-t b{display:block;font-size:15px}
 .plan-sem .plan-sem-t span{display:block;font-size:12.5px;color:var(--mut)}
+/* Recuadro de la revisión (Gustavo, 18-11-2026): verde en semana, azul en trimestre, título en mayúsculas */
+.plan-sem.p-sem{background:var(--plan-sem);border:2px solid var(--plan-sem-ac)}
+.plan-sem.p-tri{background:var(--plan-tri);border:2px solid var(--plan-tri-ac)}
+.plan-sem .plan-sem-t b.naranja{text-transform:uppercase;letter-spacing:.3px}
 .plan-sem .plan-hoy{width:auto;height:auto;border-radius:999px;padding:5px 10px;font-size:12.5px;margin-top:4px}
 .plan .sec.sub{margin:10px 0 0;background:var(--bg)}
 .plan .sec summary h3{margin:0;font-size:15.5px}
@@ -1628,7 +1632,7 @@ window.CuentaAmable = (() => {
       + `<div class="plan-modos2"><button type="button" data-a="plan-modo" data-m="semana" class="${trim ? '' : 'on'}" aria-pressed="${!trim}">${ICO_PLAN_SEM}<b>Semana</b><span>Próxima revisión semanal: ${esc(fechaLarga(proximaSemanal()).toLowerCase())}</span></button>`
       + `<button type="button" data-a="plan-modo" data-m="trimestre" class="${trim ? 'on' : ''}" aria-pressed="${trim}">${ICO_PLAN_TRIM}<b>Trimestre</b><span>Próxima revisión trimestral: ${esc(fechaLarga(proximaTrimestral()).toLowerCase())}</span></button></div>`
       + `<div class="plan-intro">${intro}</div>`
-      + `<div class="plan-sem"><button type="button" data-a="plan-sem" data-d="-${trim ? 1 : 7}" aria-label="${trim ? 'Trimestre anterior' : 'Semana anterior'}">‹</button>`
+      + `<div class="plan-sem ${trim ? 'p-tri' : 'p-sem'}"><button type="button" data-a="plan-sem" data-d="-${trim ? 1 : 7}" aria-label="${trim ? 'Trimestre anterior' : 'Semana anterior'}">‹</button>`
       + `<div class="plan-sem-t">${sel}`
       + `${esHoy ? '' : `<button type="button" class="plan-hoy" data-a="plan-sem" data-d="hoy">${trim ? 'Volver al trimestre actual' : 'Volver a la de esta semana'}</button>`}</div>`
       + `<button type="button" data-a="plan-sem" data-d="${trim ? 1 : 7}" aria-label="${trim ? 'Trimestre siguiente' : 'Semana siguiente'}">›</button></div>`
