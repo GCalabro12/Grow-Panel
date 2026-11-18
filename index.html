@@ -106,6 +106,20 @@ body.visor-abierto{overflow:hidden}
 .plan-modos2 button.on{background:#f59e0b;border-color:#f59e0b;color:#1c1300}
 .plan-modos2 button.on span{color:#3d2a00}
 .plan-sem .plan-sem-t b.naranja{color:#d97706}
+/* Fondo de cada plan (Gustavo, 18-11-2026): diario amarillo, semana azul, trimestre violeta; títulos 1, 2, 3 en mayúsculas y naranja */
+:root{--plan-sem:#e3eefc;--plan-sem-ac:#2563eb;--plan-tri:#ece4fb;--plan-tri-ac:#7c3aed}
+@media (prefers-color-scheme:dark){:root{--plan-sem:#13243f;--plan-sem-ac:#60a5fa;--plan-tri:#251b3d;--plan-tri-ac:#a78bfa}}
+.diario.plan.plan-form{padding:12px 12px 4px;border-radius:16px;margin:0 0 14px}
+.diario.plan.plan-form.p-sem{background:var(--plan-sem)}
+.diario.plan.plan-form.p-tri{background:var(--plan-tri)}
+.plan-form>details.sec>summary{text-transform:uppercase;letter-spacing:.3px;color:#d97706}
+.plan-form>details.sec>summary::after{border-color:var(--tx)}
+.plan-modos2 button[data-m="semana"]{background:var(--plan-sem);border:2px solid transparent}
+.plan-modos2 button[data-m="trimestre"]{background:var(--plan-tri);border:2px solid transparent}
+.plan-modos2 button[data-m="semana"].on{border-color:var(--plan-sem-ac);color:var(--tx)}
+.plan-modos2 button[data-m="trimestre"].on{border-color:var(--plan-tri-ac);color:var(--tx)}
+.plan-modos2 button.on span{color:var(--mut)}
+@media (prefers-color-scheme:dark){.plan-form>details.sec>summary{color:#f59e0b}}
 @media (prefers-color-scheme:dark){.plan-sem .plan-sem-t b.naranja{color:#f59e0b}}
 .plan-intro{font-size:14px;line-height:1.5;margin:0 0 12px;color:var(--tx)}
 .plan-sem{display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:10px;border:1px solid var(--ln);border-radius:14px;background:var(--card)}
@@ -1603,7 +1617,7 @@ window.CuentaAmable = (() => {
       + `<div class="plan-sem-t">${sel}`
       + `${esHoy ? '' : `<button type="button" class="plan-hoy" data-a="plan-sem" data-d="hoy">${trim ? 'Volver al trimestre actual' : 'Volver a la de esta semana'}</button>`}</div>`
       + `<button type="button" data-a="plan-sem" data-d="${trim ? 1 : 7}" aria-label="${trim ? 'Trimestre siguiente' : 'Semana siguiente'}">›</button></div>`
-      + '<div class="diario plan plan-form"><div class="reg-nota">Cargando…</div></div>'
+      + `<div class="diario plan plan-form ${trim ? 'p-tri' : 'p-sem'}"><div class="reg-nota">Cargando…</div></div>`
       + `<details class="sec plan-ant" data-sec="plan-ant"${abiertaPlan('ant') ? ' open' : ''}><summary>📚 ${trim ? 'Planes trimestrales anteriores' : 'Planes semanales anteriores'}</summary><div class="sec-cuerpo"><div class="plan-lista"><div class="reg-nota">Cargando…</div></div></div></details>`;
   }
   async function cargarPlan() {
