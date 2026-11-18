@@ -1248,23 +1248,20 @@ window.CuentaAmable = (() => {
           + area('bien_otro', 'Otra cosa que fue bien…')}
       <div class="preg">3. 👎🏽 ¿Qué no ha ido tan bien y puede mejorar?</div>
       ${area('mejorar')}
-      <div class="preg">4. 🔮 ¿Quién soy? Mis valores actuales</div>
-      <div class="ayuda">Una frase del tipo «Soy una persona que prioriza el deporte antes que el trabajo».</div>
-      ${area('quien_soy', 'Soy una persona que…', INICIO_SOY)}
-      <div class="preg">5. 🔮 ¿Viviste alineado con la persona que quieres ser?</div>
+      <div class="preg">4. 🔮 ¿Viviste alineado con la persona que quieres ser? ¿Por qué?</div>
+      <div class="ayuda">Tu frase de quién eres la escribes en el plan de la semana.</div>
       <div class="opciones">${ALINEADO.map(([v, n]) => `<button type="button" data-a="diario-alineado" data-v="${v}" class="${r.alineado === v ? 'on' : ''}">${n}</button>`).join('')}</div>
-      <div class="preg">6. 🔮 ¿Por qué?</div>
-      ${area('porque')}
-      <div class="preg">7. 🙏🏽 ¿Algo que agradecer? <span class="reg-nota">(opcional)</span></div>
+      ${area('porque', 'Por qué…')}
+      <div class="preg">5. 🙏🏽 ¿Algo que agradecer? <span class="reg-nota">(opcional)</span></div>
       ${area('agradecer')}
-      <div class="preg">8. 🧠 ¿Qué has aprendido? <span class="reg-nota">(opcional)</span></div>
+      <div class="preg">6. 🧠 ¿Qué has aprendido? <span class="reg-nota">(opcional)</span></div>
       <div class="ayuda">Refuerza tu memoria a largo plazo; te dará ideas.</div>
       ${area('aprendido')}
-      <div class="preg">9. 💶 ¿Qué has hecho hoy en relación al dinero?</div>
+      <div class="preg">7. 💶 ¿Qué has hecho hoy en relación al dinero?</div>
       <div class="ayuda">Marca lo que corresponda o escríbelo con tus palabras.</div>
       <div class="chips">${DINERO.map(([k, n]) => `<label><input type="checkbox" data-din="${k}"${dinero.includes(k) ? ' checked' : ''}>${n}</label>`).join('')}</div>
       ${area('dinero_otro', 'Otra cosa: un cobro, una venta, un gasto, una propuesta…')}
-      <div class="preg">10. 🎯 Prepara tu calendario de mañana</div>
+      <div class="preg">8. 🎯 Prepara tu calendario de mañana</div>
       <div class="paso-cal"><b>🐸 Ponle prioridad sapo al menos a una tarea importante de mañana</b>
         <div class="ayuda">En Amable Life, abre la tarea y elige «Prioridad alta (tarea rana)»: el 🐸 se pone solo al principio. Es la de 60 a 90 minutos: urgente o que te dé satisfacción.</div></div>
       <div class="paso-cal"><b>⭐ Ponle prioridad estrella a 2 tareas importantes de mañana</b>
@@ -1484,6 +1481,7 @@ window.CuentaAmable = (() => {
             Q('resistencia', '¿Dónde ha habido más resistencia, frustración o decepción?', '', 'Dónde me costó…'),
             Q('patrones', 'Los patrones más relevantes (hasta 5)', 'Comportamientos, emociones, repeticiones, decisiones, contradicciones… Por cada patrón: qué lo causa o lo alimenta, qué consecuencias tiene y si es algo a mantener o a cambiar.', 'Patrón 1: …'),
             Q('acciones', '3 acciones concretas para la próxima semana', 'Específicas y medibles, que cambien tu forma de trabajar, pensar o priorizar. Evita obviedades.', 'Acción 1: …'),
+            Q('valores', '🔮 ¿Quién soy? Mis valores actuales', 'Una frase del tipo «Soy una persona que prioriza el deporte antes que el trabajo». La revisas cada semana; en el diario compruebas cada día si viviste alineado con ella.', 'Soy una persona que…'),
             Q('historias', '3 historias o ideas para tu comunidad', 'Aprendizajes, contradicciones, errores o descubrimientos personales, escritos como titulares o ganchos. Por ejemplo: «Esta semana descubrí que cuando intento ser más productivo… me vuelvo menos libre».', 'Titular 1: …'),
             Q('aprendizaje', 'El aprendizaje clave de la semana', 'En una sola frase poderosa, tipo insight. Por ejemplo: «Ser constante no es hacerlo cada día, sino volver cada vez que me pierdo».', 'Mi aprendizaje clave…')],
           nota: true },
