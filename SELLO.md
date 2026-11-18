@@ -19,7 +19,9 @@ Los dos se abren en una pestaña nueva. Los colores de borde y de texto se adapt
 .pi-seal,.gp-seal{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.3px;
   line-height:16px;white-space:nowrap;color:#94A3B8;border:1px solid #334155;border-radius:999px;padding:6px 12px;text-decoration:none}
 .pi-seal::before{content:"";width:18px;height:16px;flex:none;border-radius:4px;
-  background:#fff url(https://gcalabro12.github.io/Grow-Panel/logo-pi-sello.png) no-repeat center/contain}
+  background:transparent url(https://gcalabro12.github.io/Grow-Panel/logo-pi-sello.png) no-repeat center/contain}
+/* SOLO en apps de fondo oscuro (o en su modo oscuro): cuadradito blanco detrás */
+/* .pi-seal::before{background-color:#fff} */
 .gp-seal svg{width:14px;height:14px;flex:none}
 .pi-seal:hover{border-color:#4ADE80}
 .gp-seal:hover{border-color:#8b5cf6}
@@ -28,6 +30,8 @@ Los dos se abren en una pestaña nueva. Los colores de borde y de texto se adapt
 Logo oficial de Grow Panel: `logo/grow-panel-logo.svg` (fondo claro) y `logo/grow-panel-logo-oscuro.svg` (fondo oscuro).
 Publicados en https://gcalabro12.github.io/Grow-Panel/logo.svg y https://gcalabro12.github.io/Grow-Panel/logo-oscuro.svg.
 
-Logo del sello «by Práctica Integral»: `logo-pi-sello.png` (muñequito negro + D azul, fondo transparente), publicado en https://gcalabro12.github.io/Grow-Panel/logo-pi-sello.png. En apps de fondo oscuro lleva el fondito blanco (`background:#fff`) para que el muñequito negro se vea; en apps de fondo claro se puede quitar ese blanco (`background-color:transparent`).
+Logo del sello «by Práctica Integral»: `logo-pi-sello.png` (muñequito negro + D azul, fondo transparente), publicado en https://gcalabro12.github.io/Grow-Panel/logo-pi-sello.png. **Regla del fondo (desde el 18-11-2026):**
+- **Apps claras** (fondo blanco, crema, pastel…): **sin fondo**, el icono transparente directamente (`background-color:transparent`, es lo que trae el CSS de arriba).
+- **Apps oscuras** (o el modo oscuro de una app): **con cuadradito blanco** detrás (`.pi-seal::before{background-color:#fff}`), para que el muñequito negro se vea.
 
 Notas de las apps que ya lo llevan: `line-height` fija la altura (16px → 30 px; Calistenia usó 15px y Lety Videz 14px para igualar su sello anterior). `white-space:nowrap` evita que el texto se parta en varias líneas en pantallas estrechas.
