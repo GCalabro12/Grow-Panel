@@ -161,7 +161,10 @@ body.visor-abierto{overflow:hidden}
 .diario textarea{width:100%;min-height:56px;resize:vertical;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);padding:10px 12px;font:inherit;font-size:14.5px;line-height:1.5}
 .diario .opciones{display:flex;flex-wrap:wrap;gap:8px}
 .conex-fila{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 8px}
-.conex-fila select{flex:1 1 150px;min-width:0;font:inherit;font-size:14px;padding:9px 10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx)}
+.conex-col{flex:1 1 150px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.conex-col input{font:inherit;font-size:14px;padding:9px 10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx)}
+.conex-col input[hidden]{display:none}
+.conex-fila select{flex:1 1 auto;width:100%;min-width:0;font:inherit;font-size:14px;padding:9px 10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx)}
 .conex-add{flex:none;font:inherit;font-size:14px;font-weight:700;padding:9px 14px;border:0;border-radius:10px;background:#f59e0b;color:#1c1300;cursor:pointer}
 .conex-lista{list-style:none;margin:0 0 6px;padding:0;display:flex;flex-direction:column;gap:6px}
 .conex-lista li{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--ln);border-radius:10px;background:var(--card);font-size:14px}
@@ -1054,9 +1057,9 @@ window.CuentaAmable = (() => {
   const BIEN_ANTES = [['rutina_manana', 'Hice mi rutina matutina'], ['ejercicio', 'Hice ejercicio'], ['rutina_noche', 'Hice mi rutina nocturna']];   // diarios anteriores
   const ALINEADO = [['no', 'No'], ['medias', 'A medias'], ['si', 'Sí']];
   // Valor que trabaja Gustavo (18-11-2026): la conexión. Qué hizo hoy y con quién; se van acumulando
-  const CONEX_A = [['hable', 'Hablé con'], ['ayude', 'Ayudé a'], ['escuche', 'Escuché las necesidades de']];
-  const CONEX_P = [['pareja', 'mi pareja'], ['hijos', 'mis hijos'], ['padre', 'mi padre'], ['hermano', 'mi hermano'], ['amigo', 'un amigo'], ['conocido', 'un conocido']];
-  const conexTxt = x => ((CONEX_A.find(y => y[0] === x.a) || [0, ''])[1] + ' ' + (CONEX_P.find(y => y[0] === x.p) || [0, ''])[1]).trim();
+  const CONEX_A = [['hable', 'Hablé con'], ['ayude', 'Ayudé a'], ['escuche', 'Escuché las necesidades de'], ['otro', 'Otro (escríbelo)…']];
+  const CONEX_P = [['pareja', 'mi pareja'], ['hijos', 'mis hijos'], ['padre', 'mi padre'], ['hermano', 'mi hermano'], ['amigo', 'un amigo'], ['conocido', 'un conocido'], ['otro', 'Otra persona (escríbela)…']];
+  const conexTxt = x => ((x.a === 'otro' ? x.at || '' : (CONEX_A.find(y => y[0] === x.a) || [0, ''])[1]) + ' ' + (x.p === 'otro' ? x.pt || '' : (CONEX_P.find(y => y[0] === x.p) || [0, ''])[1])).trim();
   let conexUlt = { a: 'hable', p: 'pareja' };
   // «¿Quién soy?» ya empieza escrito con «Soy una persona que » (Gustavo, 8-11-2026): solo hay que seguir la frase
   const INICIO_SOY = 'Soy una persona que ';
@@ -1262,8 +1265,8 @@ window.CuentaAmable = (() => {
       ${area('mejorar')}
       <div class="preg">4. 🔮 Valor que estoy trabajando: la conexión</div>
       <div class="ayuda">Hacerme cercano a las personas. ¿Has hecho algo hoy?</div>
-      <div class="conex-fila"><select class="conex-a" aria-label="Qué hiciste">${CONEX_A.map(([k, n]) => `<option value="${k}"${conexUlt.a === k ? ' selected' : ''}>${n}</option>`).join('')}</select>
-        <select class="conex-p" aria-label="Con quién">${CONEX_P.map(([k, n]) => `<option value="${k}"${conexUlt.p === k ? ' selected' : ''}>${n}</option>`).join('')}</select>
+      <div class="conex-fila"><span class="conex-col"><select class="conex-a" aria-label="Qué hiciste" onchange="this.nextElementSibling.hidden=this.value!=='otro'">${CONEX_A.map(([k, n]) => `<option value="${k}"${conexUlt.a === k ? ' selected' : ''}>${n}</option>`).join('')}</select><input class="conex-a-txt" maxlength="60" placeholder="Qué hiciste…"${conexUlt.a === 'otro' ? '' : ' hidden'}></span>
+        <span class="conex-col"><select class="conex-p" aria-label="Con quién" onchange="this.nextElementSibling.hidden=this.value!=='otro'">${CONEX_P.map(([k, n]) => `<option value="${k}"${conexUlt.p === k ? ' selected' : ''}>${n}</option>`).join('')}</select><input class="conex-p-txt" maxlength="60" placeholder="Con quién…"${conexUlt.p === 'otro' ? '' : ' hidden'}></span>
         <button type="button" class="conex-add" data-a="conex-add">Añadir 1</button></div>
       ${(r.conexion || []).length ? `<ul class="conex-lista">${r.conexion.map((x, i) => `<li><span>${esc(conexTxt(x))}</span><button type="button" data-a="conex-del" data-i="${i}" aria-label="Quitar" title="Quitar">×</button></li>`).join('')}</ul>` : ''}
       <div class="preg">5. 🙏🏽 ¿Algo que agradecer? <span class="reg-nota">(opcional)</span></div>
@@ -2161,7 +2164,15 @@ window.CuentaAmable = (() => {
     else if (accion === 'conex-add' || accion === 'conex-del') {
       leerFormDiario();
       const lista = Array.isArray(diarioDatos.conexion) ? diarioDatos.conexion.slice() : [];
-      if (accion === 'conex-add') { const f = a.closest('.conex-fila'); conexUlt = { a: f.querySelector('.conex-a').value, p: f.querySelector('.conex-p').value }; if (lista.length < 30) lista.push({ ...conexUlt }); }
+      if (accion === 'conex-add') {
+        const f = a.closest('.conex-fila'), ca = f.querySelector('.conex-a').value, cp = f.querySelector('.conex-p').value;
+        const at = f.querySelector('.conex-a-txt').value.trim(), pt = f.querySelector('.conex-p-txt').value.trim();
+        if (ca === 'otro' && !at) { f.querySelector('.conex-a-txt').focus(); return; }
+        if (cp === 'otro' && !pt) { f.querySelector('.conex-p-txt').focus(); return; }
+        conexUlt = { a: ca, p: cp };
+        const x = { a: ca, p: cp }; if (ca === 'otro') x.at = at; if (cp === 'otro') x.pt = pt;
+        if (lista.length < 30) lista.push(x);
+      }
       else lista.splice(Number(a.dataset.i), 1);
       diarioDatos.conexion = lista; pintarDiario(); guardarDiarioLuego(); return;
     }
