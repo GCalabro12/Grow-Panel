@@ -160,6 +160,13 @@ body.visor-abierto{overflow:hidden}
 .diario .num-rec{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
 .diario textarea{width:100%;min-height:56px;resize:vertical;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);padding:10px 12px;font:inherit;font-size:14.5px;line-height:1.5}
 .diario .opciones{display:flex;flex-wrap:wrap;gap:8px}
+.conex-fila{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 8px}
+.conex-fila select{flex:1 1 150px;min-width:0;font:inherit;font-size:14px;padding:9px 10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx)}
+.conex-add{flex:none;font:inherit;font-size:14px;font-weight:700;padding:9px 14px;border:0;border-radius:10px;background:#f59e0b;color:#1c1300;cursor:pointer}
+.conex-lista{list-style:none;margin:0 0 6px;padding:0;display:flex;flex-direction:column;gap:6px}
+.conex-lista li{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--ln);border-radius:10px;background:var(--card);font-size:14px}
+.conex-lista li span{flex:1}
+.conex-lista li button{flex:none;width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--mut);font-size:18px;line-height:1;cursor:pointer}
 .diario .opciones button{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 12px;font-size:14px;cursor:pointer}
 .diario .opciones button.on{background:#f59e0b;border-color:#d97706;color:#1c1300;font-weight:800}
 .diario .diario-fin{display:flex;justify-content:center;margin:22px 0 6px;padding-top:16px;border-top:1px solid var(--ln)}
@@ -1046,6 +1053,11 @@ window.CuentaAmable = (() => {
   const diarioHecho = r => !!(r.hecho || (r.animo && (r.sapo || r.planificado)));
   const BIEN_ANTES = [['rutina_manana', 'Hice mi rutina matutina'], ['ejercicio', 'Hice ejercicio'], ['rutina_noche', 'Hice mi rutina nocturna']];   // diarios anteriores
   const ALINEADO = [['no', 'No'], ['medias', 'A medias'], ['si', 'Sí']];
+  // Valor que trabaja Gustavo (18-11-2026): la conexión. Qué hizo hoy y con quién; se van acumulando
+  const CONEX_A = [['hable', 'Hablé con'], ['ayude', 'Ayudé a'], ['escuche', 'Escuché las necesidades de']];
+  const CONEX_P = [['pareja', 'mi pareja'], ['hijos', 'mis hijos'], ['padre', 'mi padre'], ['hermano', 'mi hermano'], ['amigo', 'un amigo'], ['conocido', 'un conocido']];
+  const conexTxt = x => ((CONEX_A.find(y => y[0] === x.a) || [0, ''])[1] + ' ' + (CONEX_P.find(y => y[0] === x.p) || [0, ''])[1]).trim();
+  let conexUlt = { a: 'hable', p: 'pareja' };
   // «¿Quién soy?» ya empieza escrito con «Soy una persona que » (Gustavo, 8-11-2026): solo hay que seguir la frase
   const INICIO_SOY = 'Soy una persona que ';
   // Micrófono para dictar en cada hueco de texto (Gustavo, 9-11-2026): icono de línea, nunca emoji.
@@ -1248,10 +1260,12 @@ window.CuentaAmable = (() => {
           + area('bien_otro', 'Otra cosa que fue bien…')}
       <div class="preg">3. 👎🏽 ¿Qué no ha ido tan bien y puede mejorar?</div>
       ${area('mejorar')}
-      <div class="preg">4. 🔮 ¿Viviste alineado con la persona que quieres ser? ¿Por qué?</div>
-      <div class="ayuda">Tu frase de quién eres la escribes en el plan de la semana.</div>
-      <div class="opciones">${ALINEADO.map(([v, n]) => `<button type="button" data-a="diario-alineado" data-v="${v}" class="${r.alineado === v ? 'on' : ''}">${n}</button>`).join('')}</div>
-      ${area('porque', 'Por qué…')}
+      <div class="preg">4. 🔮 Valor que estoy trabajando: la conexión</div>
+      <div class="ayuda">Hacerme cercano a las personas. ¿Has hecho algo hoy?</div>
+      <div class="conex-fila"><select class="conex-a" aria-label="Qué hiciste">${CONEX_A.map(([k, n]) => `<option value="${k}"${conexUlt.a === k ? ' selected' : ''}>${n}</option>`).join('')}</select>
+        <select class="conex-p" aria-label="Con quién">${CONEX_P.map(([k, n]) => `<option value="${k}"${conexUlt.p === k ? ' selected' : ''}>${n}</option>`).join('')}</select>
+        <button type="button" class="conex-add" data-a="conex-add">Añadir 1</button></div>
+      ${(r.conexion || []).length ? `<ul class="conex-lista">${r.conexion.map((x, i) => `<li><span>${esc(conexTxt(x))}</span><button type="button" data-a="conex-del" data-i="${i}" aria-label="Quitar" title="Quitar">×</button></li>`).join('')}</ul>` : ''}
       <div class="preg">5. 🙏🏽 ¿Algo que agradecer? <span class="reg-nota">(opcional)</span></div>
       ${area('agradecer')}
       <div class="preg">6. 🧠 ¿Qué has aprendido? <span class="reg-nota">(opcional)</span></div>
@@ -1344,7 +1358,7 @@ window.CuentaAmable = (() => {
     const al = r.alineado ? (ALINEADO.find(x => x[0] === r.alineado) || [0, ''])[1] : '';
     return p('❤️ Cómo me sentí:', r.animo ? (ANIMOS.find(x => x[0] === r.animo) || [0, ''])[1] : '')
       + p('👍🏽 Qué fue bien:', bien) + p('👎🏽 Qué puede mejorar:', r.mejorar) + p('🔮 Quién soy:', r.quien_soy)
-      + p('🔮 Viví alineado:', al + (r.porque ? (al ? ' — ' : '') + r.porque : '')) + p('🙏🏽 Agradezco:', r.agradecer)
+      + p('🔮 Viví alineado:', al + (r.porque ? (al ? ' — ' : '') + r.porque : '')) + p('🤝 Conexión:', (r.conexion || []).map(conexTxt).join(' · ')) + p('🙏🏽 Agradezco:', r.agradecer)
       + p('🧠 Aprendí:', r.aprendido)
       + p('💶 Dinero:', [...(r.dinero || []).map(k => (DINERO.find(x => x[0] === k) || [k, k])[1]), r.dinero_otro].filter(Boolean).join(' · '))
       + p('🐸 Día siguiente:', r.planificado ? 'sapo y 2 estrellas puestos en el calendario' : '') + p('🎯 Tarea más importante para el día siguiente:', r.sapo) + p('🎯 Otras tareas:', r.otras_tareas)
@@ -2144,6 +2158,13 @@ window.CuentaAmable = (() => {
     }
     else if (accion === 'dia-generar') { generarDiarioIA(); return; }
     else if (accion === 'dia-leer') { leerDiarioIA(); return; }
+    else if (accion === 'conex-add' || accion === 'conex-del') {
+      leerFormDiario();
+      const lista = Array.isArray(diarioDatos.conexion) ? diarioDatos.conexion.slice() : [];
+      if (accion === 'conex-add') { const f = a.closest('.conex-fila'); conexUlt = { a: f.querySelector('.conex-a').value, p: f.querySelector('.conex-p').value }; if (lista.length < 30) lista.push({ ...conexUlt }); }
+      else lista.splice(Number(a.dataset.i), 1);
+      diarioDatos.conexion = lista; pintarDiario(); guardarDiarioLuego(); return;
+    }
     else if (accion === 'diario-animo' || accion === 'diario-alineado') {
       leerFormDiario();
       const k = accion === 'diario-animo' ? 'animo' : 'alineado', v = k === 'animo' ? Number(a.dataset.v) : a.dataset.v;
