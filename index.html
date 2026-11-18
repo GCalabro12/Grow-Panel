@@ -95,6 +95,17 @@ body.visor-abierto{overflow:hidden}
 .plan .franja-res h2{display:inline-flex;align-items:center;gap:10px}
 .plan .franja-res h2 svg{flex:none}
 .plan-modos{margin:0 0 12px}
+/* Planes (Gustavo, 18-11-2026): título centrado en vertical, dos botones con la próxima revisión, títulos en naranja */
+#v-plan .franja-res h2{display:inline-flex;align-items:center;justify-content:center;gap:10px;line-height:1}
+#v-plan .franja-res h2 svg{display:block;flex:none}
+.plan-modos2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
+.plan-modos2 button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 8px;border:1px solid var(--ln);border-radius:12px;background:var(--card);color:var(--tx);cursor:pointer;text-align:center}
+.plan-modos2 button b{font-size:15px;font-weight:800}
+.plan-modos2 button span{font-size:12.5px;color:var(--mut);line-height:1.35}
+.plan-modos2 button.on{background:#f59e0b;border-color:#f59e0b;color:#1c1300}
+.plan-modos2 button.on span{color:#3d2a00}
+.plan-sem .plan-sem-t b.naranja{color:#d97706}
+@media (prefers-color-scheme:dark){.plan-sem .plan-sem-t b.naranja{color:#f59e0b}}
 .plan-intro{font-size:14px;line-height:1.5;margin:0 0 12px;color:var(--tx)}
 .plan-sem{display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:10px;border:1px solid var(--ln);border-radius:14px;background:var(--card)}
 .plan-sem button{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--ln);background:var(--bg);color:var(--tx);font-size:20px;line-height:1;cursor:pointer}
@@ -1532,6 +1543,12 @@ window.CuentaAmable = (() => {
   let planDatos = {}, planDomingo = '', planT = null, planPendiente = false, planHechoAlCargar = false, planLista = [];
   const domingoDe = (f) => { const d = f ? new Date(f + 'T12:00:00') : new Date(); d.setDate(d.getDate() - d.getDay()); return dia(d); };
   const sumarDias = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return dia(d); };
+  // Próxima revisión semanal: el domingo (hoy si es domingo). Trimestral: el último domingo del trimestre (Gustavo, 18-11-2026)
+  const proximaSemanal = () => { const h = new Date(); return h.getDay() === 0 ? dia(h) : sumarDias(domingoDe(), 7); };
+  const ultimoDomingoTrim = (y, q) => { const d = new Date(y, q * 3, 0, 12); d.setDate(d.getDate() - d.getDay()); return dia(d); };
+  const proximaTrimestral = () => { const h = new Date(), hoy = dia(h); let y = h.getFullYear(), q = Math.floor(h.getMonth() / 3) + 1;
+    let f = ultimoDomingoTrim(y, q); if (f < hoy) { q++; if (q > 4) { q = 1; y++; } f = ultimoDomingoTrim(y, q); } return f; };
+  const ORD_TRIM = ['primer', 'segundo', 'tercer', 'cuarto'];
   const textoSemana = (dom) => {
     const lun = sumarDias(dom, 1), fin = sumarDias(dom, 7), a = new Date(lun + 'T12:00:00'), b = new Date(fin + 'T12:00:00');
     return `Planificas la semana del lunes ${a.getDate()}${a.getMonth() !== b.getMonth() ? ' de ' + MESES[a.getMonth()] : ''} al domingo ${b.getDate()} de ${MESES[b.getMonth()]}`;
@@ -1539,7 +1556,7 @@ window.CuentaAmable = (() => {
   const areaPlan = (k, ph) => `<div class="campo"><textarea data-d="p_${k}" placeholder="${esc(ph || '')}">${esc(planDatos[k] || '')}</textarea>`
     + (modoVoz ? `<button type="button" class="mic" data-mic="p_${k}" aria-label="Dictar con la voz" title="Dictar con la voz">${MIC_SVG}</button>` : '') + '</div>';
   const preguntaPlan = q => `<div class="plan-q"><div class="preg2">${q.t}</div>${q.ayuda ? `<div class="ayuda">${q.ayuda}</div>` : ''}${areaPlan(q.k, q.ph)}</div>`;
-  const abiertaPlan = id => { try { return localStorage.getItem('growpanel.sec.plan-' + id) !== '0'; } catch (e) { return true; } };
+  const abiertaPlan = id => { try { return localStorage.getItem('growpanel.sec.plan-' + id) === '1'; } catch (e) { return false; } };   // plegados por defecto (Gustavo, 18-11-2026)
   const botonesLife = `<div class="plan-pasos"><a class="btn-life" href="${LIFE_URL}" target="_blank" rel="noopener">${ICO_CAL_LINEA}Abrir Amable Life</a></div>`;
   function bloquePlan(s, sub) {
     let h = `<details class="sec${sub ? ' sub' : ''}" data-sec="plan-${s.id}"${abiertaPlan(s.id) ? ' open' : ''}><summary>${s.t}</summary><div class="sec-cuerpo">`;
@@ -1569,20 +1586,21 @@ window.CuentaAmable = (() => {
   function cabeceraPlan() {
     const trim = esTrim(planDomingo), esHoy = planDomingo === (trim ? trimActual() : domingoDe());
     const intro = trim
-      ? 'La revisión trimestral, unas 4 horas al final del trimestre. Mientras que la semanal se enfoca en que el sistema funcione, la trimestral se enfoca en que el sistema vaya en la dirección correcta. Se guarda sola mientras escribes y solo la ves tú.'
+      ? 'La revisión trimestral, unas 4 horas el último domingo del trimestre. Mientras que la semanal se enfoca en que el sistema funcione, la trimestral se enfoca en que el sistema vaya en la dirección correcta. Se guarda sola mientras escribes y solo la ves tú.'
       : 'La revisión semanal de los domingos, 30 minutos: es el 20 % que te da el 80 % de tu éxito. En vez de reaccionar a lo que pasa, decides cómo y a qué vas a dedicar tu tiempo de trabajo. Se guarda sola mientras escribes y solo la ves tú.';
     const sel = trim
-      ? `<b>Trimestre ${esc(planDomingo.slice(-1))} de ${esc(planDomingo.slice(0, 4))}</b><span>${esc(textoTrim(planDomingo))}</span>`
-      : `<b>Revisión del ${esc(fechaLarga(planDomingo).toLowerCase())}</b><span>${esc(textoSemana(planDomingo))}</span>`;
-    planCaja.innerHTML = `<div class="franja-res"><h2>${PLAN_LOGO}${trim ? 'Plan trimestre' : 'Plan semana'}</h2></div>`
-      + `<div class="seg plan-modos"><button type="button" data-a="plan-modo" data-m="semana" class="${trim ? '' : 'on'}">Semana</button><button type="button" data-a="plan-modo" data-m="trimestre" class="${trim ? 'on' : ''}">Trimestre</button></div>`
+      ? `<b class="naranja">Planifica el ${ORD_TRIM[Number(planDomingo.slice(-1)) - 1]} trimestre de ${esc(planDomingo.slice(0, 4))}</b><span>${esc(textoTrim(planDomingo))} · revisión el ${esc(fechaLarga(ultimoDomingoTrim(Number(planDomingo.slice(0, 4)), Number(planDomingo.slice(-1)))).toLowerCase())}</span>`
+      : `<b class="naranja">Revisión del ${esc(fechaLarga(planDomingo).toLowerCase())}</b><span>${esc(textoSemana(planDomingo))}</span>`;
+    planCaja.innerHTML = `<div class="franja-res"><h2>${PLAN_LOGO}Planifica tu vida</h2></div>`
+      + `<div class="plan-modos2"><button type="button" data-a="plan-modo" data-m="semana" class="${trim ? '' : 'on'}" aria-pressed="${!trim}"><b>Semana</b><span>Próxima revisión semanal: ${esc(fechaLarga(proximaSemanal()).toLowerCase())}</span></button>`
+      + `<button type="button" data-a="plan-modo" data-m="trimestre" class="${trim ? 'on' : ''}" aria-pressed="${trim}"><b>Trimestral</b><span>Próxima revisión trimestral: ${esc(fechaLarga(proximaTrimestral()).toLowerCase())}</span></button></div>`
       + `<div class="plan-intro">${intro}</div>`
       + `<div class="plan-sem"><button type="button" data-a="plan-sem" data-d="-${trim ? 1 : 7}" aria-label="${trim ? 'Trimestre anterior' : 'Semana anterior'}">‹</button>`
       + `<div class="plan-sem-t">${sel}`
       + `${esHoy ? '' : `<button type="button" class="plan-hoy" data-a="plan-sem" data-d="hoy">${trim ? 'Volver al trimestre actual' : 'Volver a la de esta semana'}</button>`}</div>`
       + `<button type="button" data-a="plan-sem" data-d="${trim ? 1 : 7}" aria-label="${trim ? 'Trimestre siguiente' : 'Semana siguiente'}">›</button></div>`
       + '<div class="diario plan plan-form"><div class="reg-nota">Cargando…</div></div>'
-      + `<details class="sec plan-ant" data-sec="plan-ant"${abiertaPlan('ant') ? ' open' : ''}><summary>📚 Planes anteriores</summary><div class="sec-cuerpo"><div class="plan-lista"><div class="reg-nota">Cargando…</div></div></div></details>`;
+      + `<details class="sec plan-ant" data-sec="plan-ant"${abiertaPlan('ant') ? ' open' : ''}><summary>📚 ${trim ? 'Planes trimestrales anteriores' : 'Planes semanales anteriores'}</summary><div class="sec-cuerpo"><div class="plan-lista"><div class="reg-nota">Cargando…</div></div></div></details>`;
   }
   async function cargarPlan() {
     const dom = planDomingo; planDatos = {};
